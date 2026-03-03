@@ -39,34 +39,38 @@ export default defineConfig({
         //  • ui-libs      — Zustand, react-hot-toast & other small UI utilities
         // -----------------------------------------------------------------------
         manualChunks(id) {
-          // React core runtime
-          if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/')) {
-            return 'react-core';
-          }
+          // -----------------------------------------------------------------------
+          // NOTE: React DOM's internal scheduler creates cross-chunk circular deps
+          // when react/* and other node_modules are in separate named chunks.
+          // Solution: merge react + all small UI libs into one 'vendor' chunk.
+          // Firebase, Router, Query, and Icons are still isolated for cache wins.
+          // -----------------------------------------------------------------------
 
-          // React Router
+          // React Router (+ Remix Run runtime it ships with)
           if (id.includes('node_modules/react-router') || id.includes('node_modules/@remix-run')) {
             return 'router';
           }
 
-          // TanStack Query
+          // TanStack React Query
           if (id.includes('node_modules/@tanstack/')) {
             return 'query';
           }
 
-          // Firebase SDK — the heaviest dependency, must be isolated
+          // Firebase SDK — largest dep; isolated so app updates don't bust its cache
           if (id.includes('node_modules/firebase/') || id.includes('node_modules/@firebase/')) {
             return 'firebase';
           }
 
-          // Lucide icons
+          // Lucide icons — tree-shaken but still sizable; isolate for caching
           if (id.includes('node_modules/lucide-react/')) {
             return 'icons';
           }
 
-          // Everything else in node_modules (Zustand, axios, react-hot-toast, etc.)
+          // Everything else in node_modules:
+          // react, react-dom, scheduler, zustand, axios, react-hot-toast, etc.
+          // Bundled together to avoid react-dom scheduler circular dep warnings.
           if (id.includes('node_modules/')) {
-            return 'ui-libs';
+            return 'vendor';
           }
         },
 

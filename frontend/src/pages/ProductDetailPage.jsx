@@ -6,6 +6,22 @@ import VariantSelector from '../components/VariantSelector';
 import useCartStore from '../store/cartStore';
 import { Loader2, ArrowLeft, CheckCircle2, ShoppingBag } from 'lucide-react';
 
+/**
+ * ProductDetailPage
+ *
+ * Image Performance Strategy:
+ *  • loading="eager"   — The hero product image IS above the fold; setting eager
+ *                         tells the browser to prioritize it immediately, which
+ *                         directly improves LCP (Largest Contentful Paint).
+ *  • fetchpriority="high" — A Resource Hints hint that bumps this image in the
+ *                         browser's internal request priority queue (Chromium).
+ *  • decoding="async"  — Keeps the main thread clear during image decode.
+ *  • WebP note: If your backend serves images, configure it to detect the
+ *               Accept header for "image/webp" and transcode on the fly using
+ *               Sharp or Imagemagick. If using a CDN (e.g. Cloudinary / imgix),
+ *               append `?f=webp&q=80` to the image URL for automatic format
+ *               negotiation and ~40% payload reduction vs JPEG.
+ */
 export default function ProductDetailPage() {
     const { id } = useParams();
     const [selectedVariant, setSelectedVariant] = useState(null);
@@ -16,6 +32,9 @@ export default function ProductDetailPage() {
         queryKey: ['product', id],
         queryFn: () => getProductById(id),
         enabled: !!id,
+        // Narrowly subscribe to only the fields this component cares about,
+        // preventing re-renders when unrelated parts of query state change.
+        notifyOnChangeProps: ['data', 'isLoading', 'isError', 'error'],
     });
 
     if (isLoading) {
@@ -63,12 +82,12 @@ export default function ProductDetailPage() {
         });
 
         setShowSuccess(true);
-        setTimeout(() => setShowSuccess(false), 3000); // Hide toast after 3s
+        setTimeout(() => setShowSuccess(false), 3000);
     };
 
     const isAddToCartDisabled = !selectedVariant || selectedVariant.stock <= 0;
 
-    // Real-time UI price 
+    // Real-time UI price
     const displayPrice = selectedVariant?.price
         ? parseFloat(selectedVariant.price)
         : parseFloat(product.basePrice);
@@ -91,6 +110,15 @@ export default function ProductDetailPage() {
                             <img
                                 src={product.imageUrl}
                                 alt={product.name}
+                                // ✅ EAGER loading — this IS the LCP element; fetch it immediately
+                                loading="eager"
+                                // ✅ High fetch priority for Chromium-based browsers
+                                fetchPriority="high"
+                                // ✅ Async decoding keeps main thread free
+                                decoding="async"
+                                // Explicit dimensions prevent layout shift (CLS improvement)
+                                width={600}
+                                height={600}
                                 className="w-full max-w-xl h-auto object-contain drop-shadow-2xl hover:scale-105 transition-transform duration-500"
                             />
                         ) : (
