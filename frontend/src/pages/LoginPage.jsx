@@ -15,7 +15,7 @@ import useAuthStore from '../store/authStore';
 const googleProvider = new GoogleAuthProvider();
 
 export default function LoginPage() {
-    const [email, setEmail]] = useState('');
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [errorMsg, setErrorMsg] = useState(null);

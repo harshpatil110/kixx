@@ -301,96 +301,139 @@ Import the Zustand useCartStore.
 
 Implement the "Add to Cart" button: Validate stock, trigger addItem({ ...product, variantId: selected.id, quantity: 1 }), and show a success/error toast or message.
 
-- [ ] 13. Implement shopping cart UI components
-  - [ ] 13.1 Create CartItem component
-    - Create `/src/components/CartItem.jsx`
-    - Display product name, size, color, price, and quantity
-    - Implement quantity input with increment/decrement buttons
-    - Call cart store updateQuantity action on quantity change
-    - Implement remove button that calls cart store removeItem action
-    - Display item subtotal (price * quantity)
-    - _Requirements: 4.2, 4.3_
-  - [ ] 13.2 Create CartPage
-    - Create `/src/pages/CartPage.jsx`
-    - Get cart items from cart store
-    - Render CartItem component for each cart item
-    - Display total price from cart store getTotalPrice selector
-    - Display empty cart message when cart is empty
-    - Add "Continue Shopping" button to navigate back to home
-    - Add "Proceed to Checkout" button to navigate to checkout page
-    - Disable checkout button when cart is empty
-    - _Requirements: 4.1, 4.2, 4.3, 4.4, 10.4_
+Redefined Task 13: Implement Shopping Cart UI Components (Zustand Integrated)
+[ ] 13.1 Create CartItem component
 
-- [ ] 14. Implement checkout and order UI components
-  - [ ] 14.1 Create CheckoutPage
-    - Create `/src/pages/CheckoutPage.jsx` (protected route)
-    - Display order summary with cart items and total price
-    - Create payment form with fields for payment method selection
-    - Add mock payment details inputs (card number, expiry, CVV)
-    - Implement form validation for payment fields
-    - Use React Query mutation to call createOrder API with cart items
-    - On successful order creation, call processPayment API with order ID
-    - Clear cart using cart store clearCart action after successful payment
-    - Display loading state during order processing
-    - Redirect to order confirmation page with order ID on success
-    - Display error message if order creation or payment fails
-    - _Requirements: 5.1, 5.2, 5.3, 6.1, 6.2, 6.3, 10.5_
-  - [ ] 14.2 Create OrderConfirmationPage
-    - Create `/src/pages/OrderConfirmationPage.jsx` (protected route)
-    - Get order ID from URL parameter
-    - Use React Query to fetch order details
-    - Display order ID, status, total price, and creation date
-    - Display list of ordered items with product names, quantities, and prices
-    - Add button to view full order history
-    - Add button to continue shopping
-    - _Requirements: 6.2, 7.2, 7.3_
-  - [ ] 14.3 Create OrderHistoryPage
-    - Create `/src/pages/OrderHistoryPage.jsx` (protected route)
-    - Get user ID from auth store
-    - Use React Query to fetch user's orders
-    - Display orders in a list sorted by date (newest first)
-    - Show order ID, date, status, and total price for each order
-    - Add click handler to navigate to order detail page
-    - Display empty state message when user has no orders
-    - _Requirements: 7.1, 7.2, 7.5_
-  - [ ] 14.4 Create OrderDetailPage
-    - Create `/src/pages/OrderDetailPage.jsx` (protected route)
-    - Get order ID from URL parameter
-    - Use React Query to fetch order details
-    - Display complete order information including status, total, and date
-    - Display all order items with product details, quantities, and prices
-    - Add button to return to order history
-    - _Requirements: 7.3, 7.4_
+Create /src/components/CartItem.jsx.
 
-- [ ] 15. Implement navigation and layout components
-  - [ ] 15.1 Create Navbar component
-    - Create `/src/components/Navbar.jsx`
-    - Display KIXX logo/brand name with link to home page
-    - Add navigation links for Home and Orders (show Orders only when authenticated)
-    - Display cart icon with item count badge from cart store
-    - Add user menu dropdown showing user name when authenticated
-    - Include Logout button in user menu that calls auth store logout action
-    - Display Login/Register buttons when not authenticated
-    - Style with Tailwind CSS for responsive design
-    - _Requirements: 10.1, 10.4_
-  - [ ] 15.2 Create App routing structure
-    - Update `/src/App.jsx` to set up React Router
-    - Define routes: / (HomePage), /login (LoginPage), /register (RegisterPage), /products/:id (ProductDetailPage), /cart (CartPage), /checkout (CheckoutPage, protected), /orders (OrderHistoryPage, protected), /orders/:id (OrderDetailPage, protected), /order-confirmation/:id (OrderConfirmationPage, protected)
-    - Wrap protected routes with ProtectedRoute component
-    - Include Navbar component in layout
-    - Initialize auth store on app mount to restore authentication state
-    - _Requirements: 10.1, 10.2, 10.3, 10.4, 10.5_
+Accept an item object as a prop (containing variantId, productName, size, color, price, quantity, stock, imageUrl).
 
-- [ ] 16. Create database seed script for development
-  - [ ] 16.1 Create seed data script
-    - Create `/src/scripts/seedData.js`
-    - Create sample brands (Nike, Adidas, Puma, New Balance)
-    - Create sample products for each brand with descriptions and prices
-    - Create multiple variants for each product with different sizes and colors
-    - Set realistic stock quantities for variants
-    - Create admin user account for testing
-    - Add script command to package.json: `npm run seed`
-    - _Requirements: 2.1, 2.2, 2.3_
+Display the product image, name, size, color, and individual price.
+
+Implement quantity input with + and - buttons. Disable the + button if quantity >= stock.
+
+Call the Zustand store's updateQuantity(variantId, newQuantity) action on change.
+
+Implement a remove button (trash icon) that calls removeItem(variantId).
+
+Display the item subtotal (price * quantity).
+
+[ ] 13.2 Create CartPage
+
+Create /src/pages/CartPage.jsx.
+
+Connect to the Zustand store to pull items, getTotalPrice, and getItemCount.
+
+Handle the empty state: Display a friendly message and a "Continue Shopping" button navigating to / or /products.
+
+Handle the populated state: Render a list/grid of CartItem components on the left, and an "Order Summary" card on the right.
+
+Display the total price dynamically.
+
+Add a "Proceed to Checkout" button (Maroon) that navigates to /checkout. Disable it if the cart is empty.
+
+
+- Redefined Task 14: Implement Checkout and Order UI Components (Firebase & Drizzle Adapted)
+[ ] 14.1 Create CheckoutPage
+
+Create /src/pages/CheckoutPage.jsx.
+
+Assume this page is rendered inside the ProtectedRoute component.
+
+Display an order summary pulling from the Zustand cartStore.
+
+Create a mock payment form (Card Number, Expiry, CVV).
+
+Use React Query useMutation to sequentially call orderService.createOrder(cartItems) and then orderService.processPayment(orderId, paymentDetails).
+
+On success: Call clearCart() from Zustand and use Maps to redirect to /order-confirmation/:id.
+
+Display loading spinners during the transaction.
+
+[ ] 14.2 Create OrderConfirmationPage
+
+Create /src/pages/OrderConfirmationPage.jsx.
+
+Extract the order ID from the URL (useParams).
+
+Use useQuery to fetch orderService.getOrderById(id).
+
+Display a success graphic, the orderId, status, and totalPrice.
+
+Provide "View Order History" and "Continue Shopping" buttons.
+
+[ ] 14.3 Create OrderHistoryPage
+
+Create /src/pages/OrderHistoryPage.jsx.
+
+Pull the user.id from the Zustand authStore.
+
+Use useQuery to fetch orderService.getUserOrders(userId).
+
+Map through the returned orders (expecting Drizzle's nested JSON structure) and display a summary card for each.
+
+Link each card to the OrderDetailPage.
+
+[ ] 14.4 Create OrderDetailPage
+
+Create /src/pages/OrderDetailPage.jsx.
+
+Use useQuery to fetch orderService.getOrderById(id).
+
+Display the complete order metadata (date, status, total).
+
+Map through order.items to display individual line items, safely accessing nested variant/product data.
+
+
+- [ ] Redefined Task 15: Implement Navigation and Layout Components (Firebase Adapted)
+[ ] 15.1 Create Navbar component
+
+Create /src/components/Navbar.jsx.
+
+Display KIXX brand with a link to /.
+
+Connect to Zustand cartStore to get the getItemCount and display a dynamic badge over a Shopping Cart icon.
+
+Connect to Zustand authStore to get isAuthenticated and user.
+
+CRITICAL CHANGE: The Logout button must call Firebase's signOut(auth) first, and upon success, call the Zustand clearAuth() action.
+
+Display "Orders" link and a User Menu if authenticated; otherwise, display Login/Register buttons.
+
+Style with the Maroon, White, and Beige Tailwind theme.
+
+[ ] 15.2 Create App routing structure
+
+Update /src/App.jsx.
+
+Wrap the application in React Router v6 (BrowserRouter).
+
+CRITICAL CHANGE: Implement a useEffect block containing Firebase's onAuthStateChanged listener. When the app loads, this listener will detect the active Firebase session and update the Zustand authStore accordingly.
+
+Define the route map, protecting the Checkout and Order pages with the ProtectedRoute component from Task 11.
+
+Ensure the Navbar sits outside the <Routes> so it renders on every page.
+
+
+- [ ] [ ] 16.1 Create seed data script
+
+Create /src/scripts/seed.js.
+
+Load environment variables using dotenv so it can access DATABASE_URL.
+
+Import the initialized Drizzle database instance and your schema definitions.
+
+Implement a clean-up step: Delete existing data in reverse relational order (Variants -> Products -> Brands -> Users) to prevent foreign key constraint errors during repeatable seeds.
+
+Insert sample Brands (Nike, Adidas, Puma, New Balance) using db.insert().values().returning() to capture their generated IDs.
+
+Use those generated Brand IDs to insert sample Products (with descriptions and base prices).
+
+Use the generated Product IDs to insert multiple Variants (size, color, realistic stock quantities).
+
+Insert an Admin user account directly into the database (e.g., admin@kixx.com with role admin) so the profile exists when you log in via Firebase.
+
+Add a script command to package.json: "seed": "node src/scripts/seed.js".
 
 - [ ] 17. Configure environment variables and documentation
   - [ ] 17.1 Create environment configuration files

@@ -33,3 +33,14 @@ export const getUserOrders = async (userId) => {
     const response = await api.get(`/api/orders/user/${userId}`);
     return response.data;
 };
+
+/**
+ * Fetches a single order by its ID.
+ *
+ * @param {string|number} orderId - The precise order ID.
+ * @returns {Promise<Object>} The order details inclusive of items.
+ */
+export const getOrderById = async (orderId) => {
+    const response = await api.get(`/api/orders/${orderId}`);
+    return response.data;
+};
