@@ -1,3 +1,4 @@
+require('./dnsHack');
 require('dotenv').config();
 const { drizzle } = require('drizzle-orm/postgres-js');
 const postgres = require('postgres');

@@ -1,5 +1,5 @@
 const { eq, and } = require('drizzle-orm');
-const db = require('../db/index');
+const { db } = require('../db/index');
 const { products, productVariants } = require('../db/schema');
 
 class ProductService {

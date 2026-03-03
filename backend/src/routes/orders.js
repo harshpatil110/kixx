@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const OrderService = require('../services/OrderService');
 const { verifyToken } = require('../middleware/auth');
-const db = require('../db/index');
+const { db } = require('../db/index');
 const { users } = require('../db/schema');
 const { eq } = require('drizzle-orm');
 

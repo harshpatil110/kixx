@@ -1,3 +1,4 @@
+require('./src/db/dnsHack');
 require('dotenv').config();
 const { defineConfig } = require('drizzle-kit');
 

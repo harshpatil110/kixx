@@ -1,5 +1,5 @@
 const { eq } = require('drizzle-orm');
-const db = require('../db/index');
+const { db } = require('../db/index');
 const { users } = require('../db/schema');
 
 class AuthService {
