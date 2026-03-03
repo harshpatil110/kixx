@@ -435,33 +435,50 @@ Insert an Admin user account directly into the database (e.g., admin@kixx.com wi
 
 Add a script command to package.json: "seed": "node src/scripts/seed.js".
 
-- [ ] 17. Configure environment variables and documentation
-  - [ ] 17.1 Create environment configuration files
-    - Create backend `.env.example` with all required variables (DB_HOST, DB_NAME, DB_USER, DB_PASSWORD, DB_PORT, JWT_SECRET, PORT, NODE_ENV)
-    - Create frontend `.env.example` with API base URL (VITE_API_URL)
-    - Add `.env` to `.gitignore` for both projects
-    - _Requirements: 9.4_
-  - [ ] 17.2 Create README documentation
-    - Create backend `README.md` with setup instructions, environment variables, and API endpoint documentation
-    - Create frontend `README.md` with setup instructions and available scripts
-    - Document database schema and relationships
-    - Include instructions for running seed script
-    - _Requirements: 9.1, 9.2, 9.3_
+- [ ] task 17: Configure Environment Variables and Documentation (Drizzle & Firebase Adapted)
+[ ] 17.1 Create environment configuration files
 
-- [ ] 18. Implement error handling and validation
-  - [ ] 18.1 Create validation middleware
-    - Create `/src/middleware/validation.js` with reusable validation chains
-    - Define validation for email format, password strength, UUID format
-    - Create validation error handler middleware
-    - _Requirements: 9.4_
-  - [ ] 18.2 Add comprehensive error handling
-    - Update all route handlers to use try-catch blocks
-    - Return appropriate HTTP status codes (400, 401, 403, 404, 500)
-    - Format error responses consistently with error code and message
-    - Log errors to console in development mode
-    - _Requirements: 9.4, 9.5_
-  - [ ] 18.3 Implement frontend error boundaries
-    - Create error boundary component for React Query errors
-    - Add toast notification system for displaying errors and success messages
-    - Implement retry logic in React Query configuration
-    - _Requirements: 10.1_
+Create backend .env.example replacing old DB fields with a single DATABASE_URL for Neon DB. Replace JWT_SECRET with Firebase Admin credentials (FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY).
+
+Create frontend .env.example with VITE_API_URL and the standard Firebase Client configuration variables (API Key, Auth Domain, etc.).
+
+Ensure .gitignore ignores the real .env files in both directories.
+
+[ ] 17.2 Create README documentation
+
+Create backend README.md. It must document the Modular Monolith architecture, how to generate the Firebase Service Account JSON, how to push the Drizzle schema (npx drizzle-kit push), and how to run the seed script (npm run seed). Include an API endpoint summary.
+
+Create frontend README.md. Document the React + Vite setup, Tailwind CSS theme, Zustand global state, and how to configure the Firebase client.
+
+Document the core database schema (Users, Brands, Products, Product Variants, Orders, Order Items) .
+
+- [ ]   task 18: Implement Error Handling and Validation (Firebase & Drizzle Adapted)
+[ ] 18.1 Create validation middleware (Backend)
+
+Create /src/middleware/validation.js.
+
+CRITICAL CHANGE: Remove password/email validation.
+
+Implement a validateUUID middleware to check req.params.id before it hits Drizzle (preventing database crash errors).
+
+Implement a validateOrderPayload middleware to ensure req.body.items is a valid array with variantId and quantity before attempting a transaction.
+
+[ ] 18.2 Add comprehensive error handling (Backend)
+
+Create a utility /src/utils/asyncHandler.js to wrap route controllers. This eliminates the need to write try-catch blocks in every single route.
+
+Create a global error handler in /src/middleware/errorHandler.js.
+
+Map specific errors to HTTP codes (e.g., Firebase Token Expired -> 401, Drizzle Record Not Found -> 404, Generic -> 500).
+
+Format all responses consistently as { error: true, message: "..." }.
+
+[ ] 18.3 Implement frontend error boundaries & notifications
+
+Install a lightweight toast library like react-hot-toast or sonner.
+
+Update the React frontend (App.jsx or main.jsx) to include the <Toaster /> component.
+
+Create a global Axios response interceptor that automatically triggers a red error toast if an API request returns a 400 or 500-level error.
+
+Display green success toasts for actions like "Added to Cart" or "Payment Successful".
