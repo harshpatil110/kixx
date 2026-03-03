@@ -89,28 +89,7 @@
     - Export models object for use in services
     - _Requirements: 8.5_
 
-- [ ] 5. Implement authentication service and routes
-  - [ ] 5.1 Create AuthService class
-    - Create `/src/services/AuthService.js`
-    - Implement `register(email, password, name)` method with bcrypt hashing (cost factor 10)
-    - Implement `login(email, password)` method with password verification and JWT generation
-    - Implement `verifyToken(token)` method to decode and validate JWT
-    - Configure JWT with 24-hour expiration and include userId, email, role in payload
-    - _Requirements: 1.1, 1.2, 1.4, 1.5_
-  - [ ] 5.2 Create JWT authentication middleware
-    - Create `/src/middleware/auth.js`
-    - Implement middleware to extract JWT from Authorization header
-    - Verify token using AuthService and attach user data to request object
-    - Return 401 error for missing or invalid tokens
-    - _Requirements: 1.5, 9.5_
-  - [ ] 5.3 Create authentication routes
-    - Create `/src/routes/auth.js` with Express router
-    - Implement POST `/api/auth/register` endpoint with request validation
-    - Implement POST `/api/auth/login` endpoint with request validation
-    - Use express-validator to validate email format and password requirements
-    - Return user object (without password) and JWT token on success
-    - Handle duplicate email error and return appropriate error message
-    - _Requirements: 1.1, 1.2, 1.3, 9.1, 9.4_
+
 
 - [ ] 6. Implement product service and routes
   - [ ] 6.1 Create ProductService class
