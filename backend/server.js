@@ -48,7 +48,7 @@ const ENV = process.env.NODE_ENV || 'development';
 const startServer = async () => {
     try {
         // Verify database connection using Drizzle
-        //await db.execute(sql`SELECT 1`);
+        await db.execute(sql`SELECT 1`);
         console.log('✅ Connected to Neon DB successfully. Database is reachable.');
 
         // Start the Express server

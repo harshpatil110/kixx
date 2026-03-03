@@ -1,12 +1,12 @@
 require('dotenv').config();
-const { neon } = require('@neondatabase/serverless');
-const { drizzle } = require('drizzle-orm/neon-http');
-const schema = require('./schema'); // will be created in Task 3
+const { drizzle } = require('drizzle-orm/postgres-js');
+const postgres = require('postgres');
+const schema = require('./schema');
 
-// Neon provides a serverless PostgreSQL connection driver
-const sql = neon(process.env.DATABASE_URL);
+// Initialize postgres connection
+const client = postgres(process.env.DATABASE_URL, { prepare: false });
 
-// Initialize drizzle with the neon sql connection and schema
-const db = drizzle(sql, { schema });
+// Initialize drizzle
+const db = drizzle(client, { schema });
 
 module.exports = db;
