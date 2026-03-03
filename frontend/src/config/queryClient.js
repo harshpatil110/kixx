@@ -2,53 +2,58 @@ import { QueryClient } from '@tanstack/react-query';
 import { getProductById } from '../services/productService';
 
 // ---------------------------------------------------------------------------
-// Centralized React Query client
+// Neon DB Cold-Start Aware Retry Strategy
 //
-// Key caching decisions:
-//  • staleTime 5 min  — Product data is treated as fresh for 5 minutes.
-//                        React Query will NOT fire a background refetch for
-//                        any 'products' or 'product' query within this window,
-//                        eliminating wasteful network requests on route changes.
-//  • gcTime    10 min — Inactive (unmounted) query results stay in memory for
-//                        10 minutes. If the user navigates away and comes back,
-//                        the data is instantly available from the cache instead
-//                        of triggering a loading state.
-//  • retry     1      — Retry failed network requests once before surfacing an
-//                        error to the UI — avoids hammering on transient 500s.
-//  • refetchOnWindowFocus false — Prevents silent background refetches when the
-//                        user alt-tabs back to the browser.
+// Problem: Neon serverless computes pause after inactivity. The first request
+// during a cold start can take 1-5 seconds and often returns a 500/503 while
+// the compute wakes up. With retry: 1, the frontend gives up too early.
+//
+// Solution — Exponential backoff with jitter:
+//  • retry: 3        → up to 3 silent background retries before showing error
+//  • retryDelay      → waits 1s, 2s, 4s between attempts (capped at 30s)
+//                       This mirrors the backend's own retry schedule and gives
+//                       Neon enough time to resume its compute.
+//  • staleTime 5min  → once data is fetched, no redundant refetches within window
+//  • gcTime 10min    → cached data survives route navigation
+//  • refetchOnWindowFocus false → no silent refetches on tab focus
+//
+// The key insight: the user sees the skeleton loader for ~3-5 extra seconds
+// (Neon wake-up time), then the catalog appears — no manual refresh needed.
 // ---------------------------------------------------------------------------
+
 const queryClient = new QueryClient({
     defaultOptions: {
         queries: {
-            staleTime: 5 * 60 * 1000,    // 5 minutes — data is "fresh"
-            gcTime: 10 * 60 * 1000,      // 10 minutes — keep in memory after unmount
-            retry: 1,
+            staleTime: 5 * 60 * 1000,   // 5 minutes — data is "fresh"
+            gcTime: 10 * 60 * 1000,     // 10 minutes — keep in memory after unmount
             refetchOnWindowFocus: false,
+
+            // 3 retries with exponential back-off — Neon cold-start resilience
+            retry: 3,
+            retryDelay: (attempt) =>
+                // attempt is 1-indexed: 1→1000ms, 2→2000ms, 3→4000ms, caps at 30s
+                Math.min(attempt > 1 ? 2 ** attempt * 1000 : 1000, 30 * 1000),
         },
         mutations: {
+            // Mutations (POST/PUT/DELETE) should never retry automatically —
+            // they are not idempotent and retrying could cause duplicate orders.
             retry: 0,
         },
     },
 });
 
 // ---------------------------------------------------------------------------
-// Prefetch helper for ProductCard hover prefetching
+// Hover Prefetch — fires when user hovers a ProductCard
 //
-// Usage: call prefetchProduct(id) inside an onMouseEnter handler.
-// React Query will only fire the request if the data isn't already cached
-// and fresh, so this is safe to call aggressively.
-//
-// This means by the time the user clicks the card and React navigates to
-// /product/:id, the data is already sitting in the cache. With the 5-min
-// staleTime, subsequent visits within the window cost zero network requests.
+// React Query will only send the request if data isn't already cached & fresh.
+// Safe to call aggressively (onMouseEnter fires many times; it's a no-op when
+// the data is already in cache within the 5-minute staleTime window).
 // ---------------------------------------------------------------------------
 export const prefetchProduct = (id) => {
     if (!id) return;
     queryClient.prefetchQuery({
         queryKey: ['product', String(id)],
         queryFn: () => getProductById(id),
-        // Don't prefetch if data is already fresh in the cache
         staleTime: 5 * 60 * 1000,
     });
 };
