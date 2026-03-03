@@ -107,27 +107,31 @@
     - Return 404 error when product not found
     - _Requirements: 3.1, 3.2, 3.4, 9.2, 9.4_
 
-- [ ] 7. Implement order service and routes
-  - [ ] 7.1 Create OrderService class
-    - Create `/src/services/OrderService.js`
-    - Implement `createOrder(userId, cartItems)` method that creates Order and OrderItem records in a transaction
-    - Calculate totalPrice by summing (variant.price * quantity) for all items
-    - Validate that all variants exist and have sufficient stock before creating order
-    - Implement `processPayment(orderId, paymentDetails)` method with mock payment gateway
-    - Update order status to "paid" and reduce variant stock quantities on successful payment
-    - Implement `getUserOrders(userId)` method to retrieve all orders for a user with order items
-    - Implement `getOrderById(orderId, userId)` method with authorization check
-    - _Requirements: 5.1, 5.2, 5.3, 5.5, 6.1, 6.2, 6.5, 7.1, 7.3_
-  - [ ] 7.2 Create order routes
-    - Create `/src/routes/orders.js` with Express router
-    - Implement POST `/api/orders` endpoint (protected) to create order from cart items
-    - Validate request body contains items array with variantId and quantity
-    - Implement POST `/api/orders/:id/payment` endpoint (protected) to process payment
-    - Implement GET `/api/orders/user/:userId` endpoint (protected) to retrieve user's order history
-    - Implement GET `/api/orders/:id` endpoint (protected) to retrieve single order details
-    - Add authorization middleware to ensure users can only access their own orders
-    - Return orders sorted by createdAt in descending order
-    - _Requirements: 5.1, 5.2, 6.1, 6.3, 6.4, 7.1, 7.2, 7.3, 7.4, 7.5, 9.3, 9.5_
+[ ] 7.1 Create OrderService class
+
+Create /src/services/OrderService.js
+
+Import the initialized Drizzle database instance and necessary operators (eq, desc, inArray, sql) from drizzle-orm.
+
+Implement createOrder(userId, cartItems) method using Drizzle's db.transaction(async (tx) => { ... }). Inside the transaction: fetch variants to validate stock and calculate totalPrice, insert the orders record, and insert the order_items records.
+
+Implement processPayment(orderId, paymentDetails) method using a transaction. It should simulate a mock payment gateway (like Razorpay/Stripe). On success, use tx.update() to change order status to "paid" and decrement the stock in product_variants using sql\stock - ${quantity}``.
+
+Implement getUserOrders(userId) method using db.query.orders.findMany. Use with: { items: { with: { variant: true } } } for eager loading and orderBy: [desc(orders.createdAt)] for sorting.
+
+Implement getOrderById(orderId, userId) method with an authorization check to ensure the order belongs to the requesting user.
+
+[ ] 7.2 Create order routes
+
+Create /src/routes/orders.js with Express router.
+
+Import the Firebase Auth middleware created in Task 5 to protect all these routes.
+
+Implement POST /api/orders endpoint. Validate that the request body contains an items array with variantId and quantity. Extract userId from the decoded Firebase req.user.
+
+Implement POST /api/orders/:id/payment endpoint to process the mock payment.
+
+Implement GET /api/orders/user/:userId endpoint. Add middleware logic to ensure req.user.uid (or your internal DB ID) matches the requested :userId param to prevent users from fetching others' histories.
 
 - [ ] 8. Configure Express server and middleware
   - [ ] 8.1 Set up Express application
