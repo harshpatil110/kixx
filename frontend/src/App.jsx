@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { onAuthStateChanged } from 'firebase/auth';
 
@@ -7,18 +7,37 @@ import useAuthStore from './store/authStore';
 
 import Navbar from './components/Navbar';
 import ProtectedRoute from './components/ProtectedRoute';
-
-import HomePage from './pages/HomePage';
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
-import ProductDetailPage from './pages/ProductDetailPage';
-import CartPage from './pages/CartPage';
-import CheckoutPage from './pages/CheckoutPage';
-import OrderHistoryPage from './pages/OrderHistoryPage';
-import OrderDetailPage from './pages/OrderDetailPage';
-import OrderConfirmationPage from './pages/OrderConfirmationPage';
+import {
+  HomePageSkeleton,
+  ProductDetailSkeleton,
+  GenericPageSkeleton,
+  ListPageSkeleton,
+} from './components/PageSkeleton';
 
 import { Toaster } from 'react-hot-toast';
+
+// ---------------------------------------------------------------------------
+// Route-Based Code Splitting via React.lazy()
+// Each page becomes its own JS chunk — only downloaded when the user
+// navigates to that route, dramatically reducing the initial bundle size.
+// ---------------------------------------------------------------------------
+
+// Critical path (likely first visit) — split but kept together
+const HomePage = lazy(() => import('./pages/HomePage'));
+const ProductDetailPage = lazy(() => import('./pages/ProductDetailPage'));
+
+// Auth pages — only needed when not logged in
+const LoginPage = lazy(() => import('./pages/LoginPage'));
+const RegisterPage = lazy(() => import('./pages/RegisterPage'));
+
+// Cart (public but rarely the entry point)
+const CartPage = lazy(() => import('./pages/CartPage'));
+
+// Protected / post-order pages — lowest priority
+const CheckoutPage = lazy(() => import('./pages/CheckoutPage'));
+const OrderHistoryPage = lazy(() => import('./pages/OrderHistoryPage'));
+const OrderDetailPage = lazy(() => import('./pages/OrderDetailPage'));
+const OrderConfirmationPage = lazy(() => import('./pages/OrderConfirmationPage'));
 
 export default function App() {
   const { setAuth, setAuthLoading, clearAuth } = useAuthStore();
@@ -48,18 +67,81 @@ export default function App() {
         <main className="flex-grow">
           <Routes>
             {/* Public Routes */}
-            <Route path="/" element={<HomePage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path="/product/:id" element={<ProductDetailPage />} />
-            <Route path="/cart" element={<CartPage />} />
+            <Route
+              path="/"
+              element={
+                <Suspense fallback={<HomePageSkeleton />}>
+                  <HomePage />
+                </Suspense>
+              }
+            />
+            <Route
+              path="/login"
+              element={
+                <Suspense fallback={<GenericPageSkeleton />}>
+                  <LoginPage />
+                </Suspense>
+              }
+            />
+            <Route
+              path="/register"
+              element={
+                <Suspense fallback={<GenericPageSkeleton />}>
+                  <RegisterPage />
+                </Suspense>
+              }
+            />
+            <Route
+              path="/product/:id"
+              element={
+                <Suspense fallback={<ProductDetailSkeleton />}>
+                  <ProductDetailPage />
+                </Suspense>
+              }
+            />
+            <Route
+              path="/cart"
+              element={
+                <Suspense fallback={<ListPageSkeleton />}>
+                  <CartPage />
+                </Suspense>
+              }
+            />
 
             {/* Protected Routes */}
             <Route element={<ProtectedRoute />}>
-              <Route path="/checkout" element={<CheckoutPage />} />
-              <Route path="/orders" element={<OrderHistoryPage />} />
-              <Route path="/order/:id" element={<OrderDetailPage />} />
-              <Route path="/order-confirmation/:id" element={<OrderConfirmationPage />} />
+              <Route
+                path="/checkout"
+                element={
+                  <Suspense fallback={<GenericPageSkeleton />}>
+                    <CheckoutPage />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="/orders"
+                element={
+                  <Suspense fallback={<ListPageSkeleton />}>
+                    <OrderHistoryPage />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="/order/:id"
+                element={
+                  <Suspense fallback={<ListPageSkeleton />}>
+                    <OrderDetailPage />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="/order-confirmation/:id"
+                element={
+                  <Suspense fallback={<GenericPageSkeleton />}>
+                    <OrderConfirmationPage />
+                  </Suspense>
+                }
+              />
             </Route>
 
             {/* Fallback 404 Route */}
