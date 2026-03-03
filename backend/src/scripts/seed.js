@@ -1,5 +1,5 @@
 require('dotenv').config();
-const db = require('../db/index');
+const { db, queryClient } = require('../db/index');
 const {
     users,
     brands,
@@ -90,11 +90,12 @@ async function runSeed() {
     console.log(`✅ Created ${insertedVariants.length} product variants with generated stocks.`);
 
     console.log('🎉 Database Seeding Complete!');
+    await queryClient.end();
 }
 
 runSeed()
     .then(() => process.exit(0))
     .catch((err) => {
         console.error('❌ Database Seeding Failed:', err);
-        process.exit(1);
+        queryClient.end().then(() => process.exit(1));
     });

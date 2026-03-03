@@ -4,7 +4,7 @@ const cors = require('cors');
 const { sql } = require('drizzle-orm');
 
 // Import database instance
-const db = require('./src/db/index');
+const { db } = require('./src/db/index');
 
 // Import routes
 const authRoutes = require('./src/routes/auth');

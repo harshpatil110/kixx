@@ -4,9 +4,10 @@ const postgres = require('postgres');
 const schema = require('./schema');
 
 // Initialize postgres connection
-const client = postgres(process.env.DATABASE_URL, { prepare: false });
+const queryClient = postgres(process.env.DATABASE_URL);
 
 // Initialize drizzle
-const db = drizzle(client, { schema });
+const db = drizzle(queryClient, { schema });
 
-module.exports = db;
+// Export db and queryClient for tasks like seed scripts
+module.exports = { db, queryClient };
