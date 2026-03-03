@@ -133,27 +133,35 @@ Implement POST /api/orders/:id/payment endpoint to process the mock payment.
 
 Implement GET /api/orders/user/:userId endpoint. Add middleware logic to ensure req.user.uid (or your internal DB ID) matches the requested :userId param to prevent users from fetching others' histories.
 
-- [ ] 8. Configure Express server and middleware
-  - [ ] 8.1 Set up Express application
-    - Update `/server.js` to configure Express middleware
-    - Add body-parser middleware for JSON requests
-    - Configure CORS with allowed origins from environment variable
-    - Add request logging middleware for development
-    - Set up error handling middleware to catch and format errors
-    - _Requirements: 9.4_
-  - [ ] 8.2 Register API routes
-    - Import and register auth routes at `/api/auth`
-    - Import and register product routes at `/api/products`
-    - Import and register order routes at `/api/orders`
-    - Add 404 handler for undefined routes
-    - _Requirements: 9.1, 9.2, 9.3_
-  - [ ] 8.3 Create server startup script
-    - Initialize database connection and sync models on server start
-    - Start Express server on port from environment variable (default 5000)
-    - Add graceful shutdown handler for database connection
-    - Log server URL and environment on successful startup
-    - _Requirements: 9.4_
+- [ ] 8.1 Set up Express application
 
+Update /server.js (or create /src/app.js) to configure Express middleware.
+
+Add express.json() middleware for JSON requests.
+
+Configure cors with allowed origins from the environment variable.
+
+Set up a global error handling middleware (err, req, res, next) to catch and format API errors consistently.
+
+[ ] 8.2 Register API routes
+
+Import and mount auth routes at /api/auth.
+
+Import and mount product routes at /api/products.
+
+Import and mount order routes at /api/orders.
+
+Add a 404 handler middleware for undefined routes.
+
+[ ] 8.3 Create server startup script
+
+CRITICAL CHANGE: Remove all Sequelize db.sync() logic.
+
+Instead, perform a lightweight Drizzle ping (e.g., SELECT 1) to verify the Neon DB connection on startup.
+
+Start the Express server on process.env.PORT (default 5000).
+
+Log the server URL and environment on successful startup.
 - [ ] 9. Implement frontend API client and React Query setup
   - [ ] 9.1 Create Axios API client
     - Create `/src/services/api.js` with Axios instance
