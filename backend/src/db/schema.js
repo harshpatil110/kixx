@@ -1,9 +1,13 @@
-const { pgTable, uuid, varchar, text, decimal, integer, timestamp, pgEnum } = require('drizzle-orm/pg-core');
+const { pgTable, uuid, varchar, text, decimal, integer, timestamp, boolean, pgEnum } = require('drizzle-orm/pg-core');
 const { relations } = require('drizzle-orm');
 
 // ENUMS
 const roleEnum = pgEnum('role', ['user', 'admin']);
 const orderStatusEnum = pgEnum('status', ['pending', 'paid', 'shipped', 'delivered', 'cancelled']);
+
+// Future Phase ENUMS
+const conditionEnum = pgEnum('condition', ['new', 'like_new', 'good', 'fair']);
+const listingStatusEnum = pgEnum('listing_status', ['active', 'sold', 'cancelled']);
 
 // 3.1 User Model
 const users = pgTable('users', {
@@ -73,9 +77,48 @@ const orderItems = pgTable('order_items', {
 });
 
 
+// ----------------------------------------------------
+// FUTURE PHASE MODELS
+// ----------------------------------------------------
+
+// 4.1 ResaleListing Model (Future Phase)
+const resaleListings = pgTable('resale_listings', {
+    id: uuid('id').primaryKey().defaultRandom(),
+    sellerId: uuid('seller_id').references(() => users.id).notNull(),
+    productId: uuid('product_id').references(() => products.id).notNull(),
+    condition: conditionEnum('condition').notNull(),
+    price: decimal('price', { precision: 10, scale: 2 }).notNull(),
+    status: listingStatusEnum('status').default('active').notNull(),
+    verified: boolean('verified').default(false).notNull(),
+    createdAt: timestamp('created_at').defaultNow(),
+    updatedAt: timestamp('updated_at').defaultNow()
+});
+
+// 4.2 RecommendationsLog Model (Future Phase)
+const recommendationsLogs = pgTable('recommendations_logs', {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id').references(() => users.id).notNull(),
+    productId: uuid('product_id').references(() => products.id).notNull(),
+    score: decimal('score', { precision: 5, scale: 2 }).notNull(),
+    createdAt: timestamp('created_at').defaultNow()
+});
+
+// 4.3 PricingRule Model (Future Phase)
+const pricingRules = pgTable('pricing_rules', {
+    id: uuid('id').primaryKey().defaultRandom(),
+    productId: uuid('product_id').references(() => products.id).notNull(),
+    demandScore: decimal('demand_score', { precision: 5, scale: 2 }).notNull(),
+    dynamicPrice: decimal('dynamic_price', { precision: 10, scale: 2 }).notNull(),
+    updatedAt: timestamp('updated_at').defaultNow()
+});
+
+
 // RELATIONSHIPS
+
 const usersRelations = relations(users, ({ many }) => ({
-    orders: many(orders)
+    orders: many(orders),
+    resaleListings: many(resaleListings),
+    recommendations: many(recommendationsLogs)
 }));
 
 const brandsRelations = relations(brands, ({ many }) => ({
@@ -84,7 +127,10 @@ const brandsRelations = relations(brands, ({ many }) => ({
 
 const productsRelations = relations(products, ({ one, many }) => ({
     brand: one(brands, { fields: [products.brandId], references: [brands.id] }),
-    variants: many(productVariants)
+    variants: many(productVariants),
+    resaleListings: many(resaleListings),
+    recommendations: many(recommendationsLogs),
+    pricingRules: many(pricingRules)
 }));
 
 const productVariantsRelations = relations(productVariants, ({ one, many }) => ({
@@ -102,19 +148,43 @@ const orderItemsRelations = relations(orderItems, ({ one }) => ({
     variant: one(productVariants, { fields: [orderItems.variantId], references: [productVariants.id] })
 }));
 
+// Future Phase Relations
+const resaleListingsRelations = relations(resaleListings, ({ one }) => ({
+    seller: one(users, { fields: [resaleListings.sellerId], references: [users.id] }),
+    product: one(products, { fields: [resaleListings.productId], references: [products.id] })
+}));
+
+const recommendationsLogsRelations = relations(recommendationsLogs, ({ one }) => ({
+    user: one(users, { fields: [recommendationsLogs.userId], references: [users.id] }),
+    product: one(products, { fields: [recommendationsLogs.productId], references: [products.id] })
+}));
+
+const pricingRulesRelations = relations(pricingRules, ({ one }) => ({
+    product: one(products, { fields: [pricingRules.productId], references: [products.id] })
+}));
+
+
 module.exports = {
     roleEnum,
     orderStatusEnum,
+    conditionEnum,
+    listingStatusEnum,
     users,
     brands,
     products,
     productVariants,
     orders,
     orderItems,
+    resaleListings,
+    recommendationsLogs,
+    pricingRules,
     usersRelations,
     brandsRelations,
     productsRelations,
     productVariantsRelations,
     ordersRelations,
-    orderItemsRelations
+    orderItemsRelations,
+    resaleListingsRelations,
+    recommendationsLogsRelations,
+    pricingRulesRelations
 };

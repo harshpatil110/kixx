@@ -7,5 +7,10 @@ module.exports = {
     Product: schema.products,
     ProductVariant: schema.productVariants,
     Order: schema.orders,
-    OrderItem: schema.orderItems
+    OrderItem: schema.orderItems,
+
+    // Future Phase Models
+    ResaleListing: schema.resaleListings,
+    RecommendationsLog: schema.recommendationsLogs,
+    PricingRule: schema.pricingRules
 };
