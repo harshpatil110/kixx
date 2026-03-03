@@ -27,6 +27,8 @@ api.interceptors.request.use(
     }
 );
 
+import toast from 'react-hot-toast';
+
 // Response interceptor: Globally catch errors
 api.interceptors.response.use(
     (response) => response,
@@ -35,6 +37,7 @@ api.interceptors.response.use(
             console.warn('Unauthorized request - 401. User might be unauthenticated or token expired.');
             // NOTE: In a broader app, you might trigger a global logout action here or let Firebase handle the session.
         }
+        toast.error(error.response?.data?.message || 'An unexpected error occurred');
         return Promise.reject(error);
     }
 );

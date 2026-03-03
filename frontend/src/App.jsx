@@ -18,6 +18,8 @@ import OrderHistoryPage from './pages/OrderHistoryPage';
 import OrderDetailPage from './pages/OrderDetailPage';
 import OrderConfirmationPage from './pages/OrderConfirmationPage';
 
+import { Toaster } from 'react-hot-toast';
+
 export default function App() {
   const { setAuth, setAuthLoading, clearAuth } = useAuthStore();
 
@@ -40,6 +42,7 @@ export default function App() {
 
   return (
     <BrowserRouter>
+      <Toaster position="bottom-right" />
       <div className="flex flex-col min-h-screen bg-[#F5F5DC]">
         <Navbar />
         <main className="flex-grow">
