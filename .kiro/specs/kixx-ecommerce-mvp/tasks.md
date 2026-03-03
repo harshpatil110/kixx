@@ -161,109 +161,145 @@ Instead, perform a lightweight Drizzle ping (e.g., SELECT 1) to verify the Neon 
 
 Start the Express server on process.env.PORT (default 5000).
 
-Log the server URL and environment on successful startup.
-- [ ] 9. Implement frontend API client and React Query setup
-  - [ ] 9.1 Create Axios API client
-    - Create `/src/services/api.js` with Axios instance
-    - Configure base URL from environment variable
-    - Add request interceptor to attach JWT token from localStorage
-    - Add response interceptor to handle 401 errors and redirect to login
-    - _Requirements: 1.5, 9.5_
-  - [ ] 9.2 Create React Query configuration
-    - Create `/src/config/queryClient.js` with QueryClient instance
-    - Configure default options for queries (staleTime, cacheTime, retry)
-    - Wrap App component with QueryClientProvider in `main.jsx`
-    - _Requirements: 10.1_
-  - [ ] 9.3 Create API service functions
-    - Create `/src/services/authService.js` with register and login functions
-    - Create `/src/services/productService.js` with getProducts and getProductById functions
-    - Create `/src/services/orderService.js` with createOrder, processPayment, and getUserOrders functions
-    - Each function should use the Axios client and return promises
-    - _Requirements: 9.1, 9.2, 9.3_
+Task 9: Implement Frontend API Client and React Query Setup (Firebase Auth Adapted)
+[ ] 9.1 Create Axios API client
 
-- [ ] 10. Implement Zustand store for cart management
-  - [ ] 10.1 Create cart store
-    - Create `/src/store/cartStore.js` with Zustand store
-    - Define state: items array with structure { variantId, productName, size, color, price, quantity, stock }
-    - Implement addItem action to add or update cart item
-    - Implement updateQuantity action with stock validation
-    - Implement removeItem action to delete item from cart
-    - Implement clearCart action to empty cart
-    - Implement getTotalPrice selector to calculate total
-    - Implement getItemCount selector to count total items
-    - Persist cart state to localStorage using Zustand persist middleware
-    - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5_
-  - [ ] 10.2 Create auth store
-    - Create `/src/store/authStore.js` with Zustand store
-    - Define state: user object and isAuthenticated boolean
-    - Implement login action to store user data and token in localStorage
-    - Implement logout action to clear user data and token
-    - Implement initAuth action to restore auth state from localStorage on app load
-    - _Requirements: 1.1, 1.2, 1.5_
+Create /src/services/api.js with an Axios instance.
 
-- [ ] 11. Implement authentication UI components
-  - [ ] 11.1 Create Login page
-    - Create `/src/pages/LoginPage.jsx` with login form
-    - Add form fields for email and password with Tailwind styling
-    - Implement form validation (email format, required fields)
-    - Use React Query mutation to call login API
-    - Store token and user data in auth store on success
-    - Display error messages for failed login attempts
-    - Add link to registration page
-    - Redirect to home page after successful login
-    - _Requirements: 1.2, 10.1_
-  - [ ] 11.2 Create Register page
-    - Create `/src/pages/RegisterPage.jsx` with registration form
-    - Add form fields for name, email, and password with Tailwind styling
-    - Implement form validation (email format, password strength, required fields)
-    - Use React Query mutation to call register API
-    - Store token and user data in auth store on success
-    - Display error messages including duplicate email error
-    - Add link to login page
-    - Redirect to home page after successful registration
-    - _Requirements: 1.1, 1.3, 10.1_
-  - [ ] 11.3 Create ProtectedRoute component
-    - Create `/src/components/ProtectedRoute.jsx`
-    - Check authentication status from auth store
-    - Redirect to login page if user is not authenticated
-    - Render children components if authenticated
-    - _Requirements: 1.5_
+Configure the base URL from import.meta.env.VITE_API_URL (Vite's environment variable syntax).
 
-- [ ] 12. Implement product catalog UI components
-  - [ ] 12.1 Create ProductCard component
-    - Create `/src/components/ProductCard.jsx`
-    - Display product image, name, brand name, and base price
-    - Add Tailwind styling for card layout with hover effects
-    - Add click handler to navigate to product detail page
-    - _Requirements: 10.2_
-  - [ ] 12.2 Create HomePage with product grid
-    - Create `/src/pages/HomePage.jsx`
-    - Use React Query to fetch products from API
-    - Implement brand filter dropdown populated from products
-    - Implement category filter dropdown
-    - Display loading state while fetching products
-    - Render ProductCard components in responsive grid layout
-    - Display empty state message when no products match filters
-    - _Requirements: 3.1, 3.3, 3.4, 10.2_
-  - [ ] 12.3 Create VariantSelector component
-    - Create `/src/components/VariantSelector.jsx`
-    - Accept variants array as prop
-    - Render size dropdown with available sizes
-    - Render color dropdown with available colors
-    - Display stock availability for selected variant
-    - Disable "Add to Cart" button when stock is zero
-    - Emit selected variant to parent component
-    - _Requirements: 3.2, 3.5_
-  - [ ] 12.4 Create ProductDetailPage
-    - Create `/src/pages/ProductDetailPage.jsx`
-    - Use React Query to fetch product details by ID from URL parameter
-    - Display product image, name, description, brand, and base price
-    - Render VariantSelector component with product variants
-    - Implement "Add to Cart" button that calls cart store addItem action
-    - Validate selected variant has sufficient stock before adding
-    - Display success message when item added to cart
-    - Display error message when trying to add out-of-stock variant
-    - _Requirements: 3.2, 3.5, 4.1, 4.5, 10.3_
+CRITICAL CHANGE: Add an async request interceptor to fetch the current ID token directly from Firebase (auth.currentUser?.getIdToken()) instead of localStorage.
+
+Add a response interceptor to handle 401 errors (e.g., trigger a Firebase logout or redirect).
+
+[ ] 9.2 Create React Query configuration
+
+Create /src/config/queryClient.js with a QueryClient instance.
+
+Configure default options for queries (staleTime, gcTime, retry).
+
+Provide instructions to wrap the App component with QueryClientProvider in main.jsx.
+
+[ ] 9.3 Create API service functions
+
+CRITICAL CHANGE: Create /src/services/authService.js with a syncUserWithBackend() function instead of standard register/login.
+
+Create /src/services/productService.js with getProducts and getProductById functions.
+
+Create /src/services/orderService.js with createOrder, processPayment, and getUserOrders functions.
+
+Ensure all functions use the configured Axios client and return promises.
+
+Task 10: Implement Zustand Store for Cart and Auth Management (Firebase Adapted)
+[ ] 10.1 Create cart store
+
+Create /src/store/cartStore.js using Zustand.
+
+Define state: items array with structure { variantId, productId, productName, size, color, price, quantity, stock, imageUrl }.
+
+Implement addItem action (if item exists, increase quantity; otherwise, add to array).
+
+Implement updateQuantity action with basic stock limit validation.
+
+Implement removeItem and clearCart actions.
+
+Implement derived state/selectors for totalPrice and itemCount.
+
+Wrap the store in Zustand's persist middleware to save the cart to localStorage.
+
+[ ] 10.2 Create auth store (Firebase Integrated)
+
+Create /src/store/authStore.js using Zustand.
+
+CRITICAL CHANGE: Remove manual JWT/localStorage management for auth.
+
+Define state: user (the profile from Neon DB), firebaseUser (the raw Firebase auth object), isAuthenticated (boolean), and isLoading (boolean).
+
+Implement setAuth action to synchronize the store with Firebase's onAuthStateChanged listener.
+
+Implement clearAuth action to wipe the user state upon Firebase logout.
+
+-Redefined Task 11: Implement Authentication UI Components (Firebase Adapted)
+[ ] 11.1 Create Login page
+
+Create /src/pages/LoginPage.jsx.
+
+Add form fields for email and password with Tailwind styling (Maroon, White, Beige theme).
+
+CRITICAL CHANGE: Use Firebase's signInWithEmailAndPassword for email login, and add a signInWithPopup button for Google Sign-In.
+
+Use a React Query mutation to call authService.syncUserWithBackend() immediately after Firebase authenticates the user.
+
+Redirect to the home page on success.
+
+[ ] 11.2 Create Register page
+
+Create /src/pages/RegisterPage.jsx.
+
+Add form fields for name, email, and password.
+
+CRITICAL CHANGE: Use Firebase's createUserWithEmailAndPassword.
+
+Update the Firebase user's profile with their display name using updateProfile.
+
+Call authService.syncUserWithBackend() to create their record in Neon DB.
+
+Redirect to the home page on success.
+
+[ ] 11.3 Create ProtectedRoute component
+
+Create /src/components/ProtectedRoute.jsx.
+
+Pull isAuthenticated and isAuthLoading from the Zustand authStore.
+
+CRITICAL CHANGE: Return a loading spinner while isAuthLoading is true (since Firebase takes a millisecond to verify the session on reload).
+
+Redirect to the login page if isAuthenticated is false. Render children if true.
+
+Redefined Task 12: Implement Product Catalog UI Components (Drizzle Data Adapted)
+[ ] 12.1 Create ProductCard component
+
+Create /src/components/ProductCard.jsx.
+
+Expect a product prop matching the Drizzle output (nested brand object).
+
+Display product.imageUrl, product.name, product.brand.name, and product.basePrice.
+
+Style with Tailwind using the KIXX theme (White, Beige, Maroon accents). Add hover effects and an onClick navigation to /product/:id.
+
+[ ] 12.2 Create HomePage with product grid
+
+Create /src/pages/HomePage.jsx.
+
+Use TanStack React Query (useQuery) calling productService.getProducts().
+
+Create basic state for brandFilter and categoryFilter.
+
+Map the data to ProductCard components in a responsive Tailwind grid (grid-cols-1 md:grid-cols-3 lg:grid-cols-4).
+
+Handle loading and empty states cleanly.
+
+[ ] 12.3 Create VariantSelector component
+
+Create /src/components/VariantSelector.jsx.
+
+Accept variants array (from the Drizzle backend) and onVariantSelect callback.
+
+Implement dropdowns or toggle buttons for size and color.
+
+Dynamically display the stock of the currently selected combination.
+
+[ ] 12.4 Create ProductDetailPage
+
+Create /src/pages/ProductDetailPage.jsx.
+
+Use useQuery calling productService.getProductById(id) based on the URL param.
+
+Render the VariantSelector.
+
+Import the Zustand useCartStore.
+
+Implement the "Add to Cart" button: Validate stock, trigger addItem({ ...product, variantId: selected.id, quantity: 1 }), and show a success/error toast or message.
 
 - [ ] 13. Implement shopping cart UI components
   - [ ] 13.1 Create CartItem component
