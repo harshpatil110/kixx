@@ -123,11 +123,14 @@ const dbProxy = new Proxy({}, {
     },
 });
 
+// Export the Proxy as `db` — NOT a getter.
+//
+// Why: `const { db } = require('../db/index')` is evaluated at module-load time.
+// A getter would be invoked immediately (before the DB has connected) and throw.
+// The Proxy is safe to destructure; it only checks `if (!db)` when a query
+// method is actually called on it (i.e. at request time, not import time).
 module.exports = {
-    get db() {
-        if (!db) throw new Error('Database is still connecting. Please retry in a moment.');
-        return db;
-    },
+    db: dbProxy,
     get queryClient() {
         return resolvedQueryClient;
     },

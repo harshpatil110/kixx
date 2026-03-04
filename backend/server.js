@@ -1,10 +1,6 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const { sql } = require('drizzle-orm');
-
-// Import database instance
-const { db } = require('./src/db/index');
 
 // Import routes
 const authRoutes = require('./src/routes/auth');
@@ -43,23 +39,21 @@ const PORT = process.env.PORT || 5000;
 const ENV = process.env.NODE_ENV || 'development';
 
 /**
- * Server Startup & Database Verification
+ * Server Startup
+ *
+ * The HTTP server starts immediately so requests are accepted right away.
+ * The DB retry / cold-start logic lives in src/db/index.js (dbReadyPromise).
+ * Individual route handlers will receive a clear 503 error if the DB is
+ * still waking up, which the frontend already handles gracefully.
  */
-const startServer = async () => {
-    try {
-        // Verify database connection using Drizzle
-        await db.execute(sql`SELECT 1`);
-        console.log('✅ Connected to Neon DB successfully. Database is reachable.');
+const { dbReadyPromise } = require('./src/db/index');
 
-        // Start the Express server
-        app.listen(PORT, () => {
-            console.log(`🚀 Server running on port ${PORT} in ${ENV} environment.`);
-        });
-    } catch (error) {
-        console.error('❌ Database connection failed. Shutting down server.', error);
-        process.exit(1); // Exit process with failure code
-    }
-};
+// Start accepting HTTP traffic immediately
+app.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT} in ${ENV} environment.`);
+});
 
-// Execute startup
-startServer();
+// Log when the DB finishes its cold-start retry loop
+dbReadyPromise
+    .then(() => console.log('✅ Neon DB is fully ready. All routes are live.'))
+    .catch((err) => console.error('❌ DB never became ready:', err?.message));

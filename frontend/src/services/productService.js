@@ -23,7 +23,8 @@ export const getProducts = async (filters = {}) => {
     const url = queryString ? `/api/products?${queryString}` : '/api/products';
 
     const response = await api.get(url);
-    return response.data;
+    // The API wraps the array: { error: false, products: [...] }
+    return response.data.products;
 };
 
 /**
@@ -34,5 +35,6 @@ export const getProducts = async (filters = {}) => {
  */
 export const getProductById = async (id) => {
     const response = await api.get(`/api/products/${id}`);
-    return response.data;
+    // The API wraps the product: { error: false, product: {...} }
+    return response.data.product;
 };
