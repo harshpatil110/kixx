@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>KIXX Glass Account Hub</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#800000",
+                        "background-light": "#f8f9fa",
+                        "background-dark": "#121212",
+                    },
+                    fontFamily: {
+                        display: ["Space Grotesk", "sans-serif"],
+                    },
+                    borderRadius: {
+                        DEFAULT: "32px",
+                    },
+                },
+            },
+        };
+    </script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+<style>
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background-color: #f8f9fa;
+            position: relative;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+        .dark body {
+            background-color: #121212;
+        }.bg-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: -1;
+            opacity: 0.4;
+        }
+        .orb-1 {
+            width: 400px;
+            height: 400px;
+            background: rgba(128, 0, 0, 0.15);
+            top: -100px;
+            left: -100px;
+        }
+        .orb-2 {
+            width: 500px;
+            height: 500px;
+            background: rgba(200, 200, 200, 0.2);
+            bottom: -150px;
+            right: -100px;
+        }.glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+        }
+        .dark .glass-panel {
+            background: rgba(30, 30, 30, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        }.brutalist-solid {
+            background: #ffffff;
+            border: 2px solid #000000;
+        }
+        .dark .brutalist-solid {
+            background: #1e1e1e;
+            border: 2px solid #ffffff;
+        }.active-nav-item {
+            box-shadow: 0 0 15px rgba(128, 0, 0, 0.4);
+            border-color: #800000 !important;
+        }::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .dark ::-webkit-scrollbar-thumb {
+            background: #475569;
+        }
+    </style>
+</head>
+<body class="text-gray-900 dark:text-gray-100 transition-colors duration-300">
+<div class="bg-orb orb-1"></div>
+<div class="bg-orb orb-2"></div>
+<header class="glass-panel sticky top-4 mx-8 mt-4 rounded z-50 px-8 py-4 flex justify-between items-center transition-all duration-300">
+<div class="text-3xl font-bold tracking-tighter uppercase">KIXX</div>
+<nav class="hidden md:flex gap-8 font-medium">
+<a class="hover:text-primary transition-colors" href="#">New Drops</a>
+<a class="hover:text-primary transition-colors" href="#">Classics</a>
+<a class="hover:text-primary transition-colors" href="#">Collaborations</a>
+<a class="hover:text-primary transition-colors" href="#">Sale</a>
+</nav>
+<div class="flex items-center gap-6">
+<button class="material-icons hover:text-primary transition-colors">search</button>
+<button class="material-icons hover:text-primary transition-colors">shopping_cart</button>
+<div class="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden border-2 border-primary cursor-pointer">
+<img alt="User Avatar" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBpezjzO_2lfea9ANDHK64eRrRszYtYZ97JJq28rFf39aYpF2LE8AGv-Qn--1e-GRK4BdLffr_nzc_RCpZSP-K1YIF8ZpuCVAgnxz-M9quQcGnjQ0wagam3MATn89JAwyI5UpolqRLSPBVXHRYbXneYuoSyPNIR1VWDtZsgClvHsT_FVtfRPH12WGdKBSyscaaBsUzzH9lNctE-QoGjaWbkanVR-jKaO-KjpSzDuzdQ52RyU77Rxc1NDy08Rm7t5mF0BKT-jj4E3Cok"/>
+</div>
+</div>
+</header>
+<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 flex flex-col md:flex-row gap-8">
+<aside class="w-full md:w-64 flex-shrink-0">
+<div class="glass-panel rounded p-6 sticky top-28">
+<div class="flex items-center gap-4 mb-8 pb-6 border-b border-gray-200 dark:border-gray-700">
+<div class="w-16 h-16 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden flex-shrink-0">
+<img alt="User Avatar Large" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCWLecjzpIAOr9UjC8YYjE3JZX65sN_ZNORYSVYmVfkMWzz8MGv07OW7O21E5gZrod4jClvuLAu3JGHwNk9Lg8X3dYGYWlRPwZAP7nd3D47L-REzWuTyVZwHAj60iG093frf92V1JTyXbbmtdDeVpdgk8XiTfqpRVds9Kak3c5noti63THwCRWCWhNJi1qJabsIo0XFumyQH3y24XCkF9lK8xFCVLc3sKxyQI9-Hj88lu-osbAQPuXJjKzxECusLqS3Rz1nyFOVrnnC"/>
+</div>
+<div>
+<h2 class="font-bold text-lg">Alex Doe</h2>
+<p class="text-sm text-gray-500 dark:text-gray-400">Sneakerhead</p>
+</div>
+</div>
+<nav class="flex flex-col gap-2">
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/50 dark:hover:bg-black/50 transition-colors font-medium" href="#">
+<span class="material-icons text-gray-500 dark:text-gray-400">person</span>
+                        Profile
+                    </a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/80 dark:bg-black/80 font-bold active-nav-item border border-transparent" href="#">
+<span class="material-icons text-primary">local_shipping</span>
+                        Order History
+                    </a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/50 dark:hover:bg-black/50 transition-colors font-medium" href="#">
+<span class="material-icons text-gray-500 dark:text-gray-400">favorite</span>
+                        Wishlist
+                    </a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/50 dark:hover:bg-black/50 transition-colors font-medium" href="#">
+<span class="material-icons text-gray-500 dark:text-gray-400">payment</span>
+                        Payment Methods
+                    </a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/50 dark:hover:bg-black/50 transition-colors font-medium mt-4 text-red-500 hover:text-red-700" href="#">
+<span class="material-icons">logout</span>
+                        Log Out
+                    </a>
+</nav>
+</div>
+</aside>
+<section class="flex-grow">
+<div class="brutalist-solid rounded p-8 min-h-[600px]">
+<div class="flex justify-between items-end mb-8 border-b-2 border-black dark:border-white pb-4">
+<h1 class="text-4xl font-bold uppercase tracking-tight">Order History</h1>
+<div class="relative">
+<select class="appearance-none bg-transparent border-b border-gray-400 dark:border-gray-500 py-1 pr-8 text-sm focus:outline-none focus:border-black dark:focus:border-white rounded-none">
+<option>Last 30 Days</option>
+<option>Last 6 Months</option>
+<option>2023</option>
+</select>
+<span class="material-icons absolute right-0 top-1 text-gray-500 pointer-events-none text-sm">expand_more</span>
+</div>
+</div>
+<div class="space-y-6">
+<div class="flex flex-col sm:flex-row gap-6 p-6 border border-gray-200 dark:border-gray-800 rounded-2xl hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors">
+<div class="w-full sm:w-32 h-32 bg-gray-100 dark:bg-gray-800 rounded-xl overflow-hidden flex-shrink-0 flex items-center justify-center p-2">
+<img alt="Red Nike Sneaker" class="w-full h-auto mix-blend-multiply dark:mix-blend-normal" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAPJsPQeZPHiqaQ0gJb9Dw6ML7l9GrYtxBuizAz9DkEEax-m6V_-mw8PUocNRShzt-0tpJath3raTkS_MGBcDkDmoS59l09pE4tWDTw8et6x7dUUvws4W61qVbqewh2r432yiT2I0E17AnGMep5e7D1uNta1WaeG_eohXexr9AyWVRlR8hMZuMxxPGxRBUbq62olSsn3Fhzq20N2iS5Ip6CRdSF8IoRDGJgJo-H3E4N69wPdTkF31Hz9MsYaAQH0RxQGOBRbLdtT97k"/>
+</div>
+<div class="flex-grow flex flex-col justify-between">
+<div class="flex justify-between items-start">
+<div>
+<h3 class="font-bold text-xl uppercase tracking-tight">Nike Air Max 90</h3>
+<p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Color: Infra-Red | Size: US 10.5</p>
+<p class="text-xs text-gray-400 dark:text-gray-500 mt-1">Order #KX-982347</p>
+</div>
+<div class="text-right">
+<p class="font-bold text-lg">$140.00</p>
+<p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Oct 24, 2023</p>
+</div>
+</div>
+<div class="mt-4 flex justify-between items-center">
+<span class="glass-panel px-4 py-1.5 rounded-full text-xs font-bold text-green-600 dark:text-green-400 uppercase tracking-wider flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-green-500"></span>
+                                    Delivered
+                                </span>
+<div class="flex gap-3">
+<button class="text-sm font-medium border-b border-black dark:border-white hover:text-primary hover:border-primary transition-colors uppercase">View Receipt</button>
+<button class="text-sm font-medium border-b border-black dark:border-white hover:text-primary hover:border-primary transition-colors uppercase">Buy Again</button>
+</div>
+</div>
+</div>
+</div>
+<div class="flex flex-col sm:flex-row gap-6 p-6 border border-gray-200 dark:border-gray-800 rounded-2xl hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors">
+<div class="w-full sm:w-32 h-32 bg-gray-100 dark:bg-gray-800 rounded-xl overflow-hidden flex-shrink-0 flex items-center justify-center p-2">
+<img alt="White Classic Sneaker" class="w-full h-auto mix-blend-multiply dark:mix-blend-normal" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCr0SmY8wzE8qSfBhcz6jb6e7fbrP8UFyIycCyOx4jI8sSPQRvKZckybsb-TWWeAcpBgdYUxKodj-knk1H8CRz33x4_5gLiRSY9IMr1Y4LJtTTH19f_TMre_ZqsFvmvsUy9cNJVXx4Of8QBODMo6ND0jk5_h7Pr8b0KM3txQ-dA720kaStu6nQ59zYyvJz_cTt7eOhKY0hcGJK3Qmw_6QO4RFmJ7BhJzVrhqM6ozvJKsvA-u-npTg7Yes0bL11DMXwDN_zyxiA33lYt"/>
+</div>
+<div class="flex-grow flex flex-col justify-between">
+<div class="flex justify-between items-start">
+<div>
+<h3 class="font-bold text-xl uppercase tracking-tight">Adidas Stan Smith</h3>
+<p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Color: Cloud White/Green | Size: US 10</p>
+<p class="text-xs text-gray-400 dark:text-gray-500 mt-1">Order #KX-847291</p>
+</div>
+<div class="text-right">
+<p class="font-bold text-lg">$100.00</p>
+<p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Sep 12, 2023</p>
+</div>
+</div>
+<div class="mt-4 flex justify-between items-center">
+<span class="glass-panel px-4 py-1.5 rounded-full text-xs font-bold text-green-600 dark:text-green-400 uppercase tracking-wider flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-green-500"></span>
+                                    Delivered
+                                </span>
+<div class="flex gap-3">
+<button class="text-sm font-medium border-b border-black dark:border-white hover:text-primary hover:border-primary transition-colors uppercase">View Receipt</button>
+<button class="text-sm font-medium border-b border-black dark:border-white hover:text-primary hover:border-primary transition-colors uppercase">Buy Again</button>
+</div>
+</div>
+</div>
+</div>
+<div class="flex flex-col sm:flex-row gap-6 p-6 border border-gray-200 dark:border-gray-800 rounded-2xl hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors opacity-75">
+<div class="w-full sm:w-32 h-32 bg-gray-100 dark:bg-gray-800 rounded-xl overflow-hidden flex-shrink-0 flex items-center justify-center p-2">
+<img alt="Colorful Sneaker" class="w-full h-auto mix-blend-multiply dark:mix-blend-normal" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCLaPv6RRZ6XJAGNhRE3nVRR24kVdoEc76JXXJQ7b-qF_E-vEA-CeRARmV6TVEs5VptWUOLnOlDQtFATzEJL9laOZZKJrYG8aW_NI3EhBxNsl-AuvdcvW_DWbk5ufL31_Lm0x32n8pTGgaxNTZrYGNU-SlQIZNNmTy4__lvFLPtooCxg5HN0vHfp2yUUiDC_Nepn2U_3aWxeJzV6Ba6jXpwfuYcIi-2aFYDfJOxxeXEE8WVIzX5uE4qztatoD6Z4KioDsU8pJV3wEE0"/>
+</div>
+<div class="flex-grow flex flex-col justify-between">
+<div class="flex justify-between items-start">
+<div>
+<h3 class="font-bold text-xl uppercase tracking-tight">New Balance 990v5</h3>
+<p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Color: Grey | Size: US 11</p>
+<p class="text-xs text-gray-400 dark:text-gray-500 mt-1">Order #KX-738290</p>
+</div>
+<div class="text-right">
+<p class="font-bold text-lg">$185.00</p>
+<p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Aug 05, 2023</p>
+</div>
+</div>
+<div class="mt-4 flex justify-between items-center">
+<span class="glass-panel px-4 py-1.5 rounded-full text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-gray-500"></span>
+                                    Returned
+                                </span>
+<div class="flex gap-3">
+<button class="text-sm font-medium border-b border-black dark:border-white hover:text-primary hover:border-primary transition-colors uppercase">View Details</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-8 flex justify-center">
+<button class="px-8 py-3 bg-black dark:bg-white text-white dark:text-black font-bold uppercase tracking-widest rounded hover:bg-primary dark:hover:bg-primary dark:hover:text-white transition-colors">
+                        Load More
+                    </button>
+</div>
+</div>
+</section>
+</main>
+
+</body></html>

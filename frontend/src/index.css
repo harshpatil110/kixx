@@ -1,3 +1,45 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer utilities {
+    .liquid-glass {
+        background: rgba(255, 255, 255, 0.4);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-top: 1px solid rgba(255, 255, 255, 0.8);
+        border-left: 1px solid rgba(255, 255, 255, 0.8);
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
+    }
+
+    .dark .liquid-glass {
+        background: rgba(0, 0, 0, 0.4);
+        border-top: 1px solid rgba(255, 255, 255, 0.2);
+        border-left: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .product-card {
+        transition: transform 0.3s ease;
+    }
+
+    .product-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .quick-add-btn {
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        background: rgba(255, 255, 255, 0.6);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.9);
+    }
+
+    .dark .quick-add-btn {
+        background: rgba(0, 0, 0, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .product-card:hover .quick-add-btn {
+        opacity: 1;
+    }
+}

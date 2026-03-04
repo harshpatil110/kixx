@@ -1,5 +1,5 @@
 require('dotenv').config();
-const { db, queryClient } = require('../db/index');
+const { db, queryClient, dbReadyPromise } = require('../db/index');
 const {
     users,
     brands,
@@ -10,7 +10,9 @@ const {
 } = require('../db/schema');
 
 async function runSeed() {
-    console.log('🌱 Starting Database Seeding Process (INR Localization & Premium Catalog)...');
+    console.log('🌱 Waiting for database connection to be ready...');
+    await dbReadyPromise;
+    console.log('✅ Connection ready. Starting Database Seeding Process (INR Localization & Premium Catalog)...');
 
     // Step A: Clear Existing Data (Reverse Relational Order)
     console.log('🧹 Clearing existing data...');
@@ -119,12 +121,12 @@ async function runSeed() {
     console.log(`✅ Created ${insertedVariants.length} product variants with generated stocks.`);
 
     console.log('🎉 Database Seeding Complete!');
-    await queryClient.end();
+    process.exit(0);
 }
 
 runSeed()
     .then(() => process.exit(0))
     .catch((err) => {
         console.error('❌ Database Seeding Failed:', err);
-        queryClient.end().then(() => process.exit(1));
+        process.exit(1);
     });

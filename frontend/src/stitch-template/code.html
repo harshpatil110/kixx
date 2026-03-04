@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>KIXX Product Catalog Grid</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#5c0000",
+                        "background-light": "#ffffff",
+                        "background-dark": "#111111",
+                        "surface-light": "#f7f7f7",
+                        "surface-dark": "#222222",
+                        "text-light": "#000000",
+                        "text-dark": "#ffffff",
+                        "muted-light": "#666666",
+                        "muted-dark": "#a0a0a0",
+                        "border-light": "#e5e5e5",
+                        "border-dark": "#333333"
+                    },
+                    fontFamily: {
+                        display: ['"Helvetica Neue"', 'Helvetica', 'Arial', 'sans-serif'],
+                        mono: ['"Courier New"', 'Courier', 'monospace']
+                    },
+                    borderRadius: {
+                        DEFAULT: "0px",
+                    },
+                },
+            },
+        };
+    </script>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+<style>
+        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark antialiased transition-colors duration-200">
+<nav class="sticky top-0 z-50 bg-background-light/90 dark:bg-background-dark/90 backdrop-blur-md border-b border-border-light dark:border-border-dark">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="flex justify-between h-20 items-center">
+<div class="flex-shrink-0 flex items-center">
+<a class="text-4xl font-black tracking-tighter uppercase font-display text-text-light dark:text-text-dark" href="#">
+                        KIXX
+                    </a>
+</div>
+<div class="hidden sm:ml-10 sm:flex sm:space-x-12">
+<a class="text-text-light dark:text-text-dark inline-flex items-center px-1 pt-1 text-sm font-bold uppercase tracking-wider border-b-2 border-text-light dark:border-text-dark" href="#">Shop</a>
+<a class="text-muted-light dark:text-muted-dark hover:text-text-light dark:hover:text-text-dark inline-flex items-center px-1 pt-1 text-sm font-bold uppercase tracking-wider transition-colors" href="#">Brands</a>
+<a class="text-muted-light dark:text-muted-dark hover:text-text-light dark:hover:text-text-dark inline-flex items-center px-1 pt-1 text-sm font-bold uppercase tracking-wider transition-colors" href="#">Drops</a>
+</div>
+<div class="flex items-center space-x-6">
+<button class="text-text-light dark:text-text-dark hover:text-muted-light dark:hover:text-muted-dark transition-colors">
+<span class="material-icons">search</span>
+</button>
+<a class="text-text-light dark:text-text-dark hover:text-muted-light dark:hover:text-muted-dark transition-colors text-sm font-bold uppercase tracking-wider" href="#">Log In</a>
+<button class="relative p-2 text-text-light dark:text-text-dark hover:text-muted-light dark:hover:text-muted-dark transition-colors">
+<span class="material-icons">shopping_bag</span>
+<span class="absolute top-1 right-0 inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-bold leading-none text-white bg-primary rounded-full">2</span>
+</button>
+</div>
+</div>
+</div>
+</nav>
+<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+<div class="flex flex-col lg:flex-row gap-12">
+<aside class="w-full lg:w-64 flex-shrink-0">
+<div class="sticky top-28 space-y-10">
+<div>
+<h3 class="text-xs font-bold uppercase tracking-widest text-muted-light dark:text-muted-dark mb-4">Category</h3>
+<ul class="space-y-3">
+<li><a class="text-sm font-medium hover:underline text-text-light dark:text-text-dark font-bold" href="#">Sneakers</a></li>
+<li><a class="text-sm font-medium text-muted-light dark:text-muted-dark hover:text-text-light dark:hover:text-text-dark hover:underline" href="#">Apparel</a></li>
+<li><a class="text-sm font-medium text-muted-light dark:text-muted-dark hover:text-text-light dark:hover:text-text-dark hover:underline" href="#">Accessories</a></li>
+</ul>
+</div>
+<div>
+<h3 class="text-xs font-bold uppercase tracking-widest text-muted-light dark:text-muted-dark mb-4">Brands</h3>
+<div class="space-y-3">
+<label class="flex items-center">
+<input checked="" class="form-checkbox h-4 w-4 text-primary border-border-light dark:border-border-dark bg-transparent focus:ring-primary focus:ring-offset-background-light dark:focus:ring-offset-background-dark" type="checkbox"/>
+<span class="ml-3 text-sm font-medium text-text-light dark:text-text-dark">Nike</span>
+</label>
+<label class="flex items-center">
+<input class="form-checkbox h-4 w-4 text-primary border-border-light dark:border-border-dark bg-transparent focus:ring-primary focus:ring-offset-background-light dark:focus:ring-offset-background-dark" type="checkbox"/>
+<span class="ml-3 text-sm font-medium text-muted-light dark:text-muted-dark">Adidas</span>
+</label>
+<label class="flex items-center">
+<input checked="" class="form-checkbox h-4 w-4 text-primary border-border-light dark:border-border-dark bg-transparent focus:ring-primary focus:ring-offset-background-light dark:focus:ring-offset-background-dark" type="checkbox"/>
+<span class="ml-3 text-sm font-medium text-text-light dark:text-text-dark">Jordan</span>
+</label>
+<label class="flex items-center">
+<input class="form-checkbox h-4 w-4 text-primary border-border-light dark:border-border-dark bg-transparent focus:ring-primary focus:ring-offset-background-light dark:focus:ring-offset-background-dark" type="checkbox"/>
+<span class="ml-3 text-sm font-medium text-muted-light dark:text-muted-dark">New Balance</span>
+</label>
+<label class="flex items-center">
+<input class="form-checkbox h-4 w-4 text-primary border-border-light dark:border-border-dark bg-transparent focus:ring-primary focus:ring-offset-background-light dark:focus:ring-offset-background-dark" type="checkbox"/>
+<span class="ml-3 text-sm font-medium text-muted-light dark:text-muted-dark">Asics</span>
+</label>
+</div>
+</div>
+<div>
+<h3 class="text-xs font-bold uppercase tracking-widest text-muted-light dark:text-muted-dark mb-4">Size (UK)</h3>
+<div class="grid grid-cols-4 gap-2">
+<button class="py-2 text-xs font-medium border border-border-light dark:border-border-dark hover:border-text-light dark:hover:border-text-dark text-muted-light dark:text-muted-dark hover:text-text-light dark:hover:text-text-dark transition-colors">6</button>
+<button class="py-2 text-xs font-medium border border-text-light dark:border-text-dark bg-text-light dark:bg-text-dark text-background-light dark:text-background-dark">7</button>
+<button class="py-2 text-xs font-medium border border-border-light dark:border-border-dark hover:border-text-light dark:hover:border-text-dark text-muted-light dark:text-muted-dark hover:text-text-light dark:hover:text-text-dark transition-colors">8</button>
+<button class="py-2 text-xs font-medium border border-border-light dark:border-border-dark hover:border-text-light dark:hover:border-text-dark text-muted-light dark:text-muted-dark hover:text-text-light dark:hover:text-text-dark transition-colors">9</button>
+<button class="py-2 text-xs font-medium border border-text-light dark:border-text-dark bg-text-light dark:bg-text-dark text-background-light dark:text-background-dark">10</button>
+<button class="py-2 text-xs font-medium border border-border-light dark:border-border-dark hover:border-text-light dark:hover:border-text-dark text-muted-light dark:text-muted-dark hover:text-text-light dark:hover:text-text-dark transition-colors">11</button>
+<button class="py-2 text-xs font-medium border border-border-light dark:border-border-dark hover:border-text-light dark:hover:border-text-dark text-muted-light dark:text-muted-dark hover:text-text-light dark:hover:text-text-dark transition-colors opacity-50 cursor-not-allowed">12</button>
+</div>
+</div>
+</div>
+</aside>
+<div class="flex-1">
+<div class="flex justify-between items-end mb-8 pb-4 border-b border-border-light dark:border-border-dark">
+<h1 class="text-3xl font-black uppercase tracking-tighter">Sneakers</h1>
+<div class="flex items-center space-x-2">
+<span class="text-xs text-muted-light dark:text-muted-dark uppercase tracking-wider font-bold">Sort by:</span>
+<select class="text-sm font-medium bg-transparent border-none py-0 pl-0 pr-8 focus:ring-0 cursor-pointer text-text-light dark:text-text-dark">
+<option>Latest Arrivals</option>
+<option>Price: High to Low</option>
+<option>Price: Low to High</option>
+<option>Trending</option>
+</select>
+</div>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-12">
+<a class="group block cursor-pointer" href="#">
+<div class="relative w-full aspect-square bg-surface-light dark:bg-surface-dark mb-4 overflow-hidden flex items-center justify-center p-6">
+<img alt="Red Nike Sneaker" class="w-full h-auto object-contain group-hover:scale-105 transition-transform duration-500 ease-out mix-blend-multiply dark:mix-blend-normal" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDm83v3quQAOpWHGwR5z4-fWB9UnBBkQu4FDYxhIT_LdEqRVZvjviC_pOGT670JXowjQ33nhwWzlgrcYPWA6z5R7d5SZMDV28x1jzRBIgiunq-z3CBw4Y6R00oOxtLdq6dpeh_yFOk-rgInQRSVcTtRBFGd9wrxPkzDvSb9SBNGCpS0hu3rWLSr4R9i8J-PHazqv634n2JWp8ludwAvAsctK3fKLQJMoarcPgeWa-MngHrfTXeHovJauSeDml2nRbH7dhgX1B3VLF8S"/>
+<div class="absolute top-4 left-4 bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark text-xs font-bold px-2 py-1 uppercase tracking-wider">New</div>
+</div>
+<div class="flex justify-between items-start">
+<div>
+<h3 class="text-xs font-bold text-muted-light dark:text-muted-dark uppercase tracking-widest mb-1">Nike</h3>
+<h2 class="text-base font-bold text-text-light dark:text-text-dark leading-snug">Air Max 1 '86 OG</h2>
+</div>
+<span class="text-base font-bold text-text-light dark:text-text-dark ml-4 whitespace-nowrap">₹ 13,995</span>
+</div>
+</a>
+<a class="group block cursor-pointer" href="#">
+<div class="relative w-full aspect-square bg-surface-light dark:bg-surface-dark mb-4 overflow-hidden flex items-center justify-center p-6">
+<img alt="Nike Dunk Low" class="w-full h-auto object-contain group-hover:scale-105 transition-transform duration-500 ease-out mix-blend-multiply dark:mix-blend-normal" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBnEgcmNBlcWoK3Ws4AoKi5mZScUY_Z6x5V7mhWySyDlserXiEMTEr3v0trPKE2rgbnIABZBpfUiWSVzZjc9UvvnyO0zNSKiVyIT_waujK_9uwkuK5UxqYpyf24bz22jl52gRFC_qB3sqJObtDYnarl6IXoe7NPDhapCD4nU9Lhg1CoF0Mpe7RL0ncKhK68AqvnTjbLvQ1WADP2BQiAFz_6gocdrAV_42rLg9ieNvBg_licz2efipsEhbq9zdi1YYAkY3OzpZzpqGkh"/>
+</div>
+<div class="flex justify-between items-start">
+<div>
+<h3 class="text-xs font-bold text-muted-light dark:text-muted-dark uppercase tracking-widest mb-1">Nike</h3>
+<h2 class="text-base font-bold text-text-light dark:text-text-dark leading-snug">Dunk Low Retro</h2>
+</div>
+<span class="text-base font-bold text-text-light dark:text-text-dark ml-4 whitespace-nowrap">₹ 9,695</span>
+</div>
+</a>
+<a class="group block cursor-pointer" href="#">
+<div class="relative w-full aspect-square bg-surface-light dark:bg-surface-dark mb-4 overflow-hidden flex items-center justify-center p-6">
+<img alt="Puma Sneaker" class="w-full h-auto object-contain group-hover:scale-105 transition-transform duration-500 ease-out mix-blend-multiply dark:mix-blend-normal" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDGYgKRz_qGscqqRkg99b7orYpcEPF-YlaMupkEiIMwjCTnuR-7pzXrR9UypBibce70PfycYqt21L4x4121w7zfZZEwdXopstFoEJN5hovGj-CT2VaE6Wq69I7B5D3gp_B63o5gjIfn2D7nfSQKy0F61J85NrwwVaLwfhHvozyK_AKAB-JxTHP5jukisl36d0OTI_bdgUbQU0sOW6LrzhgS4ITBKzMx0LLOWtCiQ8Xb8smN-pIOihILCJCmMRgqHsKx5oZ2hLsNCmLp"/>
+</div>
+<div class="flex justify-between items-start">
+<div>
+<h3 class="text-xs font-bold text-muted-light dark:text-muted-dark uppercase tracking-widest mb-1">Puma</h3>
+<h2 class="text-base font-bold text-text-light dark:text-text-dark leading-snug">RS-X Retro</h2>
+</div>
+<span class="text-base font-bold text-text-light dark:text-text-dark ml-4 whitespace-nowrap">₹ 8,999</span>
+</div>
+</a>
+<a class="group block cursor-pointer" href="#">
+<div class="relative w-full aspect-square bg-surface-light dark:bg-surface-dark mb-4 overflow-hidden flex items-center justify-center p-6">
+<img alt="Nike Air Force 1" class="w-full h-auto object-contain group-hover:scale-105 transition-transform duration-500 ease-out mix-blend-multiply dark:mix-blend-normal" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBrREzqPGjjaN9NbimCGYb7mWOIgOGMPhA5v3vxYNs_l1vIdpCyVeA28mO8m5gwmy-5JgS-ZOfH3switmrdYdLuMF2pATV559MfuTiMOOyxdtoChZGL20dz4jhpeXIOtcYzvUWISKvoI_eDMnHvKkDAUdb-cJQTRe8Pj5FcUGrdUIIbhiV09V7BgeRRna5R5sLAtY61NMIt-BT7oAZPEIv7VaQW86ygJIgR1YXvb_lKLQkaocp4SFzg9dx-VwWsiiLPnAxYHiml6juZ"/>
+</div>
+<div class="flex justify-between items-start">
+<div>
+<h3 class="text-xs font-bold text-muted-light dark:text-muted-dark uppercase tracking-widest mb-1">Nike</h3>
+<h2 class="text-base font-bold text-text-light dark:text-text-dark leading-snug">Air Force 1 '07</h2>
+</div>
+<span class="text-base font-bold text-text-light dark:text-text-dark ml-4 whitespace-nowrap">₹ 10,795</span>
+</div>
+</a>
+<a class="group block cursor-pointer" href="#">
+<div class="relative w-full aspect-square bg-surface-light dark:bg-surface-dark mb-4 overflow-hidden flex items-center justify-center p-6">
+<img alt="Vans Classic" class="w-full h-auto object-contain group-hover:scale-105 transition-transform duration-500 ease-out mix-blend-multiply dark:mix-blend-normal" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAcWC_VcKep9ClVw8bH2KLIrsB9RAUFySi8B9eHG1yo7eMtp5v0uyrnVWVkMYv3ZHyb5REruRaEuntA_cqnNVPg7ec6_fxkvu1YzUPQVcIYpOIJmYGnEy-2LW8xbjXF257jnf5xwRj7Nguw8m7snOrgQb-mNZTVLUWcHADCGMZmwLs6wyxpKdzc1-sY8MMXCbiIsuOpW65BpZhPElWoKVG_ZV_3xgn2Up0RVVaNLmt8zLzUtDAoezdAIY5FokACxd3Zc8ohQXmohl5M"/>
+</div>
+<div class="flex justify-between items-start">
+<div>
+<h3 class="text-xs font-bold text-muted-light dark:text-muted-dark uppercase tracking-widest mb-1">Vans</h3>
+<h2 class="text-base font-bold text-text-light dark:text-text-dark leading-snug">Old Skool</h2>
+</div>
+<span class="text-base font-bold text-text-light dark:text-text-dark ml-4 whitespace-nowrap">₹ 5,499</span>
+</div>
+</a>
+<a class="group block cursor-pointer" href="#">
+<div class="relative w-full aspect-square bg-surface-light dark:bg-surface-dark mb-4 overflow-hidden flex items-center justify-center p-6">
+<img alt="New Balance 574" class="w-full h-auto object-contain group-hover:scale-105 transition-transform duration-500 ease-out mix-blend-multiply dark:mix-blend-normal" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD08277hSJ_ENQBafD8Q6BjCtVZd2XlaO_Y0QseIBj7p_8aiu-BDUMck65HnBUDhtGxJ-aQaWJ1j0f9k8j3SZVbJRPxECw8S2vwqCXYnxwFUrHRHWXJlkgCCWb_6R0CcR1Wrl5Bt-iDgZ91GJo9sEUy_4XownRCgsiy3k2nenqkxKXDPns1zSadQQVdvny8ZgrM4rONOxRgYECE7jP3umodWwQM-ldnSKKyCBbEdNKOUSKyVPcgziQ3F25x7BgrgHlFsaQTFqmG5YNQ"/>
+</div>
+<div class="flex justify-between items-start">
+<div>
+<h3 class="text-xs font-bold text-muted-light dark:text-muted-dark uppercase tracking-widest mb-1">New Balance</h3>
+<h2 class="text-base font-bold text-text-light dark:text-text-dark leading-snug">574 Core</h2>
+</div>
+<span class="text-base font-bold text-text-light dark:text-text-dark ml-4 whitespace-nowrap">₹ 8,999</span>
+</div>
+</a>
+</div>
+<div class="mt-16 flex justify-center border-t border-border-light dark:border-border-dark pt-8">
+<button class="px-8 py-4 bg-text-light dark:bg-text-dark text-background-light dark:text-background-dark text-sm font-bold uppercase tracking-widest hover:bg-primary hover:text-white dark:hover:bg-primary transition-colors">
+                        Load More Products
+                    </button>
+</div>
+</div>
+</div>
+</main>
+<footer class="border-t border-border-light dark:border-border-dark mt-20 py-10">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center">
+<div class="text-2xl font-black tracking-tighter uppercase font-display mb-4 md:mb-0">KIXX</div>
+<div class="flex space-x-6 text-sm font-bold text-muted-light dark:text-muted-dark uppercase tracking-wider">
+<a class="hover:text-text-light dark:hover:text-text-dark transition-colors" href="#">Instagram</a>
+<a class="hover:text-text-light dark:hover:text-text-dark transition-colors" href="#">Twitter</a>
+<a class="hover:text-text-light dark:hover:text-text-dark transition-colors" href="#">Support</a>
+</div>
+</div>
+</footer>
+
+</body></html>

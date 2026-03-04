@@ -1,201 +1,112 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useCallback, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { prefetchProduct } from '../config/queryClient';
 import { formatPrice } from '../utils/currency';
+import useCartStore from '../store/cartStore';
 
-// ---------------------------------------------------------------------------
-// ProgressiveImage — Blur-up / placeholder loading in plain React
-//
-// Technique (same idea as next/image blur placeholder):
-//  1. Render a tiny 20px×20px version of the image immediately (via a URL
-//     param if your CDN supports it, or a static blur placeholder from your DB)
-//  2. Load the full-res image off-screen via an Image() object
-//  3. Once loaded, crossfade from the blurred thumb to the sharp hi-res version
-//
-// This means the user sees *something* immediately (no blank square) and the
-// transition is smooth rather than a jarring pop-in.
-//
-// Image Source Strategy (pick one based on your setup):
-//
-//  A) Unsplash Source API (free, no key needed) — great for prototyping:
-//       https://source.unsplash.com/400x400/?sneakers,nike
-//     Add `&w=20&blur=10` for the thumbnail: not officially supported but
-//     Unsplash's CDN (Imgix under the hood) accepts `?w=20&q=20` for tiny previews.
-//
-//  B) Cloudinary (recommended for production):
-//     Full:  https://res.cloudinary.com/{cloud}/image/upload/f_auto,q_80,w_800/{id}.jpg
-//     Thumb: https://res.cloudinary.com/{cloud}/image/upload/w_20,e_blur:300,q_auto/{id}.jpg
-//
-//  C) Imgix:
-//     Full:  https://your-source.imgix.net/shoe.jpg?w=800&auto=format
-//     Thumb: https://your-source.imgix.net/shoe.jpg?w=20&blur=200&auto=format
-//
-// For KIXX's current setup (imageUrl from DB), the component accepts an optional
-// `placeholderSrc` prop. If your DB/backend doesn't generate thumbs yet,
-// it gracefully falls back to a solid colour placeholder.
-// ---------------------------------------------------------------------------
-
-/**
- * Generates a tiny placeholder data-URL (a 1×1 pixel in the brand colour)
- * that we show while the full image loads.
- * Pure CSS blur-scale achieves a convincing "blurred" look at no extra cost.
- */
-const BRAND_PLACEHOLDER =
-    'data:image/svg+xml;base64,' +
-    btoa(`<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"><rect width="1" height="1" fill="#e5e7eb"/></svg>`);
-
-/**
- * Builds a low-res thumbnail URL from the full image URL.
- *
- * Supports:
- *  • Cloudinary: injects `w_20,e_blur:200,q_auto` transform parameters
- *  • Unsplash: appends `&w=20&q=10`
- *  • Generic: returns the BRAND_PLACEHOLDER (no CDN thumb available)
- *
- * @param {string} fullUrl
- * @returns {string} thumbnail URL or placeholder data-URI
- */
 export function buildThumbUrl(fullUrl) {
-    if (!fullUrl) return BRAND_PLACEHOLDER;
-
-    // Cloudinary
+    if (!fullUrl) return null;
     if (fullUrl.includes('res.cloudinary.com')) {
         return fullUrl.replace('/upload/', '/upload/w_20,e_blur:200,q_auto,f_auto/');
     }
-
-    // Unsplash
     if (fullUrl.includes('unsplash.com')) {
         const url = new URL(fullUrl);
         url.searchParams.set('w', '20');
         url.searchParams.set('q', '10');
         return url.toString();
     }
-
-    // Imgix
-    if (fullUrl.includes('.imgix.net')) {
-        const url = new URL(fullUrl);
-        url.searchParams.set('w', '20');
-        url.searchParams.set('blur', '200');
-        url.searchParams.set('auto', 'format');
-        return url.toString();
-    }
-
-    return BRAND_PLACEHOLDER;
+    return null;
 }
 
-/**
- * ProgressiveImage
- *
- * Props:
- *  • src           — full resolution image URL
- *  • placeholderSrc — optional pre-generated low-res thumb (overrides buildThumbUrl)
- *  • alt, className, width, height, loading, fetchPriority — forwarded to <img>
- */
 export function ProgressiveImage({
     src,
-    placeholderSrc,
     alt = '',
     className = '',
-    width,
-    height,
-    loading = 'lazy',
-    fetchPriority,
     ...rest
 }) {
-    const thumbSrc = placeholderSrc || buildThumbUrl(src);
+    const thumbSrc = buildThumbUrl(src);
     const [isLoaded, setIsLoaded] = useState(false);
-    const [currentSrc, setCurrentSrc] = useState(thumbSrc);
-    const imgRef = useRef(null);
-
-    // When the real image finishes loading, crossfade to it
-    const handleLoad = useCallback(() => {
-        setCurrentSrc(src);
-        setIsLoaded(true);
-    }, [src]);
-
-    // Preload the full-res image off-screen as soon as the component mounts
-    React.useEffect(() => {
-        if (!src) return;
-        const img = new window.Image();
-        img.src = src;
-        img.onload = handleLoad;
-        return () => { img.onload = null; };
-    }, [src, handleLoad]);
 
     return (
         <img
-            ref={imgRef}
-            src={currentSrc}
+            src={isLoaded ? src : (thumbSrc || src)}
             alt={alt}
-            width={width}
-            height={height}
-            loading={loading}
-            fetchPriority={fetchPriority}
-            decoding="async"
-            className={`transition-all duration-500 ${isLoaded ? 'blur-0 scale-100' : 'blur-sm scale-[1.04]'} ${className}`}
+            onLoad={() => setIsLoaded(true)}
+            className={`transition-all duration-500 ease-out ${!isLoaded && thumbSrc ? 'blur-md scale-105' : 'blur-0 scale-100'} ${className}`}
             {...rest}
         />
     );
 }
 
-// ---------------------------------------------------------------------------
-// ProductCard
-// ---------------------------------------------------------------------------
-
-/**
- * ProductCard
- *
- * Performance features:
- *  • ProgressiveImage  — blur-up placeholder → full-res crossfade (better LCP UX)
- *  • loading="lazy"    — native browser lazy load for below-fold images
- *  • decoding="async"  — off-thread image decode
- *  • onMouseEnter prefetch — product detail data cached before user even clicks
- */
 export default function ProductCard({ product }) {
-    if (!product) return null;
+    const addItem = useCartStore((state) => state.addItem);
 
     const handleMouseEnter = useCallback(() => {
         prefetchProduct(String(product.id));
     }, [product.id]);
 
+    const handleAddToCart = (e) => {
+        e.preventDefault();
+        addItem({
+            ...product,
+            variantId: product.id,
+            price: product.basePrice,
+            quantity: 1,
+            stock: product.stock || 10
+        });
+    };
+
+    if (!product) return null;
+
     return (
         <Link
             to={`/product/${product.id}`}
-            className="group block h-full"
+            className="group block cursor-pointer"
             onMouseEnter={handleMouseEnter}
             onFocus={handleMouseEnter}
         >
-            <div className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 transition-transform duration-300 hover:scale-105 hover:shadow-md h-full flex flex-col">
-                <div className="relative aspect-square w-full bg-gray-100 overflow-hidden flex items-center justify-center">
-                    {product.imageUrl ? (
-                        <ProgressiveImage
-                            src={product.imageUrl}
-                            alt={product.name}
-                            loading="lazy"
-                            width={400}
-                            height={400}
-                            className="w-full h-full object-cover object-center group-hover:opacity-90"
-                        />
-                    ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-400 font-medium bg-gray-50">
-                            No Image
-                        </div>
-                    )}
-                </div>
+            <div className="relative w-full aspect-square bg-[#f7f7f7] dark:bg-[#222222] mb-4 overflow-hidden flex items-center justify-center p-6">
+                {product.imageUrl ? (
+                    <ProgressiveImage
+                        src={product.imageUrl}
+                        alt={product.name}
+                        loading="lazy"
+                        className="w-full h-auto object-contain group-hover:scale-105 transition-transform duration-500 ease-out mix-blend-multiply dark:mix-blend-normal"
+                    />
+                ) : (
+                    <div className="w-full h-full flex items-center justify-center text-[#666666] dark:text-[#a0a0a0] font-medium text-sm uppercase tracking-widest">
+                        No Image
+                    </div>
+                )}
 
-                <div className="p-5 flex flex-col flex-grow">
-                    <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">
-                        {product.brand?.name || 'Unknown Brand'}
+                {product.isNew && (
+                    <div className="absolute top-4 left-4 bg-white dark:bg-[#111111] text-black dark:text-white text-xs font-bold px-2 py-1 uppercase tracking-wider shadow-sm">
+                        New
                     </div>
-                    <h3 className="text-lg font-bold text-gray-900 mb-3 line-clamp-2 leading-tight">
-                        {product.name}
-                    </h3>
-                    <div className="mt-auto pt-2">
-                        <span className="text-[#800000] font-black text-xl">
-                            {formatPrice(product.basePrice)}
-                        </span>
-                    </div>
+                )}
+
+                <div className="absolute inset-x-0 bottom-[-50px] group-hover:bottom-4 px-4 transition-all duration-300 ease-in-out opacity-0 group-hover:opacity-100 flex justify-center z-10">
+                    <button
+                        onClick={handleAddToCart}
+                        className="w-full max-w-[200px] py-3 bg-black dark:bg-white text-white dark:text-black text-xs font-bold tracking-widest uppercase hover:bg-[#5c0000] hover:text-white dark:hover:bg-[#5c0000] dark:hover:text-white transition-colors shadow-lg"
+                    >
+                        Add to Cart
+                    </button>
                 </div>
+            </div>
+
+            <div className="flex justify-between items-start">
+                <div>
+                    <h3 className="text-xs font-bold text-[#666666] dark:text-[#a0a0a0] uppercase tracking-widest mb-1 line-clamp-1">
+                        {product.brand?.name || product.category || 'Sneaker'}
+                    </h3>
+                    <h2 className="text-base font-bold text-black dark:text-white leading-snug line-clamp-2 pr-4">
+                        {product.name}
+                    </h2>
+                </div>
+                <span className="text-base font-bold text-black dark:text-white ml-2 whitespace-nowrap">
+                    {formatPrice(product.basePrice)}
+                </span>
             </div>
         </Link>
     );
