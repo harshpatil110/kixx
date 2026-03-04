@@ -10,7 +10,7 @@ const {
 } = require('../db/schema');
 
 async function runSeed() {
-    console.log('🌱 Starting Database Seeding Process...');
+    console.log('🌱 Starting Database Seeding Process (INR Localization & Premium Catalog)...');
 
     // Step A: Clear Existing Data (Reverse Relational Order)
     console.log('🧹 Clearing existing data...');
@@ -36,52 +36,81 @@ async function runSeed() {
     const insertedBrands = await db.insert(brands).values([
         { name: "Nike", description: "Just Do It", logoUrl: "https://example.com/nike.png" },
         { name: "Adidas", description: "Impossible is Nothing", logoUrl: "https://example.com/adidas.png" },
-        { name: "Puma", description: "Forever Faster", logoUrl: "https://example.com/puma.png" },
+        { name: "Jordan", description: "Become Legendary", logoUrl: "https://example.com/jordan.png" },
         { name: "New Balance", description: "Fearlessly Independent", logoUrl: "https://example.com/nb.png" }
     ]).returning();
     console.log(`✅ Created ${insertedBrands.length} brands.`);
 
     // Step D: Insert Products
-    console.log('👟 Seeding Products...');
-    let allProducts = [];
-    for (const brand of insertedBrands) {
-        const productsToProcess = [];
-        if (brand.name === "Nike") {
-            productsToProcess.push({ brandId: brand.id, name: "Air Max 90", description: "Iconic Nike sneaker.", basePrice: "130.00", category: "Running" });
-            productsToProcess.push({ brandId: brand.id, name: "Air Force 1", description: "Classic court shoe.", basePrice: "110.00", category: "Basketball" });
-        } else if (brand.name === "Adidas") {
-            productsToProcess.push({ brandId: brand.id, name: "Ultraboost 22", description: "Premium running shoe.", basePrice: "190.00", category: "Running" });
-            productsToProcess.push({ brandId: brand.id, name: "Stan Smith", description: "Timeless classic.", basePrice: "100.00", category: "Casual" });
-        } else if (brand.name === "Puma") {
-            productsToProcess.push({ brandId: brand.id, name: "Suede Classic", description: "Old school style.", basePrice: "75.00", category: "Casual" });
-            productsToProcess.push({ brandId: brand.id, name: "RS-X3", description: "Extreme running shoe.", basePrice: "110.00", category: "Running" });
-        } else if (brand.name === "New Balance") {
-            productsToProcess.push({ brandId: brand.id, name: "574 Core", description: "Most New Balance shoe ever.", basePrice: "85.00", category: "Casual" });
-            productsToProcess.push({ brandId: brand.id, name: "990v5", description: "Premium lifestyle shoe.", basePrice: "185.00", category: "Running" });
-        }
-        const insertedChunk = await db.insert(products).values(productsToProcess).returning();
-        allProducts.push(...insertedChunk);
-    }
-    console.log(`✅ Created ${allProducts.length} products.`);
+    console.log('👟 Seeding Catalog...');
+    const allProductsToProcess = [];
+
+    // Helper to get brand ID
+    const getBrandId = (name) => insertedBrands.find(b => b.name === name).id;
+
+    // Define the full catalog (18 high-quality products)
+    const catalogData = [
+        // --- NIKE ---
+        { brandId: getBrandId('Nike'), name: 'Air Max 90 Essentials', description: 'Classic comfort with an iconic silhouette. Built for everyday wear.', basePrice: '11999.00', category: 'Lifestyle', imageUrl: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=800&q=80' },
+        { brandId: getBrandId('Nike'), name: 'Air Force 1 \'07', description: 'The legend lives on in the Nike Air Force 1.', basePrice: '8499.00', category: 'Classic', imageUrl: 'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&w=800&q=80' },
+        { brandId: getBrandId('Nike'), name: 'ZoomX Vaporfly Next% 2', description: 'Advanced racing shoes engineered for peak speed and energy return.', basePrice: '21999.00', category: 'Running', imageUrl: 'https://images.unsplash.com/photo-1608231387042-66d1773070a5?auto=format&fit=crop&w=800&q=80' },
+        { brandId: getBrandId('Nike'), name: 'React Infinity Run 3', description: 'A shoe built to help reduce running-related injuries.', basePrice: '14499.00', category: 'Running', imageUrl: 'https://images.unsplash.com/photo-1605348532760-6753d2c43329?auto=format&fit=crop&w=800&q=80' },
+
+        // --- ADIDAS ---
+        { brandId: getBrandId('Adidas'), name: 'Ultraboost Light', description: 'Experience epic energy with the lightest Ultraboost ever.', basePrice: '16999.00', category: 'Running', imageUrl: 'https://images.unsplash.com/photo-1587563871167-1ee9c731aefb?auto=format&fit=crop&w=800&q=80' },
+        { brandId: getBrandId('Adidas'), name: 'Samba OG', description: 'Born on the pitch, the Samba is a timeless icon of street style.', basePrice: '8999.00', category: 'Classic', imageUrl: 'https://images.unsplash.com/photo-1511556532299-8f662fc26c06?auto=format&fit=crop&w=800&q=80' },
+        { brandId: getBrandId('Adidas'), name: 'NMD_R1 V2', description: 'Streamlined, progressive street style with plush Boost cushioning.', basePrice: '13599.00', category: 'Lifestyle', imageUrl: 'https://images.unsplash.com/photo-1514989940723-e8e51635b782?auto=format&fit=crop&w=800&q=80' },
+        { brandId: getBrandId('Adidas'), name: 'YEEZY BOOST 350 V2', description: 'The defining silhouette of the modern sneaker era.', basePrice: '22999.00', category: 'Exclusive', imageUrl: 'https://images.unsplash.com/photo-1552346154-21d32810baa3?auto=format&fit=crop&w=800&q=80' },
+        { brandId: getBrandId('Adidas'), name: 'Forum Low', description: 'Premium leather and a classic hardwood profile.', basePrice: '9999.00', category: 'Classic', imageUrl: 'https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?auto=format&fit=crop&w=800&q=80' },
+
+        // --- JORDAN ---
+        { brandId: getBrandId('Jordan'), name: 'Air Jordan 1 Retro High', description: 'The shoe that started it all. Premium leather and classic colors.', basePrice: '18999.00', category: 'Basketball', imageUrl: 'https://images.unsplash.com/photo-1600183505291-1bf33a469850?auto=format&fit=crop&w=800&q=80' },
+        { brandId: getBrandId('Jordan'), name: 'Air Jordan 4 Retro', description: 'Striking design and premium aesthetic, beloved by sneakerheads.', basePrice: '24999.00', category: 'Basketball', imageUrl: 'https://images.unsplash.com/photo-1597045566677-8cf032ed6634?auto=format&fit=crop&w=800&q=80' },
+        { brandId: getBrandId('Jordan'), name: 'Jordan Luka 2', description: 'Built to support the deceptive speed and control of Luka Dončić.', basePrice: '12499.00', category: 'Performance', imageUrl: 'https://images.unsplash.com/photo-1621315271772-28b1e3266e85?auto=format&fit=crop&w=800&q=80' },
+        { brandId: getBrandId('Jordan'), name: 'Air Jordan 11 Retro', description: 'Patent leather majesty. One of the most sought-after MJs ever.', basePrice: '22499.00', category: 'Classic', imageUrl: 'https://images.unsplash.com/photo-1603808033192-082d6919d3e1?auto=format&fit=crop&w=800&q=80' },
+
+        // --- NEW BALANCE ---
+        { brandId: getBrandId('New Balance'), name: 'Made in USA 990v6', description: 'The standard-bearer of the 990 series. Legendary comfort.', basePrice: '19999.00', category: 'Running', imageUrl: 'https://images.unsplash.com/photo-1532298229144-0ec0c57515c7?auto=format&fit=crop&w=800&q=80' },
+        { brandId: getBrandId('New Balance'), name: '550 Vintage White', description: 'A retro basketball oxford honoring the 1989 original.', basePrice: '10999.00', category: 'Classic', imageUrl: 'https://images.unsplash.com/photo-1613915617430-8ab0fd7c6baf?auto=format&fit=crop&w=800&q=80' },
+        { brandId: getBrandId('New Balance'), name: 'Fresh Foam 1080v13', description: 'The pinnacle of New Balance cushioning technology.', basePrice: '14999.00', category: 'Running', imageUrl: 'https://images.unsplash.com/photo-1491553895911-0055eca6402d?auto=format&fit=crop&w=800&q=80' },
+        { brandId: getBrandId('New Balance'), name: '2002R Protection Pack', description: 'Deconstructed upper design meets modern performance.', basePrice: '15999.00', category: 'Lifestyle', imageUrl: 'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?auto=format&fit=crop&w=800&q=80' },
+        { brandId: getBrandId('New Balance'), name: '327 Lifestyle', description: 'A bold, angular redesign of classic 1970s running shoes.', basePrice: '8499.00', category: 'Lifestyle', imageUrl: 'https://images.unsplash.com/photo-1560769629-975ec94e6a86?auto=format&fit=crop&w=800&q=80' }
+    ];
+
+    let insertedProducts = [];
+    // Insert in chunks or all at once
+    insertedProducts = await db.insert(products).values(catalogData).returning();
+
+    console.log(`✅ Created ${insertedProducts.length} Premium Products.`);
 
     // Step E: Insert Variants
     console.log('🎨 Seeding Product Variants...');
     const variantsToInsert = [];
-    allProducts.forEach((product, i) => {
-        const sizes = ["8", "9", "10"];
-        const colors = ["Black", "White"];
 
-        // Assign one color per product for variance, and loop sizes
-        const color = colors[i % 2];
+    const sizes = ["7", "8", "9", "10", "11"];
+    const colors = ["Black", "White", "Red", "Grey", "Blue"];
 
-        sizes.forEach(size => {
-            variantsToInsert.push({
-                productId: product.id,
-                sku: `PROD-${product.id.split('-')[0]}-${color.toUpperCase().slice(0, 3)}-SZ${size}`,
-                size: size,
-                color: color,
-                price: product.basePrice,
-                stock: Math.floor(Math.random() * 41) + 10 // random between 10 and 50
+    insertedProducts.forEach((product) => {
+        // Pick 2 random colors for this product to keep variations interesting
+        const productColors = [
+            colors[Math.floor(Math.random() * colors.length)],
+            colors[Math.floor(Math.random() * colors.length)]
+        ];
+
+        // Deduplicate colors
+        const uniqueColors = [...new Set(productColors)];
+
+        uniqueColors.forEach(color => {
+            sizes.forEach(size => {
+                variantsToInsert.push({
+                    productId: product.id,
+                    sku: `PROD-${product.id.split('-')[0]}-${color.toUpperCase().slice(0, 3)}-SZ${size}`,
+                    size: size,
+                    color: color,
+                    // Keeping price same as basePrice, though variant prices could differ in reality
+                    price: product.basePrice,
+                    stock: Math.floor(Math.random() * 25) + 5 // random between 5 and 30
+                });
             });
         });
     });

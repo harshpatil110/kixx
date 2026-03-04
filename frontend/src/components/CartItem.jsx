@@ -1,6 +1,7 @@
 import React from 'react';
 import { Minus, Plus, Trash2 } from 'lucide-react';
 import useCartStore from '../store/cartStore';
+import { formatPrice } from '../utils/currency';
 
 export default function CartItem({ item }) {
     const { updateQuantity, removeItem } = useCartStore();
@@ -63,7 +64,7 @@ export default function CartItem({ item }) {
 
                 {/* Pricing for mobile */}
                 <div className="mt-4 sm:hidden font-black text-lg text-[#800000]">
-                    ${subtotal.toFixed(2)}
+                    {formatPrice(subtotal)}
                 </div>
             </div>
 
@@ -71,7 +72,7 @@ export default function CartItem({ item }) {
             <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center w-full sm:w-auto mt-4 sm:mt-0 space-y-0 sm:space-y-4">
                 {/* Desktop Pricing */}
                 <div className="hidden sm:block font-black text-2xl text-[#800000]">
-                    ${subtotal.toFixed(2)}
+                    {formatPrice(subtotal)}
                 </div>
 
                 <div className="flex items-center flex-row space-x-6">

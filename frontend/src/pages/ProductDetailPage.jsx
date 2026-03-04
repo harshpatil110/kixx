@@ -5,6 +5,7 @@ import { getProductById } from '../services/productService';
 import VariantSelector from '../components/VariantSelector';
 import useCartStore from '../store/cartStore';
 import { Loader2, ArrowLeft, CheckCircle2, ShoppingBag } from 'lucide-react';
+import { formatPrice } from '../utils/currency';
 
 /**
  * ProductDetailPage
@@ -138,7 +139,7 @@ export default function ProductDetailPage() {
                         </h1>
 
                         <div className="text-4xl font-black text-[#800000] mb-8">
-                            ${displayPrice.toFixed(2)}
+                            {formatPrice(displayPrice)}
                         </div>
 
                         <p className="text-gray-600 text-lg leading-relaxed mb-10 font-medium">

@@ -4,6 +4,7 @@ import { useMutation } from '@tanstack/react-query';
 import { createOrder, processPayment } from '../services/orderService';
 import useCartStore from '../store/cartStore';
 import { Loader2, CreditCard } from 'lucide-react';
+import { formatPrice } from '../utils/currency';
 
 export default function CheckoutPage() {
     const { items, getTotalPrice, clearCart } = useCartStore();
@@ -111,7 +112,7 @@ export default function CheckoutPage() {
                             className="w-full flex justify-center items-center py-4 px-6 border border-transparent rounded-xl shadow-lg text-lg font-bold text-white bg-[#800000] hover:bg-[#600000] focus:outline-none focus:ring-4 focus:ring-offset-2 focus:ring-[#800000] transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-8"
                         >
                             {isPending && <Loader2 className="animate-spin h-5 w-5 mr-3" />}
-                            {isPending ? 'Processing...' : `Pay $${getTotalPrice().toFixed(2)}`}
+                            {isPending ? 'Processing...' : `Pay ${formatPrice(getTotalPrice())}`}
                         </button>
                     </form>
                 </div>
@@ -140,7 +141,7 @@ export default function CheckoutPage() {
                                     </div>
                                 </div>
                                 <div className="font-bold text-gray-900 ml-4">
-                                    ${(item.price * item.quantity).toFixed(2)}
+                                    {formatPrice(item.price * item.quantity)}
                                 </div>
                             </div>
                         ))}
@@ -153,7 +154,7 @@ export default function CheckoutPage() {
                     <div className="border-t border-gray-200 pt-6 mt-6">
                         <div className="flex justify-between items-center text-xl">
                             <span className="font-bold text-gray-900">Total</span>
-                            <span className="font-black text-[#800000]">${getTotalPrice().toFixed(2)}</span>
+                            <span className="font-black text-[#800000]">{formatPrice(getTotalPrice())}</span>
                         </div>
                     </div>
                 </div>

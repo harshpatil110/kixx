@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { getUserOrders } from '../services/orderService';
 import useAuthStore from '../store/authStore';
 import { Loader2, Package, ChevronRight } from 'lucide-react';
+import { formatPrice } from '../utils/currency';
 
 export default function OrderHistoryPage() {
     const { user } = useAuthStore();
@@ -90,7 +91,7 @@ export default function OrderHistoryPage() {
 
                                         <div className="flex items-center justify-between sm:justify-end sm:w-1/3">
                                             <div className="text-2xl font-black text-[#800000] sm:mr-8">
-                                                ${parseFloat(order.totalPrice || 0).toFixed(2)}
+                                                {formatPrice(order.totalPrice || 0)}
                                             </div>
                                             <Link
                                                 to={`/order/${order.id}`}

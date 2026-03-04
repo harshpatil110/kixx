@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { prefetchProduct } from '../config/queryClient';
+import { formatPrice } from '../utils/currency';
 
 // ---------------------------------------------------------------------------
 // ProgressiveImage — Blur-up / placeholder loading in plain React
@@ -191,7 +192,7 @@ export default function ProductCard({ product }) {
                     </h3>
                     <div className="mt-auto pt-2">
                         <span className="text-[#800000] font-black text-xl">
-                            ${parseFloat(product.basePrice).toFixed(2)}
+                            {formatPrice(product.basePrice)}
                         </span>
                     </div>
                 </div>

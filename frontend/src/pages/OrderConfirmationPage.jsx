@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { getOrderById } from '../services/orderService';
 import { Loader2, CheckCircle } from 'lucide-react';
+import { formatPrice } from '../utils/currency';
 
 export default function OrderConfirmationPage() {
     const { id } = useParams();
@@ -57,7 +58,7 @@ export default function OrderConfirmationPage() {
                     </div>
                     <div className="flex justify-between items-center pt-3 border-t border-gray-200">
                         <span className="text-gray-500 font-medium">Total Paid</span>
-                        <span className="text-xl text-[#800000] font-black">${parseFloat(order.totalPrice || 0).toFixed(2)}</span>
+                        <span className="text-xl text-[#800000] font-black">{formatPrice(order.totalPrice || 0)}</span>
                     </div>
                 </div>
 

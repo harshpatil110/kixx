@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { getOrderById } from '../services/orderService';
 import { Loader2, ArrowLeft, Package } from 'lucide-react';
+import { formatPrice } from '../utils/currency';
 
 export default function OrderDetailPage() {
     const { id } = useParams();
@@ -74,7 +75,7 @@ export default function OrderDetailPage() {
                                 {order.status || 'pending'}
                             </span>
                             <div className="text-3xl font-black text-[#800000]">
-                                ${parseFloat(order.totalPrice || 0).toFixed(2)}
+                                {formatPrice(order.totalPrice || 0)}
                             </div>
                         </div>
                     </div>
@@ -106,7 +107,7 @@ export default function OrderDetailPage() {
                                             </p>
                                         </div>
                                         <div className="mt-2 sm:mt-0 font-black text-gray-900 text-xl whitespace-nowrap">
-                                            ${(parseFloat(item.price || 0) * (item.quantity || 1)).toFixed(2)}
+                                            {formatPrice((parseFloat(item.price || 0) * (item.quantity || 1)))}
                                         </div>
                                     </div>
                                 );

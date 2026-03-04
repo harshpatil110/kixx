@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { ShoppingBag, ArrowRight } from 'lucide-react';
 import useCartStore from '../store/cartStore';
 import CartItem from '../components/CartItem';
+import { formatPrice } from '../utils/currency';
 
 export default function CartPage() {
     const { items, getTotalPrice, getItemCount } = useCartStore();
@@ -59,7 +60,7 @@ export default function CartPage() {
                                 <div className="space-y-4 text-sm font-medium text-gray-600 mb-8">
                                     <div className="flex justify-between">
                                         <span>Subtotal ({getItemCount()} items)</span>
-                                        <span className="font-bold text-gray-900">${getTotalPrice().toFixed(2)}</span>
+                                        <span className="font-bold text-gray-900">{formatPrice(getTotalPrice())}</span>
                                     </div>
                                     <div className="flex justify-between items-center bg-gray-100 p-3 rounded-lg">
                                         <span>Shipping</span>
@@ -68,7 +69,7 @@ export default function CartPage() {
                                     <div className="flex justify-between items-center border-t-2 border-gray-200 pt-4 mt-4">
                                         <span className="text-xl font-bold text-gray-900">Total</span>
                                         <span className="text-3xl font-black text-[#800000]">
-                                            ${getTotalPrice().toFixed(2)}
+                                            {formatPrice(getTotalPrice())}
                                         </span>
                                     </div>
                                 </div>
