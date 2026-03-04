@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, Navigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { auth } from '../config/firebase';
@@ -8,6 +8,9 @@ import { Loader2, User, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import useAuthStore from '../store/authStore';
 
 export default function RegisterPage() {
+    // ── Guest guard: redirect authenticated users to the catalog ─────────────
+    const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+    if (isAuthenticated) return <Navigate to="/catalog" replace />;
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');

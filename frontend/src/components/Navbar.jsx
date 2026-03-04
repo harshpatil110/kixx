@@ -15,7 +15,7 @@ export default function Navbar() {
         try {
             await signOut(auth);
             clearAuth();
-            navigate('/login');
+            navigate('/');
         } catch (error) {
             console.error('Error logging out:', error);
         }
@@ -40,7 +40,7 @@ export default function Navbar() {
                         <Link to="/" className="text-gray-700 hover:text-[#800000] font-bold transition-colors uppercase tracking-wider text-sm">
                             Home
                         </Link>
-                        <Link to="/" className="text-gray-700 hover:text-[#800000] font-bold transition-colors uppercase tracking-wider text-sm">
+                        <Link to="/catalog" className="text-gray-700 hover:text-[#800000] font-bold transition-colors uppercase tracking-wider text-sm">
                             Catalog
                         </Link>
                         {isAuthenticated && (
@@ -66,14 +66,22 @@ export default function Navbar() {
                         {/* User Details / Auth Links */}
                         <div className="hidden sm:flex items-center">
                             {isAuthenticated ? (
-                                <div className="flex items-center space-x-4 border-l border-gray-300 pl-4">
-                                    <span className="text-sm font-bold text-gray-700 flex items-center whitespace-nowrap">
-                                        <User className="w-4 h-4 mr-2 text-[#800000]" />
-                                        Hi, {displayName}
-                                    </span>
+                                <div className="flex items-center space-x-3 border-l border-gray-300 pl-4">
+                                    <Link
+                                        to="/account"
+                                        className="flex items-center gap-2 text-sm font-bold text-gray-700
+                                                   hover:text-[#800000] transition-colors whitespace-nowrap"
+                                    >
+                                        <User className="w-4 h-4 text-[#800000]" />
+                                        Your Account
+                                    </Link>
                                     <button
                                         onClick={handleLogout}
-                                        className="flex items-center px-3 py-1.5 text-sm font-bold text-gray-500 bg-gray-100 hover:bg-red-50 hover:text-[#800000] rounded-lg transition-colors border border-transparent hover:border-red-100"
+                                        title="Sign out"
+                                        className="flex items-center px-3 py-1.5 text-sm font-bold text-gray-500
+                                                   bg-gray-100 hover:bg-red-50 hover:text-[#800000]
+                                                   rounded-lg transition-colors border border-transparent
+                                                   hover:border-red-100"
                                     >
                                         <LogOut className="w-4 h-4 sm:mr-1" />
                                         <span className="hidden md:inline">Logout</span>
