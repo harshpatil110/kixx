@@ -61,52 +61,48 @@ export default function ProductCard({ product }) {
     return (
         <Link
             to={`/product/${product.id}`}
-            className="group block cursor-pointer"
+            className="group flex flex-col relative overflow-hidden bg-white dark:bg-gray-900 rounded-[32px] p-4 border border-gray-100 dark:border-gray-800 transition-transform duration-300 hover:-translate-y-1 shadow-sm"
             onMouseEnter={handleMouseEnter}
             onFocus={handleMouseEnter}
         >
-            <div className="relative w-full aspect-square bg-[#f7f7f7] dark:bg-[#222222] mb-4 overflow-hidden flex items-center justify-center p-6">
+            <div className="aspect-square bg-gray-50 dark:bg-gray-800 rounded-[20px] mb-4 flex items-center justify-center p-4 relative overflow-hidden">
                 {product.imageUrl ? (
                     <ProgressiveImage
                         src={product.imageUrl}
                         alt={product.name}
                         loading="lazy"
-                        className="w-full h-auto object-contain group-hover:scale-105 transition-transform duration-500 ease-out mix-blend-multiply dark:mix-blend-normal"
+                        className="w-full h-auto object-contain transform group-hover:scale-105 transition-transform duration-500"
                     />
                 ) : (
-                    <div className="w-full h-full flex items-center justify-center text-[#666666] dark:text-[#a0a0a0] font-medium text-sm uppercase tracking-widest">
+                    <div className="w-full h-full flex items-center justify-center text-gray-400 font-medium text-sm uppercase tracking-widest">
                         No Image
                     </div>
                 )}
 
                 {product.isNew && (
-                    <div className="absolute top-4 left-4 bg-white dark:bg-[#111111] text-black dark:text-white text-xs font-bold px-2 py-1 uppercase tracking-wider shadow-sm">
-                        New
+                    <div className="absolute top-4 left-4 bg-black text-white text-xs font-bold px-2 py-1 rounded">
+                        NEW
                     </div>
                 )}
 
-                <div className="absolute inset-x-0 bottom-[-50px] group-hover:bottom-4 px-4 transition-all duration-300 ease-in-out opacity-0 group-hover:opacity-100 flex justify-center z-10">
-                    <button
-                        onClick={handleAddToCart}
-                        className="w-full max-w-[200px] py-3 bg-black dark:bg-white text-white dark:text-black text-xs font-bold tracking-widest uppercase hover:bg-[#5c0000] hover:text-white dark:hover:bg-[#5c0000] dark:hover:text-white transition-colors shadow-lg"
-                    >
-                        Add to Cart
-                    </button>
-                </div>
+                <button
+                    onClick={handleAddToCart}
+                    className="absolute bottom-4 left-1/2 transform -translate-x-1/2 px-6 py-2 rounded-full font-bold text-sm tracking-wide shadow-lg w-max flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-white/60 dark:bg-black/60 backdrop-blur-[10px] border border-white/90 dark:border-white/30 text-black dark:text-white"
+                >
+                    + QUICK ADD
+                </button>
             </div>
 
-            <div className="flex justify-between items-start">
-                <div>
-                    <h3 className="text-xs font-bold text-[#666666] dark:text-[#a0a0a0] uppercase tracking-widest mb-1 line-clamp-1">
-                        {product.brand?.name || product.category || 'Sneaker'}
-                    </h3>
-                    <h2 className="text-base font-bold text-black dark:text-white leading-snug line-clamp-2 pr-4">
-                        {product.name}
-                    </h2>
-                </div>
-                <span className="text-base font-bold text-black dark:text-white ml-2 whitespace-nowrap">
+            <div className="mt-auto px-1">
+                <p className="text-sm text-gray-500 dark:text-gray-400 font-semibold mb-1 uppercase">
+                    {product.brand?.name || product.category || 'Sneaker'}
+                </p>
+                <h3 className="text-lg font-bold leading-tight mb-2 text-gray-900 dark:text-white" style={{ letterSpacing: '-0.05em' }}>
+                    {product.name}
+                </h3>
+                <p className="text-xl font-extrabold text-[#800000]">
                     {formatPrice(product.basePrice)}
-                </span>
+                </p>
             </div>
         </Link>
     );

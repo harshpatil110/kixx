@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>KIXX Dark Glass Cart</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#800000","background-light": "#f3f4f6",
+                        "background-dark": "#111827",
+                    },
+                    fontFamily: {
+                        display: ["Inter", "sans-serif"],
+                    },
+                    borderRadius: {
+                        DEFAULT: "0.5rem",
+                    },
+                },
+            },
+        };
+    </script>
+<style>
+        .glass-drawer {
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-gray-900 dark:text-gray-100 antialiased overflow-hidden h-screen relative">
+<div class="absolute inset-0 z-0 bg-gray-200 dark:bg-gray-800 opacity-50 flex items-center justify-center">
+<h1 class="text-4xl font-bold tracking-tighter text-gray-400 dark:text-gray-600">KIXX Storefront (Dimmed)</h1>
+</div>
+<div class="absolute inset-0 bg-black/40 z-40 backdrop-blur-sm transition-opacity"></div>
+<div class="absolute inset-y-0 right-0 z-50 w-full md:w-[30%] min-w-[320px] max-w-md glass-drawer shadow-2xl flex flex-col text-white transform transition-transform duration-300 translate-x-0">
+<div class="px-6 py-5 flex items-center justify-between border-b border-white/10">
+<h2 class="text-lg font-bold tracking-tight uppercase">Your Cart <span class="text-gray-400 font-medium ml-2">(2)</span></h2>
+<button class="text-gray-400 hover:text-white transition-colors focus:outline-none">
+<span class="material-icons">close</span>
+</button>
+</div>
+<div class="flex-1 overflow-y-auto px-6 py-4 space-y-6">
+<div class="flex gap-4 items-start group">
+<div class="w-20 h-20 bg-white/5 rounded-md flex-shrink-0 overflow-hidden relative">
+<img alt="Sneaker 1" class="object-cover w-full h-full mix-blend-overlay opacity-80 group-hover:opacity-100 transition-opacity" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDPgaeCEwYlWRZ6AAHahzXrHGZjxZkBnBkDkvZp5RBH08sUf-qF3-XVQagrHpjSddXg4c9qpt3Ao0lCyfUi45uO8fvhQEA0vKuOQIaYv93WuZVuUpbw1a2gKTfPq1mKdMOqkX7dzkCruogVd0Sf8gBZ8AIjIZo1KNXbLHKkoZ5rJvk_UrZw8uD1lDeAhAJ_pDxQK1djK8MP6U8r9ETawixiMxCF7RsoWiLew0Q_plSOtR7ISVtw9CP446R-rCoJxj0IHd4iBIyVFAs-"/>
+</div>
+<div class="flex-1 min-w-0">
+<h3 class="font-bold text-sm truncate uppercase tracking-tight">Nike Dunk Low Retro</h3>
+<p class="text-xs text-gray-400 mt-1 uppercase tracking-wider">Panda / Black-White</p>
+<div class="flex items-center justify-between mt-3">
+<span class="text-xs text-gray-300 font-medium">Size: 10.5 US</span>
+<span class="font-bold text-sm">$110</span>
+</div>
+</div>
+<button class="text-gray-500 hover:text-red-400 transition-colors mt-1 focus:outline-none">
+<span class="material-icons text-[18px]">delete_outline</span>
+</button>
+</div>
+<div class="flex gap-4 items-start group">
+<div class="w-20 h-20 bg-white/5 rounded-md flex-shrink-0 overflow-hidden relative">
+<img alt="Sneaker 2" class="object-cover w-full h-full mix-blend-overlay opacity-80 group-hover:opacity-100 transition-opacity" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDzDxEoIAwAg6GroMKqr2gQfCQiNdFTdOjEWb6l0l1nFuj1vFUpTNcFSHNFt8pSjzr_kW38OE1amAEbuvxej5LHe1TcieMbsSYStfJCG_UMqu-POFRr_UKzgWKikhXaEwfnwWMMCvUqHeSWRhKTEWlRLz2T1ilvSAGMiYpebP95IzJWAU36iXUYJozyhR3tqJYob7opaOGC3aAgKoIaDzXGt_WI2Tq151MAFRVYRfg1l1vD8zxy7JS-AuXcjW2SAp4Pk46aYaim5Pyr"/>
+</div>
+<div class="flex-1 min-w-0">
+<h3 class="font-bold text-sm truncate uppercase tracking-tight">Air Jordan 1 High OG</h3>
+<p class="text-xs text-gray-400 mt-1 uppercase tracking-wider">Lost &amp; Found</p>
+<div class="flex items-center justify-between mt-3">
+<span class="text-xs text-gray-300 font-medium">Size: 10 US</span>
+<span class="font-bold text-sm">$180</span>
+</div>
+</div>
+<button class="text-gray-500 hover:text-red-400 transition-colors mt-1 focus:outline-none">
+<span class="material-icons text-[18px]">delete_outline</span>
+</button>
+</div>
+</div>
+<div class="px-6 py-6 border-t border-white/10 bg-black/20">
+<div class="space-y-3 mb-6">
+<div class="flex justify-between text-sm text-gray-300">
+<span>Subtotal</span>
+<span class="font-medium text-white">$290.00</span>
+</div>
+<div class="flex justify-between text-sm text-gray-300">
+<span>Shipping</span>
+<span class="font-medium text-white">Calculated at next step</span>
+</div>
+<div class="flex justify-between text-base font-bold text-white pt-2 border-t border-white/10 mt-2">
+<span>Total</span>
+<span>$290.00</span>
+</div>
+</div>
+<button class="w-full bg-primary hover:bg-red-900 text-white font-bold uppercase tracking-widest py-4 rounded-sm transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-black">
+                Checkout
+            </button>
+</div>
+</div>
+
+</body></html>

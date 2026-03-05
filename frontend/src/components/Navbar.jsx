@@ -1,14 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import useCartStore from '../store/cartStore';
 import useAuthStore from '../store/authStore';
 import { auth } from '../config/firebase';
 import { signOut } from 'firebase/auth';
+import CartDrawer from './CartDrawer';
 
 export default function Navbar() {
     const getItemCount = useCartStore((state) => state.getItemCount);
     const { user, isAuthenticated, clearAuth } = useAuthStore();
     const navigate = useNavigate();
+    const [isCartOpen, setIsCartOpen] = useState(false);
 
     const handleLogout = async () => {
         try {
@@ -23,61 +25,63 @@ export default function Navbar() {
     const cartCount = getItemCount();
 
     return (
-        <nav className="sticky top-0 z-50 bg-white/90 dark:bg-[#111111]/90 backdrop-blur-md border-b border-[#e5e5e5] dark:border-[#333333] transition-colors duration-200">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex justify-between h-20 items-center">
-                    <div className="flex-shrink-0 flex items-center">
-                        <Link to="/" className="text-4xl font-black tracking-tighter uppercase font-display text-black dark:text-white">
-                            KIXX
-                        </Link>
-                    </div>
-
-                    <div className="hidden sm:ml-10 sm:flex sm:space-x-12">
-                        <Link to="/catalog" className="text-black dark:text-white inline-flex items-center px-1 pt-1 text-sm font-bold uppercase tracking-wider border-b-2 border-black dark:border-white">
-                            Shop
-                        </Link>
-                        <Link to="/catalog" className="text-[#666666] dark:text-[#a0a0a0] hover:text-black dark:hover:text-white inline-flex items-center px-1 pt-1 text-sm font-bold uppercase tracking-wider transition-colors">
-                            Brands
-                        </Link>
-                        {isAuthenticated && (
-                            <Link to="/orders" className="text-[#666666] dark:text-[#a0a0a0] hover:text-black dark:hover:text-white inline-flex items-center px-1 pt-1 text-sm font-bold uppercase tracking-wider transition-colors">
-                                Drops
-                            </Link>
-                        )}
-                    </div>
-
-                    <div className="flex items-center space-x-6">
-                        <button className="text-black dark:text-white hover:text-[#666666] dark:hover:text-[#a0a0a0] transition-colors">
-                            <span className="material-icons">search</span>
-                        </button>
-
-                        {isAuthenticated ? (
-                            <div className="flex items-center gap-4">
-                                <Link to="/account" className="text-black dark:text-white hover:text-[#666666] dark:hover:text-[#a0a0a0] transition-colors text-sm font-bold uppercase tracking-wider flex items-center gap-2">
-                                    <span className="material-icons text-sm">person</span>
-                                    <span className="hidden sm:inline">{user?.displayName || 'Profile'}</span>
-                                </Link>
-                                <button onClick={handleLogout} className="text-[#666666] dark:text-[#a0a0a0] hover:text-[#5c0000] transition-colors text-sm font-bold uppercase tracking-wider flex items-center">
-                                    <span className="material-icons text-sm">logout</span>
-                                </button>
-                            </div>
-                        ) : (
-                            <Link to="/login" className="text-black dark:text-white hover:text-[#666666] dark:hover:text-[#a0a0a0] transition-colors text-sm font-bold uppercase tracking-wider">
-                                Log In
-                            </Link>
-                        )}
-
-                        <Link to="/cart" className="relative p-2 text-black dark:text-white hover:text-[#666666] dark:hover:text-[#a0a0a0] transition-colors">
-                            <span className="material-icons">shopping_bag</span>
-                            {cartCount > 0 && (
-                                <span className="absolute top-1 right-0 inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-bold leading-none text-white bg-[#5c0000] rounded-full">
-                                    {cartCount}
-                                </span>
-                            )}
-                        </Link>
-                    </div>
+        <>
+            <nav className="fixed top-0 w-full z-40 bg-white/40 dark:bg-black/40 backdrop-blur-[20px] shadow-[0_8px_32px_0_rgba(0,0,0,0.1)] border-b border-white/80 dark:border-white/20 py-4 px-8 flex justify-between items-center transition-colors duration-300 font-display">
+                <div className="flex-shrink-0 flex items-center">
+                    <Link to="/" className="text-3xl font-extrabold tracking-tighter text-gray-900 dark:text-gray-100" style={{ letterSpacing: '-0.05em' }}>
+                        KIXX
+                    </Link>
                 </div>
-            </div>
-        </nav>
+
+                <div className="hidden sm:flex gap-8 font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-widest text-sm">
+                    <Link to="/catalog" className="hover:text-[#800000] transition-colors font-bold">
+                        Shop
+                    </Link>
+                    <Link to="/catalog" className="hover:text-[#800000] transition-colors">
+                        Brands
+                    </Link>
+                    {isAuthenticated && (
+                        <Link to="/orders" className="hover:text-[#800000] transition-colors">
+                            Drops
+                        </Link>
+                    )}
+                </div>
+
+                <div className="flex gap-4 items-center text-gray-900 dark:text-gray-100">
+                    <button aria-label="Search" className="hover:text-[#800000] transition-colors outline-none focus:outline-none">
+                        <span className="material-icons">search</span>
+                    </button>
+
+                    {isAuthenticated ? (
+                        <>
+                            <Link to="/account" aria-label="Account" className="hover:text-[#800000] transition-colors outline-none focus:outline-none">
+                                <span className="material-icons">person</span>
+                            </Link>
+                            <button onClick={handleLogout} aria-label="Logout" className="hover:text-[#800000] transition-colors outline-none focus:outline-none">
+                                <span className="material-icons">logout</span>
+                            </button>
+                        </>
+                    ) : (
+                        <Link to="/login" aria-label="Login" className="hover:text-[#800000] transition-colors font-bold uppercase tracking-widest text-xs hidden sm:block">
+                            Log In
+                        </Link>
+                    )}
+
+                    <button
+                        aria-label="Cart"
+                        onClick={() => setIsCartOpen(true)}
+                        className="relative hover:text-[#800000] transition-colors outline-none focus:outline-none"
+                    >
+                        <span className="material-icons">shopping_cart</span>
+                        {cartCount > 0 && (
+                            <span className="absolute -top-1 -right-2 inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-bold leading-none text-white bg-[#800000] rounded-full">
+                                {cartCount}
+                            </span>
+                        )}
+                    </button>
+                </div>
+            </nav>
+            <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
+        </>
     );
 }
