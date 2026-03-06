@@ -36,6 +36,7 @@ function ProductCard({ product }) {
 
     const handleAddToCart = (e) => {
         e.preventDefault();
+        e.stopPropagation();
         addItem({ ...product, variantId: product.id, price: product.basePrice, quantity: 1, stock: product.stock || 10 });
     };
 
