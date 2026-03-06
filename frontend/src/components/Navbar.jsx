@@ -45,7 +45,7 @@ export default function Navbar() {
                 border-top:rgba(255,255,255,0.8)  border-left:rgba(255,255,255,0.8)
                 shadow:0 8px 32px 0 rgba(0,0,0,0.1)
             */}
-            <nav className="fixed top-0 left-0 right-0 w-full max-w-[1600px] mx-auto z-50 py-4 px-4 md:px-8 xl:px-12 flex justify-between items-center transition-colors duration-300
+            <nav className="fixed top-0 left-0 right-0 w-full z-50 py-4 px-4 sm:px-6 flex justify-between items-center transition-colors duration-300
                 bg-[rgba(255,255,255,0.4)]
                 backdrop-blur-[20px] [-webkit-backdrop-filter:blur(20px)]
                 border-t border-t-[rgba(255,255,255,0.8)]
@@ -61,9 +61,9 @@ export default function Navbar() {
 
                 {/* Stitch: div.flex.gap-8.font-semibold  text:gray-900 */}
                 <div className="hidden sm:flex gap-8 font-semibold text-gray-900">
-                    <Link to="/catalog" className="hover:text-[#800000] transition-colors">NEW</Link>
+                    <Link to="/catalog?category=new" className="hover:text-[#800000] transition-colors">NEW</Link>
                     <Link to="/catalog" className="hover:text-[#800000] transition-colors">BRANDS</Link>
-                    <Link to="/catalog" className="hover:text-[#800000] transition-colors">SALE</Link>
+                    <Link to="/catalog?category=sale" className="hover:text-[#800000] transition-colors">SALE</Link>
                 </div>
 
                 {/* Stitch: div.flex.gap-4  icons: material-symbols-outlined text-gray-900 */}

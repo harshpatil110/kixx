@@ -38,6 +38,8 @@ const products = pgTable('products', {
     basePrice: decimal('base_price', { precision: 10, scale: 2 }).notNull(),
     category: varchar('category', { length: 255 }),
     imageUrl: varchar('image_url', { length: 255 }),
+    isNew: boolean('is_new').default(false).notNull(),
+    isOnSale: boolean('is_on_sale').default(false).notNull(),
     createdAt: timestamp('created_at').defaultNow(),
     updatedAt: timestamp('updated_at').defaultNow()
 });

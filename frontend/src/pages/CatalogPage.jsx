@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { getProducts } from '../services/productService';
 import { formatPrice } from '../utils/currency';
@@ -82,9 +82,12 @@ function ProductCard({ product }) {
                     )}
                 </div>
 
-                {/* Stitch: div.absolute.top-4.left-4.bg-black.text-white.text-xs.font-bold.px-2.py-1.rounded */}
+                {/* Badges: NEW / SALE */}
                 {product.isNew && (
                     <div className="absolute top-4 left-4 bg-black text-white text-xs font-bold px-2 py-1 rounded z-10">NEW</div>
+                )}
+                {product.isOnSale && (
+                    <div className={`absolute top-4 ${product.isNew ? 'left-20' : 'left-4'} bg-[#800000] text-white text-xs font-bold px-2 py-1 rounded z-10`}>SALE</div>
                 )}
 
                 {/* Stitch quick-add-btn — data-quick-add attribute lets handleCardClick bail out */}
@@ -125,6 +128,8 @@ function ProductCard({ product }) {
 
 export default function CatalogPage() {
     const [brandFilter, setBrandFilter] = useState('');
+    const [searchParams] = useSearchParams();
+    const category = searchParams.get('category');
 
     const { data: products, isLoading, isError } = useQuery({
         queryKey: ['products'],
@@ -138,9 +143,30 @@ export default function CatalogPage() {
 
     const filteredProducts = React.useMemo(() => {
         if (!products) return [];
-        if (!brandFilter) return products;
-        return products.filter(p => p.brand?.name?.toLowerCase() === brandFilter.toLowerCase());
-    }, [products, brandFilter]);
+        let result = products;
+
+        // URL category filter (NEW / SALE)
+        if (category === 'new') {
+            result = result.filter(p => p.isNew === true);
+        } else if (category === 'sale') {
+            result = result.filter(p => p.isOnSale === true);
+        }
+
+        // Sidebar brand filter
+        if (brandFilter) {
+            result = result.filter(p => p.brand?.name?.toLowerCase() === brandFilter.toLowerCase());
+        }
+
+        return result;
+    }, [products, brandFilter, category]);
+
+    // Dynamic page title
+    const pageTitle = React.useMemo(() => {
+        if (category === 'new') return 'NEW ARRIVALS';
+        if (category === 'sale') return 'SALE';
+        if (brandFilter) return brandFilter.toUpperCase();
+        return 'ALL SNEAKERS';
+    }, [category, brandFilter]);
 
     return (
         /*
@@ -155,7 +181,7 @@ export default function CatalogPage() {
             }}
         >
             {/* Stitch: div.pt-28.px-8.pb-12.max-w-7xl.mx-auto.flex.flex-col.md:flex-row.gap-8 */}
-            <div className="pt-28 pb-12 w-full max-w-[1600px] mx-auto px-4 md:px-8 xl:px-12 flex flex-col md:flex-row gap-8">
+            <div className="pt-28 pb-12 w-full px-4 sm:px-6 flex flex-col md:flex-row gap-8">
 
                 {/* Stitch: aside.w-full.md:w-64.flex-shrink-0 */}
                 <aside className="w-full md:w-64 flex-shrink-0">
@@ -234,7 +260,7 @@ export default function CatalogPage() {
                     <div className="flex justify-between items-end mb-8">
                         {/* Stitch: h1.text-4xl.md:text-5xl.font-extrabold  text:gray-900  letter-spacing:-0.05em */}
                         <h1 className="text-4xl md:text-5xl font-extrabold tracking-[-0.05em] uppercase text-gray-900">
-                            {brandFilter || 'ALL SNEAKERS'}
+                            {pageTitle}
                         </h1>
                         {/* Stitch: span.text-gray-500.font-medium */}
                         <span className="text-gray-500 font-medium">
