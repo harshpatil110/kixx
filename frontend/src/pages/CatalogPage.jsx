@@ -1,90 +1,257 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { getProducts } from '../services/productService';
-import ProductCard from '../components/ProductCard';
+import { formatPrice } from '../utils/currency';
+import useCartStore from '../store/cartStore';
+import { prefetchProduct } from '../config/queryClient';
+
+/*
+  STITCH LIGHT THEME — catalog.html
+  ────────────────────────────────────────
+  body bg: #ffffff  text: gray-900  font: Inter
+  body bg-image: radial-gradient(circle at 10% 20%, rgba(200,200,200,0.2) 0%, transparent 40%),
+                 radial-gradient(circle at 90% 80%, rgba(128,0,0,0.1) 0%, transparent 40%)
+  bg-attachment: fixed
+
+  .liquid-glass (LIGHT):
+    background: rgba(255,255,255,0.4)
+    backdrop-filter: blur(20px)
+    border-top: 1px solid rgba(255,255,255,0.8)
+    border-left: 1px solid rgba(255,255,255,0.8)
+    box-shadow: 0 8px 32px 0 rgba(0,0,0,0.1)
+
+  product-card: bg-white  border-gray-100
+  product-card image box: bg-gray-50
+  quick-add-btn (LIGHT): bg rgba(255,255,255,0.6) border rgba(255,255,255,0.9)
+  h1/h2/h3 nav-logo: letter-spacing -0.05em
+  primary: #800000
+*/
+
+function ProductCard({ product }) {
+    const addItem = useCartStore((state) => state.addItem);
+
+    const handleMouseEnter = () => { prefetchProduct(String(product.id)); };
+
+    const handleAddToCart = (e) => {
+        e.preventDefault();
+        addItem({ ...product, variantId: product.id, price: product.basePrice, quantity: 1, stock: product.stock || 10 });
+    };
+
+    if (!product) return null;
+
+    return (
+        <Link
+            to={`/product/${product.id}`}
+            onMouseEnter={handleMouseEnter}
+            onFocus={handleMouseEnter}
+            /* Stitch: product-card bg-white rounded-2xl p-4 flex flex-col relative overflow-hidden group
+               border border-gray-100  transition:transform 0.3s ease  hover:translateY(-5px) */
+            className="group bg-white rounded-2xl p-4 flex flex-col relative overflow-hidden border border-gray-100 transition-transform duration-[300ms] ease-[ease] hover:-translate-y-[5px]"
+        >
+            {/* Stitch: div.aspect-square.bg-gray-50.rounded-xl.mb-4.flex.items-center.justify-center.p-4.relative */}
+            <div className="aspect-square bg-gray-50 rounded-xl mb-4 flex items-center justify-center p-4 relative">
+
+                {/* Stitch: img.w-full.h-auto.object-contain.transform.group-hover:scale-105.transition-transform.duration-500 */}
+                {product.imageUrl ? (
+                    <img
+                        src={product.imageUrl}
+                        alt={product.name}
+                        loading="lazy"
+                        className="w-full h-auto object-contain transform group-hover:scale-105 transition-transform duration-500"
+                    />
+                ) : (
+                    <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm uppercase tracking-widest">No Image</div>
+                )}
+
+                {/* Stitch: div.absolute.top-4.left-4.bg-black.text-white.text-xs.font-bold.px-2.py-1.rounded */}
+                {product.isNew && (
+                    <div className="absolute top-4 left-4 bg-black text-white text-xs font-bold px-2 py-1 rounded">NEW</div>
+                )}
+
+                {/* Stitch quick-add-btn LIGHT:
+                    opacity:0  transition:opacity 0.3s ease
+                    background: rgba(255,255,255,0.6)  backdrop-filter:blur(10px)
+                    border: 1px solid rgba(255,255,255,0.9)
+                    text: text-black
+                    classes: absolute bottom-4 left-1/2 transform -translate-x-1/2
+                             px-6 py-2 rounded-full font-bold text-sm tracking-wide shadow-lg w-max flex items-center gap-2 */}
+                <button
+                    onClick={handleAddToCart}
+                    className="absolute bottom-4 left-1/2 transform -translate-x-1/2
+                        px-6 py-2 rounded-full font-bold text-sm tracking-wide shadow-lg
+                        w-max flex items-center gap-2 text-black
+                        opacity-0 group-hover:opacity-100 transition-opacity duration-[300ms] ease-[ease]
+                        bg-[rgba(255,255,255,0.6)]
+                        backdrop-blur-[10px] [-webkit-backdrop-filter:blur(10px)]
+                        border border-[rgba(255,255,255,0.9)]"
+                >
+                    <span>+ QUICK ADD</span>
+                </button>
+            </div>
+
+            {/* Stitch: div.mt-auto */}
+            <div className="mt-auto">
+                {/* Stitch: p.text-sm.text-gray-500.font-semibold.mb-1.uppercase */}
+                <p className="text-sm text-gray-500 font-semibold mb-1 uppercase">
+                    {product.brand?.name || product.category || 'Sneaker'}
+                </p>
+                {/* Stitch: h3.text-lg.font-bold.leading-tight.mb-2  letter-spacing:-0.05em */}
+                <h3 className="text-lg font-bold leading-tight mb-2 tracking-[-0.05em] text-gray-900">
+                    {product.name}
+                </h3>
+                {/* Stitch: p.text-xl.font-extrabold.text-primary (#800000) */}
+                <p className="text-xl font-extrabold text-[#800000]">
+                    {formatPrice(product.basePrice)}
+                </p>
+            </div>
+        </Link>
+    );
+}
 
 export default function CatalogPage() {
     const [brandFilter, setBrandFilter] = useState('');
 
-    const { data: products, isLoading, isError, refetch } = useQuery({
+    const { data: products, isLoading, isError } = useQuery({
         queryKey: ['products'],
         queryFn: () => getProducts(),
     });
 
     const brands = React.useMemo(() => {
         if (!products) return [];
-        return [...new Set(products.map((p) => p.brand?.name).filter(Boolean))].sort();
+        return [...new Set(products.map(p => p.brand?.name).filter(Boolean))].sort();
     }, [products]);
 
     const filteredProducts = React.useMemo(() => {
         if (!products) return [];
-        let filtered = products;
-        if (brandFilter) {
-            filtered = filtered.filter(p => p.brand?.name?.toLowerCase() === brandFilter.toLowerCase());
-        }
-        return filtered;
+        if (!brandFilter) return products;
+        return products.filter(p => p.brand?.name?.toLowerCase() === brandFilter.toLowerCase());
     }, [products, brandFilter]);
 
     return (
-        <div className="bg-[#ffffff] dark:bg-[#1a1a1a] text-gray-900 dark:text-gray-100 min-h-screen antialiased transition-colors duration-200"
+        /*
+          Stitch body: bg-background-light (#ffffff) text-gray-900 min-h-screen antialiased
+          bg-image: two radial-gradients (fixed attachment)
+        */
+        <div
+            className="bg-[#ffffff] text-gray-900 min-h-screen antialiased font-[Inter,sans-serif] bg-fixed"
             style={{
-                fontFamily: "'Inter', sans-serif",
-                backgroundImage: "radial-gradient(circle at 10% 20%, rgba(200, 200, 200, 0.2) 0%, transparent 40%), radial-gradient(circle at 90% 80%, rgba(128, 0, 0, 0.1) 0%, transparent 40%)",
-                backgroundAttachment: "fixed"
-            }}>
-            <div className="pt-28 px-4 sm:px-8 pb-12 max-w-7xl mx-auto flex flex-col md:flex-row gap-8">
+                backgroundImage: `radial-gradient(circle at 10% 20%, rgba(200,200,200,0.2) 0%, transparent 40%),
+                                  radial-gradient(circle at 90% 80%, rgba(128,0,0,0.1) 0%, transparent 40%)`,
+            }}
+        >
+            {/* Stitch: div.pt-28.px-8.pb-12.max-w-7xl.mx-auto.flex.flex-col.md:flex-row.gap-8 */}
+            <div className="pt-28 px-8 pb-12 max-w-7xl mx-auto flex flex-col md:flex-row gap-8">
+
+                {/* Stitch: aside.w-full.md:w-64.flex-shrink-0 */}
                 <aside className="w-full md:w-64 flex-shrink-0">
-                    <div className="p-6 sticky top-32 bg-white/40 dark:bg-black/40 backdrop-blur-[20px] shadow-[0_8px_32px_0_rgba(0,0,0,0.1)] border-t border-l border-white/80 dark:border-white/20 rounded-[32px]">
-                        <h2 className="text-2xl font-bold mb-6 tracking-tighter uppercase">FILTERS</h2>
-                        {brands.length > 0 && (
-                            <div className="mb-8">
-                                <h3 className="font-semibold mb-3 tracking-widest uppercase text-sm text-[#666666] dark:text-[#a0a0a0]">BRAND</h3>
-                                <div className="space-y-2">
-                                    <label className="flex items-center gap-3 cursor-pointer">
-                                        <input type="radio" name="brand" checked={brandFilter === ''} onChange={() => setBrandFilter('')} className="form-radio text-[#800000] rounded border-gray-400 dark:border-gray-600 bg-transparent focus:ring-[#800000] h-4 w-4" />
-                                        <span className="font-medium text-sm">All Brands</span>
+                    {/*
+                      Stitch: div.liquid-glass.rounded.p-6.sticky.top-32
+                      "rounded" = borderRadius DEFAULT = 32px
+                      LIGHT .liquid-glass values:
+                        bg: rgba(255,255,255,0.4)  blur:20px
+                        border-top: rgba(255,255,255,0.8)  border-left: rgba(255,255,255,0.8)
+                        shadow: 0 8px 32px 0 rgba(0,0,0,0.1)
+                    */}
+                    <div className="rounded-[32px] p-6 sticky top-32
+                        bg-[rgba(255,255,255,0.4)]
+                        backdrop-blur-[20px] [-webkit-backdrop-filter:blur(20px)]
+                        border-t border-t-[rgba(255,255,255,0.8)]
+                        border-l border-l-[rgba(255,255,255,0.8)]
+                        shadow-[0_8px_32px_0_rgba(0,0,0,0.1)]">
+
+                        {/* Stitch: h2.text-2xl.font-bold.mb-6  letter-spacing:-0.05em  text:gray-900 */}
+                        <h2 className="text-2xl font-bold mb-6 tracking-[-0.05em] text-gray-900">FILTERS</h2>
+
+                        {/* BRAND */}
+                        <div className="mb-8">
+                            <h3 className="font-semibold mb-3 tracking-[-0.05em] text-gray-900">BRAND</h3>
+                            <div className="space-y-2">
+                                <label className="flex items-center gap-3 cursor-pointer text-gray-900">
+                                    <input
+                                        type="radio" name="brand" checked={brandFilter === ''}
+                                        onChange={() => setBrandFilter('')}
+                                        className="form-radio text-[#800000] rounded border-gray-400 bg-transparent focus:ring-[#800000] h-4 w-4"
+                                    />
+                                    <span>All</span>
+                                </label>
+                                {brands.map(brand => (
+                                    <label key={brand} className="flex items-center gap-3 cursor-pointer text-gray-900">
+                                        <input
+                                            type="radio" name="brand" checked={brandFilter === brand}
+                                            onChange={() => setBrandFilter(brand)}
+                                            className="form-radio text-[#800000] rounded border-gray-400 bg-transparent focus:ring-[#800000] h-4 w-4"
+                                        />
+                                        <span>{brand}</span>
                                     </label>
-                                    {brands.map(brand => (
-                                        <label key={brand} className="flex items-center gap-3 cursor-pointer">
-                                            <input type="radio" name="brand" checked={brandFilter === brand} onChange={() => setBrandFilter(brand)} className="form-radio text-[#800000] rounded border-gray-400 dark:border-gray-600 bg-transparent focus:ring-[#800000] h-4 w-4" />
-                                            <span className="font-medium text-sm">{brand}</span>
-                                        </label>
-                                    ))}
-                                </div>
+                                ))}
                             </div>
-                        )}
+                        </div>
+
+                        {/* SIZE */}
                         <div>
-                            <h3 className="font-semibold mb-3 tracking-widest uppercase text-sm text-[#666666] dark:text-[#a0a0a0]">SIZE (US)</h3>
+                            <h3 className="font-semibold mb-3 tracking-[-0.05em] text-gray-900">SIZE (US)</h3>
+                            {/*
+                              Stitch size btn classes:
+                              default: border border-gray-300 py-2 rounded-md hover:border-primary transition-colors
+                              grey:    border border-gray-300 py-2 rounded-md bg-gray-100
+                              active:  border border-primary bg-primary/10 py-2 rounded-md text-primary font-bold
+                            */}
                             <div className="grid grid-cols-3 gap-2">
-                                {[7, 8, 9, 10, 11, 12].map(size => (
-                                    <button key={size} className={`border py-2 rounded-md transition-colors text-sm font-medium ${size === 10 ? 'border-[#800000] bg-[#800000]/10 text-[#800000] font-bold' : size === 8 ? 'border-gray-300 dark:border-gray-700 bg-gray-100 dark:bg-gray-800' : 'border-gray-300 dark:border-gray-700 hover:border-[#800000] dark:hover:border-[#800000]'}`}>
-                                        {size}
-                                    </button>
+                                {[
+                                    { size: 7, v: 'default' }, { size: 8, v: 'grey' },
+                                    { size: 9, v: 'default' }, { size: 10, v: 'active' },
+                                    { size: 11, v: 'default' }, { size: 12, v: 'default' },
+                                ].map(({ size, v }) => (
+                                    <button key={size} className={
+                                        v === 'active'   ? 'border border-[#800000] bg-[#800000]/10 py-2 rounded-md text-[#800000] font-bold' :
+                                        v === 'grey'     ? 'border border-gray-300 py-2 rounded-md bg-gray-100 text-gray-900' :
+                                                           'border border-gray-300 py-2 rounded-md hover:border-[#800000] transition-colors text-gray-900'
+                                    }>{size}</button>
                                 ))}
                             </div>
                         </div>
                     </div>
                 </aside>
 
+                {/* Stitch: main.flex-1 */}
                 <main className="flex-1">
+                    {/* Stitch: div.flex.justify-between.items-end.mb-8 */}
                     <div className="flex justify-between items-end mb-8">
-                        <h1 className="text-4xl md:text-5xl font-extrabold tracking-tighter uppercase">{brandFilter || 'ALL SNEAKERS'}</h1>
-                        <span className="text-gray-500 dark:text-gray-400 font-medium">{filteredProducts.length} Results</span>
+                        {/* Stitch: h1.text-4xl.md:text-5xl.font-extrabold  text:gray-900  letter-spacing:-0.05em */}
+                        <h1 className="text-4xl md:text-5xl font-extrabold tracking-[-0.05em] uppercase text-gray-900">
+                            {brandFilter || 'ALL SNEAKERS'}
+                        </h1>
+                        {/* Stitch: span.text-gray-500.font-medium */}
+                        <span className="text-gray-500 font-medium">
+                            {isLoading ? '—' : `${filteredProducts.length} Results`}
+                        </span>
                     </div>
 
+                    {/* Skeleton — Stitch card shape, light */}
                     {isLoading && (
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                             {Array.from({ length: 6 }).map((_, i) => (
-                                <div key={i} className="animate-pulse bg-white dark:bg-gray-900 rounded-[32px] p-4 border border-gray-100 dark:border-gray-800">
-                                    <div className="aspect-square bg-gray-200 dark:bg-gray-800 rounded-[20px] mb-4"></div>
-                                    <div className="h-4 bg-gray-200 dark:bg-gray-800 w-1/4 mb-2"></div>
-                                    <div className="h-6 bg-gray-200 dark:bg-gray-800 w-3/4 mb-2"></div>
-                                    <div className="h-6 bg-gray-200 dark:bg-gray-800 w-1/3 mt-2"></div>
+                                <div key={i} className="animate-pulse bg-white rounded-2xl p-4 border border-gray-100">
+                                    <div className="aspect-square bg-gray-100 rounded-xl mb-4" />
+                                    <div className="space-y-2">
+                                        <div className="h-3 bg-gray-100 w-1/4 rounded" />
+                                        <div className="h-5 bg-gray-100 w-3/4 rounded" />
+                                        <div className="h-5 bg-gray-100 w-1/3 rounded" />
+                                    </div>
                                 </div>
                             ))}
                         </div>
                     )}
 
+                    {/* Error */}
+                    {!isLoading && isError && (
+                        <div className="text-center py-24 text-gray-500">
+                            <p className="text-lg font-semibold">Failed to load products.</p>
+                        </div>
+                    )}
+
+                    {/* Stitch: div.grid.grid-cols-1.sm:grid-cols-2.lg:grid-cols-3.gap-6 */}
                     {!isLoading && !isError && filteredProducts.length > 0 && (
                         <>
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -92,18 +259,27 @@ export default function CatalogPage() {
                                     <ProductCard key={product.id} product={product} />
                                 ))}
                             </div>
+
+                            {/* Stitch pagination — light: border-gray-300 hover:bg-gray-100 */}
                             <div className="mt-12 flex justify-center gap-2">
-                                <button className="w-10 h-10 rounded-full flex items-center justify-center border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800">
-                                    <span className="material-icons text-sm">chevron_left</span>
+                                <button className="w-10 h-10 rounded-full flex items-center justify-center border border-gray-300 hover:bg-gray-100 text-gray-900">
+                                    <span className="material-symbols-outlined text-sm">chevron_left</span>
                                 </button>
                                 <button className="w-10 h-10 rounded-full flex items-center justify-center bg-[#800000] text-white font-bold">1</button>
-                                <button className="w-10 h-10 rounded-full flex items-center justify-center border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 font-bold">2</button>
-                                <button className="w-10 h-10 rounded-full flex items-center justify-center border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 font-bold">3</button>
-                                <button className="w-10 h-10 rounded-full flex items-center justify-center border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800">
-                                    <span className="material-icons text-sm">chevron_right</span>
+                                <button className="w-10 h-10 rounded-full flex items-center justify-center border border-gray-300 hover:bg-gray-100 font-bold text-gray-900">2</button>
+                                <button className="w-10 h-10 rounded-full flex items-center justify-center border border-gray-300 hover:bg-gray-100 font-bold text-gray-900">3</button>
+                                <button className="w-10 h-10 rounded-full flex items-center justify-center border border-gray-300 hover:bg-gray-100 text-gray-900">
+                                    <span className="material-symbols-outlined text-sm">chevron_right</span>
                                 </button>
                             </div>
                         </>
+                    )}
+
+                    {/* Empty */}
+                    {!isLoading && !isError && filteredProducts.length === 0 && (
+                        <div className="text-center py-24 text-gray-500">
+                            <p className="text-lg font-semibold uppercase tracking-[-0.05em]">No sneakers found.</p>
+                        </div>
                     )}
                 </main>
             </div>

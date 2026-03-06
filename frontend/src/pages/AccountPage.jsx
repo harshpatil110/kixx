@@ -1,193 +1,325 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { signOut } from 'firebase/auth';
-import {
-    User,
-    Package,
-    LogOut,
-    ChevronRight,
-    ShieldCheck,
-    Settings,
-    Heart,
-    Loader2,
-} from 'lucide-react';
 import { auth } from '../config/firebase';
 import useAuthStore from '../store/authStore';
+import { getUserOrders } from '../services/orderService';
+import { formatPrice } from '../utils/currency';
 
-// ─── Sidebar nav item ─────────────────────────────────────────────────────────
-function SidebarItem({ icon: Icon, label, description, to, onClick, variant = 'default' }) {
-    const base =
-        'group flex items-center gap-4 w-full p-4 rounded-2xl border transition-all duration-200 text-left';
-    const variants = {
-        default: 'bg-white border-gray-100 hover:border-[#800000]/30 hover:shadow-md',
-        danger: 'bg-white border-gray-100 hover:border-red-200 hover:bg-red-50',
-    };
+/*
+  STITCH LIGHT THEME — account.html (KIXX Glass Account Hub)
+  ────────────────────────────────────────────────────────────
+  Font: Space Grotesk
+  body bg: bg-[#f8f9fa]  text-gray-900  overflow-x:hidden  min-h-screen
 
-    const content = (
-        <>
-            <div
-                className={`flex-shrink-0 rounded-xl p-3 transition-colors duration-200 ${variant === 'danger'
-                        ? 'bg-red-50 text-red-500 group-hover:bg-red-100'
-                        : 'bg-[#F5F5DC] text-[#800000] group-hover:bg-[#800000] group-hover:text-white'
-                    }`}
-            >
-                <Icon className="w-5 h-5" />
-            </div>
-            <div className="flex-grow min-w-0">
-                <p className={`font-bold text-sm ${variant === 'danger' ? 'text-red-600' : 'text-[#111]'}`}>
-                    {label}
-                </p>
-                {description && (
-                    <p className="text-xs text-gray-400 font-medium mt-0.5 truncate">{description}</p>
-                )}
-            </div>
-            <ChevronRight
-                className={`w-4 h-4 flex-shrink-0 transition-transform duration-200 group-hover:translate-x-1 ${variant === 'danger' ? 'text-red-300' : 'text-gray-300'
-                    }`}
-            />
-        </>
-    );
+  .bg-orb: absolute  rounded-full  blur-[80px]  z-[-1]  opacity-0.4
+  .orb-1: 400x400  bg rgba(128,0,0,0.15)  top:-100px   left:-100px
+  .orb-2: 500x500  bg rgba(200,200,200,0.2)  bottom:-150px  right:-100px
 
-    if (to) {
-        return (
-            <Link to={to} className={`${base} ${variants[variant]}`}>
-                {content}
-            </Link>
-        );
-    }
+  .glass-panel LIGHT:
+    background: rgba(255,255,255,0.7)
+    backdrop-filter: blur(20px)
+    border: 1px solid rgba(255,255,255,0.4)
+    box-shadow: 0 8px 32px 0 rgba(31,38,135,0.07)
+    TEXT: text-gray-900
 
-    return (
-        <button onClick={onClick} className={`${base} ${variants[variant]}`}>
-            {content}
-        </button>
-    );
-}
+  Header (glass-panel): sticky top-4 mx-8 mt-4 rounded-[32px] z-50 px-8 py-4
+    Logo: text-3xl font-bold tracking-tighter uppercase text-gray-900
+    Nav links: text-gray-900 hover:text-[#800000]
+    Icons: material-icons text-gray-900
+    Avatar: w-10 h-10 rounded-full bg-gray-200 border-2 border-[#800000]
 
-// ─── Main page ────────────────────────────────────────────────────────────────
+  Main: max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 flex flex-col md:flex-row gap-8
+
+  Sidebar glass-panel: rounded-[32px] p-6 sticky top-28
+    User avatar: w-16 h-16 rounded-full bg-[#800000] text-white
+    h2: font-bold text-lg text-gray-900
+    p (role): text-sm text-gray-500
+    border-b: border-gray-200
+    Nav default: flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/50 font-medium text-gray-900
+    Nav active: bg-white/80 font-bold active-nav-item (shadow-[0_0_15px_rgba(128,0,0,0.4)] border-[#800000])
+    Logout: mt-4 text-red-500 hover:text-red-700
+
+  .brutalist-solid LIGHT:
+    background: #ffffff
+    border: 2px solid #000000
+    text: text-gray-900
+  rounded-[32px] p-8 min-h-[600px]
+
+  Order row: flex flex-col sm:flex-row gap-6 p-6
+             border border-gray-200 rounded-2xl hover:bg-gray-50 transition-colors
+    img box: w-full sm:w-32 h-32 bg-gray-100 rounded-xl overflow-hidden flex items-center justify-center p-2
+    h3: font-bold text-xl uppercase tracking-tight text-gray-900
+    price: font-bold text-lg text-gray-900
+    date: text-xs text-gray-500
+    status badge (glass-panel LIGHT): px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1
+    action btns: text-sm font-medium border-b border-black hover:text-[#800000] hover:border-[#800000] uppercase
+
+  Load More btn: px-8 py-3 bg-black text-white font-bold uppercase tracking-widest rounded-[32px]
+                 hover:bg-[#800000] transition-colors
+*/
 export default function AccountPage() {
-    const [isSigningOut, setIsSigningOut] = useState(false);
-
     const { user, firebaseUser, clearAuth } = useAuthStore();
     const navigate = useNavigate();
+    const [isSigningOut, setIsSigningOut] = useState(false);
 
-    // Resolve display name and email from whichever source is available
     const displayName = user?.name || firebaseUser?.displayName || 'Sneakerhead';
     const email = user?.email || firebaseUser?.email || '—';
-    const initials = displayName
-        .split(' ')
-        .map((w) => w[0])
-        .slice(0, 2)
-        .join('')
-        .toUpperCase();
+    const userId = user?.id || firebaseUser?.uid;
+
+    const { data: orders, isLoading: ordersLoading } = useQuery({
+        queryKey: ['userOrders', userId],
+        queryFn: () => getUserOrders(userId),
+        enabled: !!userId,
+    });
 
     const handleSignOut = async () => {
         setIsSigningOut(true);
-        try {
-            await signOut(auth);
-            clearAuth();
-            navigate('/');
-        } catch (err) {
-            console.error('Sign-out error:', err);
-            setIsSigningOut(false);
-        }
+        try { await signOut(auth); clearAuth(); navigate('/'); }
+        catch (err) { console.error('Sign-out error:', err); setIsSigningOut(false); }
+    };
+
+    const statusColor = (s) => {
+        if (!s) return 'text-yellow-600';
+        const v = s.toLowerCase();
+        if (v === 'delivered') return 'text-green-600';
+        if (v === 'shipped') return 'text-blue-600';
+        if (v === 'returned') return 'text-gray-600';
+        return 'text-yellow-600';
+    };
+    const statusDot = (s) => {
+        if (!s) return 'bg-yellow-500';
+        const v = s.toLowerCase();
+        if (v === 'delivered') return 'bg-green-500';
+        if (v === 'shipped') return 'bg-blue-500';
+        if (v === 'returned') return 'bg-gray-500';
+        return 'bg-yellow-500';
     };
 
     return (
-        <div className="min-h-screen bg-[#F5F5DC] py-10 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-4xl mx-auto">
+        /*
+          Stitch body: bg-[#f8f9fa] text-gray-900 font:Space Grotesk
+          position:relative overflow-x:hidden min-h-screen
+        */
+        <div className="bg-[#f8f9fa] text-gray-900 relative overflow-x-hidden min-h-screen font-['Space_Grotesk',sans-serif]">
 
-                {/* ── Page header ───────────────────────────────────────────── */}
-                <div className="mb-10">
-                    <p className="text-xs font-black uppercase tracking-widest text-[#800000] mb-1">
-                        Dashboard
-                    </p>
-                    <h1
-                        className="font-black text-[#111] tracking-tighter leading-none"
-                        style={{ fontSize: 'clamp(2.2rem, 5vw, 3.2rem)', letterSpacing: '-0.03em' }}
-                    >
-                        Your Account
-                    </h1>
+            {/* Stitch .orb-1: absolute 400x400 bg rgba(128,0,0,0.15) top:-100px left:-100px blur:80px opacity:0.4 */}
+            <div className="absolute w-[400px] h-[400px] rounded-full bg-[rgba(128,0,0,0.15)] top-[-100px] left-[-100px] blur-[80px] opacity-40 z-[-1] pointer-events-none" />
+            {/* Stitch .orb-2: absolute 500x500 bg rgba(200,200,200,0.2) bottom:-150px right:-100px */}
+            <div className="absolute w-[500px] h-[500px] rounded-full bg-[rgba(200,200,200,0.2)] bottom-[-150px] right-[-100px] blur-[80px] opacity-40 z-[-1] pointer-events-none" />
+
+            {/*
+              Stitch header: glass-panel(LIGHT) sticky top-4 mx-8 mt-4 rounded-[32px] z-50
+              px-8 py-4 flex justify-between items-center transition-all duration-300
+              glass-panel LIGHT: bg rgba(255,255,255,0.7) blur:20px border rgba(255,255,255,0.4)
+              shadow: 0 8px 32px 0 rgba(31,38,135,0.07)
+            */}
+            <header className="sticky top-4 mx-8 mt-4 rounded-[32px] z-50 px-8 py-4 flex justify-between items-center transition-all duration-300
+                bg-[rgba(255,255,255,0.7)]
+                backdrop-blur-[20px] [-webkit-backdrop-filter:blur(20px)]
+                border border-[rgba(255,255,255,0.4)]
+                shadow-[0_8px_32px_0_rgba(31,38,135,0.07)]">
+
+                {/* Stitch: div.text-3xl.font-bold.tracking-tighter.uppercase text-gray-900 */}
+                <div className="text-3xl font-bold tracking-tighter uppercase text-gray-900">
+                    <Link to="/">KIXX</Link>
                 </div>
+                {/* Stitch: nav.hidden.md:flex.gap-8.font-medium text-gray-900 */}
+                <nav className="hidden md:flex gap-8 font-medium text-gray-900">
+                    <Link to="/catalog" className="hover:text-[#800000] transition-colors">New Drops</Link>
+                    <Link to="/catalog" className="hover:text-[#800000] transition-colors">Classics</Link>
+                    <Link to="/catalog" className="hover:text-[#800000] transition-colors">Sale</Link>
+                </nav>
+                {/* Stitch: div.flex.items-center.gap-6 text-gray-900 */}
+                <div className="flex items-center gap-6 text-gray-900">
+                    <button className="material-icons hover:text-[#800000] transition-colors">search</button>
+                    <button className="material-icons hover:text-[#800000] transition-colors">shopping_cart</button>
+                    {/* Stitch: avatar div.w-10.h-10.rounded-full.bg-gray-200.overflow-hidden.border-2.border-primary */}
+                    <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden border-2 border-[#800000] cursor-pointer flex items-center justify-center font-bold text-sm text-[#800000]">
+                        {displayName.charAt(0).toUpperCase()}
+                    </div>
+                </div>
+            </header>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Stitch: main.max-w-7xl.mx-auto.px-4.sm:px-6.lg:px-8.py-12.flex.flex-col.md:flex-row.gap-8 */}
+            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 flex flex-col md:flex-row gap-8">
 
-                    {/* ── LEFT — Profile card ───────────────────────────────── */}
-                    <div className="lg:col-span-1">
-                        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
-                            {/* Maroon banner */}
-                            <div className="h-24 bg-gradient-to-br from-[#800000] to-[#5a0000]" />
+                {/* Stitch: aside.w-full.md:w-64.flex-shrink-0 */}
+                <aside className="w-full md:w-64 flex-shrink-0">
+                    {/*
+                      Stitch: div.glass-panel.rounded-[32px].p-6.sticky.top-28
+                      glass-panel LIGHT: bg rgba(255,255,255,0.7) blur:20px border rgba(255,255,255,0.4)
+                      shadow: 0 8px 32px 0 rgba(31,38,135,0.07)
+                    */}
+                    <div className="rounded-[32px] p-6 sticky top-28
+                        bg-[rgba(255,255,255,0.7)]
+                        backdrop-blur-[20px] [-webkit-backdrop-filter:blur(20px)]
+                        border border-[rgba(255,255,255,0.4)]
+                        shadow-[0_8px_32px_0_rgba(31,38,135,0.07)]">
 
-                            {/* Avatar + info */}
-                            <div className="px-6 pb-6 -mt-10">
-                                <div
-                                    className="w-20 h-20 rounded-2xl bg-[#800000] border-4 border-white
-                                               flex items-center justify-center shadow-lg mb-4"
-                                >
-                                    <span className="text-white font-black text-xl tracking-tight">
-                                        {initials}
-                                    </span>
-                                </div>
-
-                                <h2 className="font-black text-[#111] text-lg tracking-tight truncate">
-                                    {displayName}
-                                </h2>
-                                <p className="text-sm text-gray-400 font-medium truncate mt-0.5">
-                                    {email}
-                                </p>
-
-                                <div className="mt-5 pt-5 border-t border-gray-100 flex items-center gap-2">
-                                    <ShieldCheck className="w-4 h-4 text-emerald-500 flex-shrink-0" />
-                                    <span className="text-xs font-bold text-emerald-600 uppercase tracking-widest">
-                                        Verified Account
-                                    </span>
-                                </div>
+                        {/* Stitch: div.flex.items-center.gap-4.mb-8.pb-6.border-b.border-gray-200 */}
+                        <div className="flex items-center gap-4 mb-8 pb-6 border-b border-gray-200">
+                            {/* Stitch: div.w-16.h-16.rounded-full.bg-gray-200.overflow-hidden.flex-shrink-0 */}
+                            <div className="w-16 h-16 rounded-full bg-[#800000] overflow-hidden flex-shrink-0 flex items-center justify-center text-white font-bold text-xl">
+                                {displayName.charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                                {/* Stitch: h2.font-bold.text-lg text-gray-900 */}
+                                <h2 className="font-bold text-lg text-gray-900">{displayName}</h2>
+                                {/* Stitch: p.text-sm.text-gray-500 */}
+                                <p className="text-sm text-gray-500">Sneakerhead</p>
                             </div>
                         </div>
+
+                        {/* Stitch: nav.flex.flex-col.gap-2 */}
+                        <nav className="flex flex-col gap-2">
+                            {/* default: flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/50 font-medium */}
+                            <Link to="/account" className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/50 transition-colors font-medium text-gray-900">
+                                <span className="material-icons text-gray-500">person</span>
+                                Profile
+                            </Link>
+                            {/* active: bg-white/80 font-bold shadow-[0_0_15px_rgba(128,0,0,0.4)] border border-[#800000] */}
+                            <Link to="/orders" className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/80 font-bold border border-[#800000] shadow-[0_0_15px_rgba(128,0,0,0.4)] text-gray-900">
+                                <span className="material-icons text-[#800000]">local_shipping</span>
+                                Order History
+                            </Link>
+                            <Link to="/catalog" className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/50 transition-colors font-medium text-gray-900">
+                                <span className="material-icons text-gray-500">favorite</span>
+                                Wishlist
+                            </Link>
+                            <Link to="/catalog" className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/50 transition-colors font-medium text-gray-900">
+                                <span className="material-icons text-gray-500">payment</span>
+                                Payment Methods
+                            </Link>
+                            {/* Stitch: a.mt-4.text-red-500.hover:text-red-700 */}
+                            <button
+                                onClick={handleSignOut} disabled={isSigningOut}
+                                className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/50 transition-colors font-medium mt-4 text-red-500 hover:text-red-700 disabled:opacity-50"
+                            >
+                                <span className="material-icons">logout</span>
+                                {isSigningOut ? 'Signing Out…' : 'Log Out'}
+                            </button>
+                        </nav>
                     </div>
+                </aside>
 
-                    {/* ── RIGHT — Navigation menu ───────────────────────────── */}
-                    <div className="lg:col-span-2 flex flex-col gap-3">
+                {/* Stitch: section.flex-grow */}
+                <section className="flex-grow">
+                    {/*
+                      Stitch .brutalist-solid LIGHT: bg:#ffffff border:2px solid #000
+                      rounded-[32px] p-8 min-h-[600px]
+                    */}
+                    <div className="bg-[#ffffff] border-2 border-black rounded-[32px] p-8 min-h-[600px]">
+                        {/* Stitch: div.flex.justify-between.items-end.mb-8.border-b-2.border-black.pb-4 */}
+                        <div className="flex justify-between items-end mb-8 border-b-2 border-black pb-4">
+                            {/* Stitch: h1.text-4xl.font-bold.uppercase.tracking-tight text-gray-900 */}
+                            <h1 className="text-4xl font-bold uppercase tracking-tight text-gray-900">Order History</h1>
+                            <div className="relative">
+                                <select className="appearance-none bg-transparent border-b border-gray-400 py-1 pr-8 text-sm focus:outline-none focus:border-black rounded-none text-gray-900">
+                                    <option>Last 30 Days</option>
+                                    <option>Last 6 Months</option>
+                                    <option>All Time</option>
+                                </select>
+                                <span className="material-icons absolute right-0 top-1 text-gray-500 pointer-events-none text-sm">expand_more</span>
+                            </div>
+                        </div>
 
-                        <SidebarItem
-                            icon={Package}
-                            label="Order History"
-                            description="View and track all your past orders"
-                            to="/orders"
-                        />
+                        {/* Orders list */}
+                        {ordersLoading ? (
+                            <div className="space-y-6">
+                                {Array.from({ length: 3 }).map((_, i) => (
+                                    <div key={i} className="animate-pulse flex gap-6 p-6 border border-gray-100 rounded-2xl">
+                                        <div className="w-32 h-32 bg-gray-100 rounded-xl flex-shrink-0" />
+                                        <div className="flex-grow space-y-3">
+                                            <div className="h-5 bg-gray-100 w-1/3 rounded" />
+                                            <div className="h-3 bg-gray-100 w-1/4 rounded" />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : orders && orders.length > 0 ? (
+                            <div className="space-y-6">
+                                {orders.map((order) => (
+                                    /* Stitch: div.flex.flex-col.sm:flex-row.gap-6.p-6
+                                       .border.border-gray-200.rounded-2xl.hover:bg-gray-50.transition-colors */
+                                    <div key={order.id} className="flex flex-col sm:flex-row gap-6 p-6 border border-gray-200 rounded-2xl hover:bg-gray-50 transition-colors">
+                                        {/* Stitch: div.w-full.sm:w-32.h-32.bg-gray-100.rounded-xl.overflow-hidden.flex-shrink-0.flex.items-center.justify-center.p-2 */}
+                                        <div className="w-full sm:w-32 h-32 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0 flex items-center justify-center p-2">
+                                            {order.items?.[0]?.imageUrl
+                                                ? <img src={order.items[0].imageUrl} alt="Order" className="w-full h-auto mix-blend-multiply" />
+                                                : <span className="material-icons text-3xl text-gray-400">inventory_2</span>
+                                            }
+                                        </div>
+                                        {/* Stitch: div.flex-grow.flex.flex-col.justify-between */}
+                                        <div className="flex-grow flex flex-col justify-between">
+                                            <div className="flex justify-between items-start">
+                                                <div>
+                                                    {/* Stitch: h3.font-bold.text-xl.uppercase.tracking-tight text-gray-900 */}
+                                                    <h3 className="font-bold text-xl uppercase tracking-tight text-gray-900">
+                                                        {order.items?.[0]?.name || 'Order'}
+                                                        {order.items?.length > 1 && ` +${order.items.length - 1} more`}
+                                                    </h3>
+                                                    <p className="text-sm text-gray-500 mt-1">Order #{order.id}</p>
+                                                    <p className="text-xs text-gray-400 mt-1">
+                                                        {new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                                    </p>
+                                                </div>
+                                                <div className="text-right">
+                                                    {/* Stitch: p.font-bold.text-lg text-gray-900 */}
+                                                    <p className="font-bold text-lg text-gray-900">{formatPrice(order.totalAmount || 0)}</p>
+                                                </div>
+                                            </div>
+                                            {/* Stitch: div.mt-4.flex.justify-between.items-center */}
+                                            <div className="mt-4 flex justify-between items-center">
+                                                {/*
+                                                  Status badge — glass-panel LIGHT:
+                                                  bg rgba(255,255,255,0.7) blur:20px border rgba(255,255,255,0.4)
+                                                  px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1
+                                                */}
+                                                <span className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1
+                                                    bg-[rgba(255,255,255,0.7)]
+                                                    backdrop-blur-[20px]
+                                                    border border-[rgba(255,255,255,0.4)]
+                                                    shadow-[0_8px_32px_0_rgba(31,38,135,0.07)]
+                                                    ${statusColor(order.status)}`}>
+                                                    <span className={`w-2 h-2 rounded-full ${statusDot(order.status)}`} />
+                                                    {order.status || 'Processing'}
+                                                </span>
+                                                <div className="flex gap-3">
+                                                    {/* Stitch: button.text-sm.font-medium.border-b.border-black.hover:text-primary.hover:border-primary.uppercase */}
+                                                    <Link to={`/orders/${order.id}`} className="text-sm font-medium border-b border-black hover:text-[#800000] hover:border-[#800000] transition-colors uppercase text-gray-900">
+                                                        View Receipt
+                                                    </Link>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="text-center py-24 text-gray-500">
+                                <span className="material-icons text-5xl mb-4 block opacity-30">inventory_2</span>
+                                <p className="font-bold text-xl uppercase tracking-tight text-gray-900">No orders yet</p>
+                                <p className="text-sm mt-2">Your order history will appear here.</p>
+                                <Link to="/catalog" className="mt-6 inline-block px-8 py-3 bg-black text-white font-bold uppercase tracking-widest rounded-[32px] hover:bg-[#800000] transition-colors">
+                                    Start Shopping
+                                </Link>
+                            </div>
+                        )}
 
-                        <SidebarItem
-                            icon={Heart}
-                            label="Wishlist"
-                            description="Your saved items and favourite drops"
-                            to="/catalog"
-                        />
-
-                        <SidebarItem
-                            icon={Settings}
-                            label="Account Settings"
-                            description="Manage your profile and preferences"
-                            to="/catalog"
-                        />
-
-                        {/* Divider */}
-                        <div className="h-px bg-gray-200 my-1 rounded-full" />
-
-                        {/* Sign out */}
-                        <SidebarItem
-                            icon={isSigningOut ? Loader2 : LogOut}
-                            label={isSigningOut ? 'Signing Out…' : 'Sign Out'}
-                            description="You'll be redirected to the homepage"
-                            onClick={!isSigningOut ? handleSignOut : undefined}
-                            variant="danger"
-                        />
+                        {/* Stitch: div.mt-8.flex.justify-center — Load More */}
+                        {orders && orders.length > 0 && (
+                            <div className="mt-8 flex justify-center">
+                                {/* Stitch: button.px-8.py-3.bg-black.text-white.font-bold.uppercase.tracking-widest.rounded.hover:bg-primary.transition-colors */}
+                                <button className="px-8 py-3 bg-black text-white font-bold uppercase tracking-widest rounded-[32px] hover:bg-[#800000] transition-colors">
+                                    Load More
+                                </button>
+                            </div>
+                        )}
                     </div>
-                </div>
-
-                {/* ── Bottom brand tag ──────────────────────────────────────── */}
-                <p className="mt-16 text-center text-xs text-gray-400 font-bold tracking-widest uppercase">
-                    KIXX © {new Date().getFullYear()} — Sole Culture
-                </p>
-            </div>
+                </section>
+            </main>
         </div>
     );
 }
