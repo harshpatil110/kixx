@@ -51,7 +51,7 @@ function ProductCard({ product }) {
             className="group bg-white rounded-2xl p-4 flex flex-col relative overflow-hidden border border-gray-100 transition-transform duration-[300ms] ease-[ease] hover:-translate-y-[5px]"
         >
             {/* Stitch: div.aspect-square.bg-gray-50.rounded-xl.mb-4.flex.items-center.justify-center.p-4.relative */}
-            <div className="aspect-square bg-gray-50 rounded-xl mb-4 flex items-center justify-center p-4 relative">
+            <div className="aspect-square w-full overflow-hidden bg-gray-50 rounded-xl mb-4 flex items-center justify-center relative">
 
                 {/* Stitch: img.w-full.h-auto.object-contain.transform.group-hover:scale-105.transition-transform.duration-500 */}
                 {product.imageUrl ? (
@@ -59,7 +59,7 @@ function ProductCard({ product }) {
                         src={product.imageUrl}
                         alt={product.name}
                         loading="lazy"
-                        className="w-full h-auto object-contain transform group-hover:scale-105 transition-transform duration-500"
+                        className="w-full h-full object-cover object-center transform group-hover:scale-105 transition-transform duration-500"
                     />
                 ) : (
                     <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm uppercase tracking-widest">No Image</div>
