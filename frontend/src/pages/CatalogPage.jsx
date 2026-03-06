@@ -5,6 +5,7 @@ import { getProducts } from '../services/productService';
 import { formatPrice } from '../utils/currency';
 import useCartStore from '../store/cartStore';
 import { prefetchProduct } from '../config/queryClient';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 /*
   STITCH LIGHT THEME — catalog.html
@@ -141,7 +142,7 @@ export default function CatalogPage() {
             }}
         >
             {/* Stitch: div.pt-28.px-8.pb-12.max-w-7xl.mx-auto.flex.flex-col.md:flex-row.gap-8 */}
-            <div className="pt-28 px-8 pb-12 max-w-7xl mx-auto flex flex-col md:flex-row gap-8">
+            <div className="pt-28 pb-12 w-full max-w-[1600px] mx-auto px-4 md:px-8 xl:px-12 flex flex-col md:flex-row gap-8">
 
                 {/* Stitch: aside.w-full.md:w-64.flex-shrink-0 */}
                 <aside className="w-full md:w-64 flex-shrink-0">
@@ -230,8 +231,8 @@ export default function CatalogPage() {
 
                     {/* Skeleton — Stitch card shape, light */}
                     {isLoading && (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {Array.from({ length: 6 }).map((_, i) => (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                            {Array.from({ length: 8 }).map((_, i) => (
                                 <div key={i} className="animate-pulse bg-white rounded-2xl p-4 border border-gray-100">
                                     <div className="aspect-square bg-gray-100 rounded-xl mb-4" />
                                     <div className="space-y-2">
@@ -254,7 +255,7 @@ export default function CatalogPage() {
                     {/* Stitch: div.grid.grid-cols-1.sm:grid-cols-2.lg:grid-cols-3.gap-6 */}
                     {!isLoading && !isError && filteredProducts.length > 0 && (
                         <>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                                 {filteredProducts.map(product => (
                                     <ProductCard key={product.id} product={product} />
                                 ))}
@@ -263,13 +264,13 @@ export default function CatalogPage() {
                             {/* Stitch pagination — light: border-gray-300 hover:bg-gray-100 */}
                             <div className="mt-12 flex justify-center gap-2">
                                 <button className="w-10 h-10 rounded-full flex items-center justify-center border border-gray-300 hover:bg-gray-100 text-gray-900">
-                                    <span className="material-symbols-outlined text-sm">chevron_left</span>
+                                    <ChevronLeft className="w-5 h-5" />
                                 </button>
                                 <button className="w-10 h-10 rounded-full flex items-center justify-center bg-[#800000] text-white font-bold">1</button>
                                 <button className="w-10 h-10 rounded-full flex items-center justify-center border border-gray-300 hover:bg-gray-100 font-bold text-gray-900">2</button>
                                 <button className="w-10 h-10 rounded-full flex items-center justify-center border border-gray-300 hover:bg-gray-100 font-bold text-gray-900">3</button>
                                 <button className="w-10 h-10 rounded-full flex items-center justify-center border border-gray-300 hover:bg-gray-100 text-gray-900">
-                                    <span className="material-symbols-outlined text-sm">chevron_right</span>
+                                    <ChevronRight className="w-5 h-5" />
                                 </button>
                             </div>
                         </>

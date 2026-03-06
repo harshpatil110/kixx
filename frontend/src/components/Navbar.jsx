@@ -5,6 +5,7 @@ import useAuthStore from '../store/authStore';
 import { auth } from '../config/firebase';
 import { signOut } from 'firebase/auth';
 import CartDrawer from './CartDrawer';
+import { Search, User, LogOut, ShoppingCart } from 'lucide-react';
 
 /*
   STITCH LIGHT THEME — catalog.html nav
@@ -44,7 +45,7 @@ export default function Navbar() {
                 border-top:rgba(255,255,255,0.8)  border-left:rgba(255,255,255,0.8)
                 shadow:0 8px 32px 0 rgba(0,0,0,0.1)
             */}
-            <nav className="fixed top-0 w-full z-50 py-4 px-8 flex justify-between items-center transition-colors duration-300
+            <nav className="fixed top-0 left-0 right-0 w-full max-w-[1600px] mx-auto z-50 py-4 px-4 md:px-8 xl:px-12 flex justify-between items-center transition-colors duration-300
                 bg-[rgba(255,255,255,0.4)]
                 backdrop-blur-[20px] [-webkit-backdrop-filter:blur(20px)]
                 border-t border-t-[rgba(255,255,255,0.8)]
@@ -68,16 +69,16 @@ export default function Navbar() {
                 {/* Stitch: div.flex.gap-4  icons: material-symbols-outlined text-gray-900 */}
                 <div className="flex gap-4 items-center text-gray-900">
                     <button aria-label="Search" className="hover:text-[#800000] transition-colors focus:outline-none">
-                        <span className="material-symbols-outlined">search</span>
+                        <Search />
                     </button>
 
                     {isAuthenticated ? (
                         <>
                             <Link to="/account" aria-label="Account" className="hover:text-[#800000] transition-colors focus:outline-none">
-                                <span className="material-symbols-outlined">person</span>
+                                <User />
                             </Link>
                             <button onClick={handleLogout} aria-label="Logout" className="hover:text-[#800000] transition-colors focus:outline-none">
-                                <span className="material-symbols-outlined">logout</span>
+                                <LogOut />
                             </button>
                         </>
                     ) : (
@@ -91,7 +92,7 @@ export default function Navbar() {
                         onClick={() => setIsCartOpen(true)}
                         className="relative hover:text-[#800000] transition-colors focus:outline-none"
                     >
-                        <span className="material-symbols-outlined">shopping_cart</span>
+                        <ShoppingCart />
                         {cartCount > 0 && (
                             <span className="absolute -top-1 -right-2 inline-flex items-center justify-center px-[5px] py-[2px] text-[10px] font-bold leading-none text-white bg-[#800000] rounded-full">
                                 {cartCount}
