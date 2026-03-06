@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { getProducts } from '../services/productService';
 import { formatPrice } from '../utils/currency';
@@ -31,56 +31,59 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 function ProductCard({ product }) {
     const addItem = useCartStore((state) => state.addItem);
+    const navigate = useNavigate();
 
     const handleMouseEnter = () => { prefetchProduct(String(product.id)); };
 
     const handleAddToCart = (e) => {
         e.preventDefault();
         e.stopPropagation();
-        addItem({ ...product, variantId: product.id, price: product.basePrice, quantity: 1, stock: product.stock || 10 });
+        addItem({
+            ...product,
+            variantId: product.id,
+            price: parseFloat(product.basePrice),
+            quantity: 1,
+            stock: product.stock || 10,
+        });
+        console.log("Added:", product.name);
     };
 
     if (!product) return null;
 
     return (
-        <Link
-            to={`/product/${product.id}`}
+        <div
+            onClick={() => navigate('/product/' + product.id)}
             onMouseEnter={handleMouseEnter}
             onFocus={handleMouseEnter}
             /* Stitch: product-card bg-white rounded-2xl p-4 flex flex-col relative overflow-hidden group
                border border-gray-100  transition:transform 0.3s ease  hover:translateY(-5px) */
-            className="group bg-white rounded-2xl p-4 flex flex-col relative overflow-hidden border border-gray-100 transition-transform duration-[300ms] ease-[ease] hover:-translate-y-[5px]"
+            className="group bg-white rounded-2xl p-4 flex flex-col relative overflow-hidden border border-gray-100 transition-transform duration-[300ms] ease-[ease] hover:-translate-y-[5px] cursor-pointer"
         >
-            {/* Stitch: div.aspect-square.bg-gray-50.rounded-xl.mb-4.flex.items-center.justify-center.p-4.relative */}
-            <div className="aspect-square w-full overflow-hidden bg-gray-50 rounded-xl mb-4 flex items-center justify-center relative">
-
-                {/* Stitch: img.w-full.h-auto.object-contain.transform.group-hover:scale-105.transition-transform.duration-500 */}
-                {product.imageUrl ? (
-                    <img
-                        src={product.imageUrl}
-                        alt={product.name}
-                        loading="lazy"
-                        className="w-full h-full object-cover object-center transform group-hover:scale-105 transition-transform duration-500"
-                    />
-                ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm uppercase tracking-widest">No Image</div>
-                )}
+            {/* Image area — relative wrapper (no overflow-hidden here so quick-add stays visible) */}
+            <div className="aspect-square w-full bg-gray-50 rounded-xl mb-4 relative">
+                {/* Inner image box — overflow-hidden + rounded corners for image cropping only */}
+                <div className="absolute inset-0 overflow-hidden rounded-xl">
+                    {product.imageUrl ? (
+                        <img
+                            src={product.imageUrl}
+                            alt={product.name}
+                            loading="lazy"
+                            className="w-full h-full object-cover object-center transform group-hover:scale-105 transition-transform duration-500"
+                        />
+                    ) : (
+                        <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm uppercase tracking-widest">No Image</div>
+                    )}
+                </div>
 
                 {/* Stitch: div.absolute.top-4.left-4.bg-black.text-white.text-xs.font-bold.px-2.py-1.rounded */}
                 {product.isNew && (
-                    <div className="absolute top-4 left-4 bg-black text-white text-xs font-bold px-2 py-1 rounded">NEW</div>
+                    <div className="absolute top-4 left-4 bg-black text-white text-xs font-bold px-2 py-1 rounded z-10">NEW</div>
                 )}
 
-                {/* Stitch quick-add-btn LIGHT:
-                    opacity:0  transition:opacity 0.3s ease
-                    background: rgba(255,255,255,0.6)  backdrop-filter:blur(10px)
-                    border: 1px solid rgba(255,255,255,0.9)
-                    text: text-black
-                    classes: absolute bottom-4 left-1/2 transform -translate-x-1/2
-                             px-6 py-2 rounded-full font-bold text-sm tracking-wide shadow-lg w-max flex items-center gap-2 */}
+                {/* Stitch quick-add-btn LIGHT — sits on top of the image area, NOT inside overflow-hidden */}
                 <button
                     onClick={handleAddToCart}
-                    className="absolute bottom-4 left-1/2 transform -translate-x-1/2
+                    className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10
                         px-6 py-2 rounded-full font-bold text-sm tracking-wide shadow-lg
                         w-max flex items-center gap-2 text-black
                         opacity-0 group-hover:opacity-100 transition-opacity duration-[300ms] ease-[ease]
@@ -107,7 +110,7 @@ function ProductCard({ product }) {
                     {formatPrice(product.basePrice)}
                 </p>
             </div>
-        </Link>
+        </div>
     );
 }
 
