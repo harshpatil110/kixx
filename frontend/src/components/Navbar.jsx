@@ -46,12 +46,10 @@ export default function Navbar() {
                 shadow:0 8px 32px 0 rgba(0,0,0,0.1)
             */}
             <nav className="fixed top-0 left-0 right-0 w-full z-50 py-4 px-4 sm:px-6 flex justify-between items-center transition-colors duration-300
-                bg-[rgba(255,255,255,0.4)]
-                backdrop-blur-[20px] [-webkit-backdrop-filter:blur(20px)]
-                border-t border-t-[rgba(255,255,255,0.8)]
-                border-l border-l-[rgba(255,255,255,0.8)]
-                border-b border-b-gray-200
-                shadow-[0_8px_32px_0_rgba(0,0,0,0.1)]
+                bg-white/70
+                backdrop-blur-lg [-webkit-backdrop-filter:blur(20px)]
+                border-b border-white/40
+                shadow-sm
                 font-[Inter,sans-serif]">
 
                 {/* Stitch: div.text-3xl.font-extrabold.tracking-tighter.nav-logo  text:gray-900 */}

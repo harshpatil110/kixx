@@ -194,11 +194,10 @@ export default function CatalogPage() {
                         shadow: 0 8px 32px 0 rgba(0,0,0,0.1)
                     */}
                     <div className="rounded-[32px] p-6 sticky top-32
-                        bg-[rgba(255,255,255,0.4)]
-                        backdrop-blur-[20px] [-webkit-backdrop-filter:blur(20px)]
-                        border-t border-t-[rgba(255,255,255,0.8)]
-                        border-l border-l-[rgba(255,255,255,0.8)]
-                        shadow-[0_8px_32px_0_rgba(0,0,0,0.1)]">
+                        bg-white/60
+                        backdrop-blur-md [-webkit-backdrop-filter:blur(16px)]
+                        border border-white/40
+                        shadow-[2px_0_10px_rgba(0,0,0,0.03)]">
 
                         {/* Stitch: h2.text-2xl.font-bold.mb-6  letter-spacing:-0.05em  text:gray-900 */}
                         <h2 className="text-2xl font-bold mb-6 tracking-[-0.05em] text-gray-900">FILTERS</h2>
