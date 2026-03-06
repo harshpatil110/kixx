@@ -35,9 +35,17 @@ function ProductCard({ product }) {
 
     const handleMouseEnter = () => { prefetchProduct(String(product.id)); };
 
+    /* Card-level click: navigate ONLY if the click did NOT originate from the quick-add button */
+    const handleCardClick = (e) => {
+        if (e.target.closest('[data-quick-add]')) return;   // ← bail out
+        navigate('/product/' + product.id);
+    };
+
+    /* Quick-add click: triple-guarded so navigation never fires */
     const handleAddToCart = (e) => {
         e.preventDefault();
         e.stopPropagation();
+        e.nativeEvent.stopImmediatePropagation();
         addItem({
             ...product,
             variantId: product.id,
@@ -45,14 +53,13 @@ function ProductCard({ product }) {
             quantity: 1,
             stock: product.stock || 10,
         });
-        console.log("Added:", product.name);
     };
 
     if (!product) return null;
 
     return (
         <div
-            onClick={() => navigate('/product/' + product.id)}
+            onClick={handleCardClick}
             onMouseEnter={handleMouseEnter}
             onFocus={handleMouseEnter}
             /* Stitch: product-card bg-white rounded-2xl p-4 flex flex-col relative overflow-hidden group
@@ -61,8 +68,8 @@ function ProductCard({ product }) {
         >
             {/* Image area — relative wrapper (no overflow-hidden here so quick-add stays visible) */}
             <div className="aspect-square w-full bg-gray-50 rounded-xl mb-4 relative">
-                {/* Inner image box — overflow-hidden + rounded corners for image cropping only */}
-                <div className="absolute inset-0 overflow-hidden rounded-xl">
+                {/* Inner image box — pointer-events-none so clicks pass through to the button */}
+                <div className="absolute inset-0 overflow-hidden rounded-xl pointer-events-none">
                     {product.imageUrl ? (
                         <img
                             src={product.imageUrl}
@@ -80,8 +87,9 @@ function ProductCard({ product }) {
                     <div className="absolute top-4 left-4 bg-black text-white text-xs font-bold px-2 py-1 rounded z-10">NEW</div>
                 )}
 
-                {/* Stitch quick-add-btn LIGHT — sits on top of the image area, NOT inside overflow-hidden */}
+                {/* Stitch quick-add-btn — data-quick-add attribute lets handleCardClick bail out */}
                 <button
+                    data-quick-add
                     onClick={handleAddToCart}
                     className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10
                         px-6 py-2 rounded-full font-bold text-sm tracking-wide shadow-lg
@@ -89,7 +97,8 @@ function ProductCard({ product }) {
                         opacity-0 group-hover:opacity-100 transition-opacity duration-[300ms] ease-[ease]
                         bg-[rgba(255,255,255,0.6)]
                         backdrop-blur-[10px] [-webkit-backdrop-filter:blur(10px)]
-                        border border-[rgba(255,255,255,0.9)]"
+                        border border-[rgba(255,255,255,0.9)]
+                        pointer-events-auto"
                 >
                     <span>+ QUICK ADD</span>
                 </button>
