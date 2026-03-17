@@ -6,6 +6,10 @@ import { auth } from '../config/firebase';
 import useAuthStore from '../store/authStore';
 import { getUserOrders } from '../services/orderService';
 import { formatPrice } from '../utils/currency';
+import {
+    Search, ShoppingCart, User, Package, Heart,
+    CreditCard, LogOut, Archive, ChevronDown,
+} from 'lucide-react';
 
 /*
   STITCH LIGHT THEME — account.html (KIXX Glass Account Hub)
@@ -133,8 +137,8 @@ export default function AccountPage() {
                 </nav>
                 {/* Stitch: div.flex.items-center.gap-6 text-gray-900 */}
                 <div className="flex items-center gap-6 text-gray-900">
-                    <button className="material-icons hover:text-[#800000] transition-colors">search</button>
-                    <button className="material-icons hover:text-[#800000] transition-colors">shopping_cart</button>
+                    <button className="hover:text-[#800000] transition-colors"><Search size={20} /></button>
+                    <button className="hover:text-[#800000] transition-colors"><ShoppingCart size={20} /></button>
                     {/* Stitch: avatar div.w-10.h-10.rounded-full.bg-gray-200.overflow-hidden.border-2.border-primary */}
                     <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden border-2 border-[#800000] cursor-pointer flex items-center justify-center font-bold text-sm text-[#800000]">
                         {displayName.charAt(0).toUpperCase()}
@@ -175,29 +179,29 @@ export default function AccountPage() {
                         {/* Stitch: nav.flex.flex-col.gap-2 */}
                         <nav className="flex flex-col gap-2">
                             {/* default: flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/50 font-medium */}
-                            <Link to="/account" className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/50 transition-colors font-medium text-gray-900">
-                                <span className="material-icons text-gray-500">person</span>
+                            <Link to="/account" className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-500 hover:text-black hover:bg-gray-50 transition-colors font-medium">
+                                <User size={18} />
                                 Profile
                             </Link>
-                            {/* active: bg-white/80 font-bold shadow-[0_0_15px_rgba(128,0,0,0.4)] border border-[#800000] */}
-                            <Link to="/orders" className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/80 font-bold border border-[#800000] shadow-[0_0_15px_rgba(128,0,0,0.4)] text-gray-900">
-                                <span className="material-icons text-[#800000]">local_shipping</span>
+                            {/* active nav item — subtle premium */}
+                            <Link to="/orders" className="flex items-center gap-3 px-4 py-3 rounded-lg bg-gray-100 text-[#800000] font-semibold">
+                                <Package size={18} />
                                 Order History
                             </Link>
-                            <Link to="/catalog" className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/50 transition-colors font-medium text-gray-900">
-                                <span className="material-icons text-gray-500">favorite</span>
+                            <Link to="/catalog" className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-500 hover:text-black hover:bg-gray-50 transition-colors font-medium">
+                                <Heart size={18} />
                                 Wishlist
                             </Link>
-                            <Link to="/catalog" className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/50 transition-colors font-medium text-gray-900">
-                                <span className="material-icons text-gray-500">payment</span>
+                            <Link to="/catalog" className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-500 hover:text-black hover:bg-gray-50 transition-colors font-medium">
+                                <CreditCard size={18} />
                                 Payment Methods
                             </Link>
                             {/* Stitch: a.mt-4.text-red-500.hover:text-red-700 */}
                             <button
                                 onClick={handleSignOut} disabled={isSigningOut}
-                                className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/50 transition-colors font-medium mt-4 text-red-500 hover:text-red-700 disabled:opacity-50"
+                                className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-red-50 transition-colors font-medium mt-4 text-red-500 hover:text-red-700 disabled:opacity-50"
                             >
-                                <span className="material-icons">logout</span>
+                                <LogOut size={18} />
                                 {isSigningOut ? 'Signing Out…' : 'Log Out'}
                             </button>
                         </nav>
@@ -210,18 +214,16 @@ export default function AccountPage() {
                       Stitch .brutalist-solid LIGHT: bg:#ffffff border:2px solid #000
                       rounded-[32px] p-8 min-h-[600px]
                     */}
-                    <div className="bg-[#ffffff] border-2 border-black rounded-[32px] p-8 min-h-[600px]">
-                        {/* Stitch: div.flex.justify-between.items-end.mb-8.border-b-2.border-black.pb-4 */}
-                        <div className="flex justify-between items-end mb-8 border-b-2 border-black pb-4">
-                            {/* Stitch: h1.text-4xl.font-bold.uppercase.tracking-tight text-gray-900 */}
+                    <div className="bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.04)] border border-gray-100 p-8 min-h-[600px]">
+                        <div className="flex justify-between items-end mb-8 border-b border-gray-200 pb-4">
                             <h1 className="text-4xl font-bold uppercase tracking-tight text-gray-900">Order History</h1>
-                            <div className="relative">
-                                <select className="appearance-none bg-transparent border-b border-gray-400 py-1 pr-8 text-sm focus:outline-none focus:border-black rounded-none text-gray-900">
+                            <div className="relative flex items-center gap-2">
+                                <select className="appearance-none bg-transparent py-1 pr-6 text-sm text-gray-500 focus:outline-none cursor-pointer">
                                     <option>Last 30 Days</option>
                                     <option>Last 6 Months</option>
                                     <option>All Time</option>
                                 </select>
-                                <span className="material-icons absolute right-0 top-1 text-gray-500 pointer-events-none text-sm">expand_more</span>
+                                <ChevronDown size={16} className="text-gray-400 pointer-events-none -ml-5" />
                             </div>
                         </div>
 
@@ -248,7 +250,7 @@ export default function AccountPage() {
                                         <div className="w-full sm:w-32 h-32 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0 flex items-center justify-center p-2">
                                             {order.items?.[0]?.imageUrl
                                                 ? <img src={order.items[0].imageUrl} alt="Order" className="w-full h-auto mix-blend-multiply" />
-                                                : <span className="material-icons text-3xl text-gray-400">inventory_2</span>
+                                                : <Archive size={32} className="text-gray-300" />
                                             }
                                         </div>
                                         {/* Stitch: div.flex-grow.flex.flex-col.justify-between */}
@@ -299,7 +301,7 @@ export default function AccountPage() {
                             </div>
                         ) : (
                             <div className="text-center py-24 text-gray-500">
-                                <span className="material-icons text-5xl mb-4 block opacity-30">inventory_2</span>
+                                <Archive size={48} className="text-gray-300 mb-4 mx-auto" />
                                 <p className="font-bold text-xl uppercase tracking-tight text-gray-900">No orders yet</p>
                                 <p className="text-sm mt-2">Your order history will appear here.</p>
                                 <Link to="/catalog" className="mt-6 inline-block px-8 py-3 bg-black text-white font-bold uppercase tracking-widest rounded-[32px] hover:bg-[#800000] transition-colors">
