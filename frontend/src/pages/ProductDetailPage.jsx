@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Share } from 'lucide-react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { getProductById } from '../services/productService';
@@ -231,35 +232,30 @@ export default function ProductDetailPage() {
 
             {/* Fixed bottom bar — LIGHT glass */}
             <div className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] md:w-auto max-w-lg z-50">
-                {/*
-                  Stitch: rounded-[32px]
-                  LIGHT: bg rgba(255,255,255,0.7)  border rgba(255,255,255,0.2)  blur(16px)
-                  shadow: 0 20px 40px rgba(0,0,0,0.1)
-                */}
-                <div className="rounded-[32px] p-2 flex items-center justify-between gap-4
-                    bg-[rgba(255,255,255,0.7)]
-                    border border-[rgba(255,255,255,0.2)]
-                    backdrop-blur-[16px] [-webkit-backdrop-filter:blur(16px)]
-                    shadow-[0_20px_40px_rgba(0,0,0,0.1)]">
+                <div className="rounded-full px-6 py-4 flex items-center justify-between gap-6
+                    bg-white/70
+                    backdrop-blur-xl [-webkit-backdrop-filter:blur(24px)]
+                    border border-white/50
+                    shadow-[0_8px_32px_rgba(0,0,0,0.08)]">
 
-                    {/* Stitch: div.hidden.md:flex.flex-col.px-4 */}
-                    <div className="hidden md:flex flex-col px-4">
-                        <span className="text-xs text-gray-500 font-medium uppercase tracking-wider">Total Price</span>
-                        <span className="font-bold text-lg leading-tight text-gray-900">{formatPrice(displayPrice)}</span>
+                    {/* Total Price */}
+                    <div className="hidden md:flex flex-col">
+                        <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Total Price</span>
+                        <span className="text-2xl font-bold text-[#111111] leading-tight">{formatPrice(displayPrice)}</span>
                     </div>
 
-                    {/* Share btn — Stitch: w-12 h-12 rounded-full bg-white/10  text-gray-900 */}
-                    <button className="w-12 h-12 flex-shrink-0 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-colors text-gray-900">
-                        <span className="material-icons">share</span>
+                    {/* Share icon */}
+                    <button className="w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-full hover:bg-black/5 transition-colors">
+                        <Share size={20} className="text-gray-600 hover:text-black cursor-pointer transition-colors" />
                     </button>
 
-                    {/* Add-to-cart — Stitch: flex-1 h-14 bg-primary hover:bg-[#600000] text-white rounded-[24px] font-display(Anton) text-xl uppercase tracking-wider */}
+                    {/* Primary CTA */}
                     <button
                         onClick={handleAddToCart}
                         disabled={isAddToCartDisabled}
-                        className="flex-1 h-14 bg-[#800000] hover:bg-[#600000] text-white
-                            rounded-[24px] font-[Anton,sans-serif] text-xl uppercase tracking-wider
-                            transition-colors flex items-center justify-center shadow-lg
+                        className="px-8 py-3 text-sm font-bold tracking-wide uppercase
+                            rounded-full bg-[#800000] text-white hover:bg-black
+                            transition-colors shadow-lg
                             disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         {showSuccess ? 'Added!' : isAddToCartDisabled ? 'Select Size' : 'Add To Cart'}
