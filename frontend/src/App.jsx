@@ -115,6 +115,26 @@ export default function App() {
           }
         />
 
+        {/* ── Pages with their OWN custom nav (no global Navbar) ── */}
+        <Route element={<ProtectedRoute />}>
+          <Route
+            path="/checkout"
+            element={
+              <Suspense fallback={<GenericPageSkeleton />}>
+                <CheckoutPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/account"
+            element={
+              <Suspense fallback={<GenericPageSkeleton />}>
+                <AccountPage />
+              </Suspense>
+            }
+          />
+        </Route>
+
         {/* ── All pages that share the Navbar layout ─────────────── */}
         <Route element={<NavbarLayout />}>
 
@@ -159,22 +179,6 @@ export default function App() {
               element={
                 <Suspense fallback={<HomePageSkeleton />}>
                   <CatalogPage />
-                </Suspense>
-              }
-            />
-            <Route
-              path="/account"
-              element={
-                <Suspense fallback={<GenericPageSkeleton />}>
-                  <AccountPage />
-                </Suspense>
-              }
-            />
-            <Route
-              path="/checkout"
-              element={
-                <Suspense fallback={<GenericPageSkeleton />}>
-                  <CheckoutPage />
                 </Suspense>
               }
             />
