@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
+import { ShoppingBag, ChevronDown, ChevronRight, Lock } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 import { createOrder, processPayment } from '../services/orderService';
 import useCartStore from '../store/cartStore';
@@ -79,9 +80,9 @@ export default function CheckoutPage() {
             {/* Stitch: nav.w-full.px-8.py-6.flex.justify-between.items-center.fixed.top-0.z-50
                 .mix-blend-difference.text-white */}
             <nav className="w-full px-8 py-6 flex justify-between items-center fixed top-0 z-50 mix-blend-difference text-white">
-                <div className="text-3xl font-bold tracking-tighter uppercase">KIXX</div>
+                <Link to="/" className="text-3xl font-black tracking-tighter uppercase">KIXX</Link>
                 <div className="flex gap-6 items-center">
-                    <span className="material-icons cursor-pointer">shopping_bag</span>
+                    <ShoppingBag className="w-6 h-6 cursor-pointer" />
                 </div>
             </nav>
 
@@ -109,7 +110,7 @@ export default function CheckoutPage() {
                             <div className="flex justify-between items-center mb-6 cursor-pointer">
                                 {/* Stitch: h2.text-2xl.font-bold.uppercase.tracking-tight text-gray-900 */}
                                 <h2 className="text-2xl font-bold uppercase tracking-tight text-gray-900">1. Contact Information</h2>
-                                <span className="material-icons text-gray-900">expand_more</span>
+                                <ChevronDown className="w-6 h-6 text-gray-900" />
                             </div>
                             {/* Stitch: div.space-y-6 */}
                             <div className="space-y-6">
@@ -143,7 +144,7 @@ export default function CheckoutPage() {
                         <div className="bg-white rounded-[32px] p-8 shadow-xl opacity-50 pointer-events-none">
                             <div className="flex justify-between items-center cursor-pointer">
                                 <h2 className="text-2xl font-bold uppercase tracking-tight text-gray-900">2. Shipping Address</h2>
-                                <span className="material-icons text-gray-900">chevron_right</span>
+                                <ChevronRight className="w-6 h-6 text-gray-900" />
                             </div>
                         </div>
 
@@ -151,7 +152,7 @@ export default function CheckoutPage() {
                         <div className="bg-white rounded-[32px] p-8 shadow-xl opacity-50 pointer-events-none">
                             <div className="flex justify-between items-center cursor-pointer">
                                 <h2 className="text-2xl font-bold uppercase tracking-tight text-gray-900">3. Payment</h2>
-                                <span className="material-icons text-gray-900">chevron_right</span>
+                                <ChevronRight className="w-6 h-6 text-gray-900" />
                             </div>
                         </div>
                     </div>
@@ -239,7 +240,7 @@ export default function CheckoutPage() {
 
                             {/* Stitch: div.mt-6.flex.justify-center.items-center.gap-2.text-sm.text-gray-500 */}
                             <div className="mt-6 flex justify-center items-center gap-2 text-sm text-gray-500">
-                                <span className="material-icons text-base">lock</span>
+                                <Lock className="w-4 h-4" />
                                 <span>Secure SSL encrypted checkout</span>
                             </div>
                         </div>

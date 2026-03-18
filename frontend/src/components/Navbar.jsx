@@ -52,10 +52,10 @@ export default function Navbar() {
                 shadow-sm
                 font-[Inter,sans-serif]">
 
-                {/* Stitch: div.text-3xl.font-extrabold.tracking-tighter.nav-logo  text:gray-900 */}
-                <div className="text-3xl font-extrabold tracking-[-0.05em] text-gray-900">
-                    <Link to="/">KIXX</Link>
-                </div>
+                {/* Logo — single clean text node */}
+                <Link to="/" className="text-3xl font-black tracking-tighter text-[#111111]">
+                    KIXX
+                </Link>
 
                 {/* Stitch: div.flex.gap-8.font-semibold  text:gray-900 */}
                 <div className="hidden sm:flex gap-8 font-semibold text-gray-900">
@@ -65,7 +65,7 @@ export default function Navbar() {
                 </div>
 
                 {/* Stitch: div.flex.gap-4  icons: material-symbols-outlined text-gray-900 */}
-                <div className="flex gap-4 items-center text-gray-900">
+                <div className="flex gap-5 items-center text-gray-900">
                     <button aria-label="Search" className="hover:text-[#800000] transition-colors focus:outline-none">
                         <Search />
                     </button>
