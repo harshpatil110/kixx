@@ -1,4 +1,4 @@
-const { pgTable, uuid, varchar, text, decimal, integer, timestamp, boolean, pgEnum } = require('drizzle-orm/pg-core');
+const { pgTable, uuid, varchar, text, decimal, integer, timestamp, boolean, pgEnum, jsonb } = require('drizzle-orm/pg-core');
 const { relations } = require('drizzle-orm');
 
 // ENUMS
@@ -78,6 +78,16 @@ const orderItems = pgTable('order_items', {
     updatedAt: timestamp('updated_at').defaultNow()
 });
 
+// 3.7 PastOrders Model — denormalised snapshot of completed transactions
+const pastOrders = pgTable('past_orders', {
+    id: uuid('id').primaryKey().defaultRandom(),
+    email: varchar('email', { length: 255 }).notNull(),
+    shippingAddress: jsonb('shipping_address').notNull(),
+    items: jsonb('items').notNull(),
+    totalAmount: integer('total_amount').notNull(),
+    paymentStatus: varchar('payment_status', { length: 50 }).default('SUCCESS').notNull(),
+    createdAt: timestamp('created_at').defaultNow(),
+});
 
 // ----------------------------------------------------
 // FUTURE PHASE MODELS
@@ -180,6 +190,7 @@ module.exports = {
     resaleListings,
     recommendationsLogs,
     pricingRules,
+    pastOrders,
     usersRelations,
     brandsRelations,
     productsRelations,

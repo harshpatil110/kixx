@@ -44,3 +44,14 @@ export const getOrderById = async (orderId) => {
     const response = await api.get(`/api/orders/${orderId}`);
     return response.data;
 };
+
+/**
+ * Saves a completed transaction snapshot to the database (post-payment).
+ *
+ * @param {{ email: string, shippingAddress: object, items: Array, totalAmount: number }} payload
+ * @returns {Promise<Object>} The saved order response with orderId.
+ */
+export const saveCompletedOrder = async (payload) => {
+    const response = await api.post('/api/orders/save', payload);
+    return response.data;
+};

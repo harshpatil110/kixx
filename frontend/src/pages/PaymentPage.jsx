@@ -1,23 +1,69 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ShoppingBag, Lock, Shield, ArrowLeft, Trash2 } from 'lucide-react';
+import { ShoppingBag, Lock, Shield, ArrowLeft, Trash2, Loader2 } from 'lucide-react';
 import useCartStore from '../store/cartStore';
 import { formatPrice } from '../utils/currency';
+import { saveCompletedOrder } from '../services/orderService';
 
 export default function PaymentPage() {
-    const { items, getTotalPrice, removeItem } = useCartStore();
+    const { items, getTotalPrice, removeItem, clearCart } = useCartStore();
     const navigate = useNavigate();
+    const [processing, setProcessing] = useState(false);
+    const [errorMsg, setErrorMsg] = useState(null);
 
     const subtotal = getTotalPrice();
     const taxes = Math.round(subtotal * 0.18);
     const total = subtotal + taxes;
 
-    const handleRazorpay = () => {
-        // TODO: Integrate Razorpay SDK here
-        // 1. Call backend to create a Razorpay order
-        // 2. Open Razorpay checkout with the order ID
-        // 3. On success → navigate('/order-confirmation/:id')
-        alert('Razorpay integration coming soon!');
+    // Retrieve checkout data stored from CheckoutPage
+    const getCheckoutData = () => {
+        try {
+            const raw = sessionStorage.getItem('kixx-checkout-data');
+            return raw ? JSON.parse(raw) : null;
+        } catch { return null; }
+    };
+
+    const handleRazorpay = async () => {
+        if (items.length === 0) return;
+
+        const checkoutData = getCheckoutData();
+        if (!checkoutData?.email) {
+            setErrorMsg('Missing checkout info. Please go back and complete checkout steps.');
+            return;
+        }
+
+        setProcessing(true);
+        setErrorMsg(null);
+
+        try {
+            // Save order to database
+            await saveCompletedOrder({
+                email: checkoutData.email,
+                shippingAddress: checkoutData.shipping,
+                items: items.map(item => ({
+                    variantId: item.variantId,
+                    name: item.name,
+                    price: item.price,
+                    quantity: item.quantity,
+                    size: item.size || null,
+                    color: item.color || null,
+                    imageUrl: item.imageUrl || null,
+                })),
+                totalAmount: total,
+            });
+
+            // Clear cart and checkout session
+            clearCart();
+            sessionStorage.removeItem('kixx-checkout-data');
+
+            // Redirect to account / order history
+            navigate('/account');
+        } catch (err) {
+            console.error('Payment save failed:', err);
+            setErrorMsg(err?.response?.data?.message || 'Something went wrong saving your order. Please try again.');
+        } finally {
+            setProcessing(false);
+        }
     };
 
     return (
@@ -46,6 +92,12 @@ export default function PaymentPage() {
                 <h1 className="text-5xl md:text-6xl font-bold tracking-tighter mb-12 uppercase mix-blend-overlay">
                     Payment
                 </h1>
+
+                {errorMsg && (
+                    <div className="mb-8 p-4 bg-red-50 text-red-700 text-sm font-medium rounded-2xl border-l-4 border-red-500">
+                        {errorMsg}
+                    </div>
+                )}
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
 
@@ -84,13 +136,19 @@ export default function PaymentPage() {
                                 </p>
                                 <button
                                     onClick={handleRazorpay}
-                                    disabled={items.length === 0}
+                                    disabled={items.length === 0 || processing}
                                     className="w-full bg-black text-white font-bold uppercase tracking-widest py-5 rounded-full
                                         hover:bg-gray-900 hover:scale-[1.02] transition-all duration-300
                                         disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none
                                         shadow-[0_4px_24px_rgba(0,0,0,0.3)]"
                                 >
-                                    Pay {formatPrice(total)} with Razorpay
+                                    {processing ? (
+                                        <span className="flex items-center justify-center gap-2">
+                                            <Loader2 size={20} className="animate-spin" /> Processing…
+                                        </span>
+                                    ) : (
+                                        `Pay ${formatPrice(total)} with Razorpay`
+                                    )}
                                 </button>
                             </div>
 
@@ -168,12 +226,12 @@ export default function PaymentPage() {
 
                             <button
                                 onClick={handleRazorpay}
-                                disabled={items.length === 0}
+                                disabled={items.length === 0 || processing}
                                 className="w-full bg-black text-white font-bold uppercase tracking-widest py-5 rounded-full
                                     hover:bg-gray-900 hover:scale-[1.02] transition-all duration-300
                                     disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none"
                             >
-                                Pay {formatPrice(total)}
+                                {processing ? 'Processing…' : `Pay ${formatPrice(total)}`}
                             </button>
 
                             <div className="mt-6 flex justify-center items-center gap-2 text-sm text-gray-500">

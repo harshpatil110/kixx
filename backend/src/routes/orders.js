@@ -3,7 +3,7 @@ const router = express.Router();
 const OrderService = require('../services/OrderService');
 const { verifyToken } = require('../middleware/auth');
 const { db } = require('../db/index');
-const { users } = require('../db/schema');
+const { users, pastOrders } = require('../db/schema');
 const { eq } = require('drizzle-orm');
 
 // Internal helper for mapping Firebase email payload to the pure DB UUID
@@ -14,6 +14,36 @@ async function getDbUserId(email) {
 
 // Ensure all routes require Firebase Authentication
 router.use(verifyToken);
+
+/**
+ * POST /api/orders/save
+ * Saves a completed transaction snapshot (post-payment) into the past_orders table.
+ * Payload: { email, shippingAddress, items, totalAmount }
+ */
+router.post('/save', async (req, res) => {
+    try {
+        const { email, shippingAddress, items, totalAmount } = req.body;
+
+        // Basic validation
+        if (!email || !shippingAddress || !items || !Array.isArray(items) || items.length === 0 || !totalAmount) {
+            return res.status(400).json({ error: true, message: 'Bad Request: email, shippingAddress, items, and totalAmount are required.' });
+        }
+
+        const [inserted] = await db.insert(pastOrders).values({
+            email,
+            shippingAddress,
+            items,
+            totalAmount: Math.round(totalAmount),
+            paymentStatus: 'SUCCESS',
+        }).returning();
+
+        console.log(`[Orders] ✅ Past order saved: ${inserted.id}`);
+        return res.status(201).json({ error: false, message: 'Order saved successfully', orderId: inserted.id });
+    } catch (error) {
+        console.error('[Orders] ❌ Error saving past order:', error.message);
+        return res.status(500).json({ error: true, message: 'Failed to save order. Please try again.' });
+    }
+});
 
 /**
  * POST /api/orders

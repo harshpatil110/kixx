@@ -76,6 +76,12 @@ export default function CheckoutPage() {
     const taxes = Math.round(subtotal * 0.18);
     const total = subtotal + taxes;
 
+    // Persist checkout data to sessionStorage before navigating to payment
+    const goToPayment = () => {
+        sessionStorage.setItem('kixx-checkout-data', JSON.stringify({ email, shipping }));
+        navigate('/payment');
+    };
+
     return (
         /*
           Stitch: font-display (Space Grotesk) text-gray-900 min-h-screen
@@ -308,7 +314,7 @@ export default function CheckoutPage() {
                                 <button
                                     onClick={() => {
                                         if (items.length === 0) { setErrorMsg('Your cart is empty!'); return; }
-                                        navigate('/payment');
+                                        goToPayment();
                                     }}
                                     disabled={items.length === 0}
                                     className="w-full bg-[#800000] text-white font-bold uppercase tracking-widest py-4 rounded-full hover:scale-[1.02] transition-transform duration-300 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none"
@@ -384,7 +390,7 @@ export default function CheckoutPage() {
                                 onClick={() => {
                                     if (items.length === 0) return;
                                     if (currentStep < 3) { setErrorMsg('Please complete all checkout steps first.'); return; }
-                                    navigate('/payment');
+                                    goToPayment();
                                 }}
                                 disabled={items.length === 0 || currentStep < 3}
                                 className="w-full bg-[#800000] text-white font-bold uppercase tracking-widest py-5 rounded-full hover:scale-[1.02] transition-transform duration-300 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none"
