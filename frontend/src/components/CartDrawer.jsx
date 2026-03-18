@@ -2,6 +2,7 @@ import React from 'react';
 import useCartStore from '../store/cartStore';
 import { formatPrice } from '../utils/currency';
 import { useNavigate } from 'react-router-dom';
+import { X, Trash2, ShoppingBag } from 'lucide-react';
 
 /*
   STITCH SOURCE: cart.html (KIXX Dark Glass Cart)
@@ -88,7 +89,7 @@ export default function CartDrawer({ isOpen, onClose }) {
                     </h2>
                     {/* Stitch: button > span.material-icons → close */}
                     <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors focus:outline-none">
-                        <span className="material-icons">close</span>
+                        <X size={24} />
                     </button>
                 </div>
 
@@ -96,7 +97,7 @@ export default function CartDrawer({ isOpen, onClose }) {
                 <div className="flex-1 overflow-y-auto px-6 py-4 space-y-6">
                     {items.length === 0 ? (
                         <div className="flex flex-col items-center justify-center h-full text-center text-gray-400">
-                            <span className="material-icons text-5xl mb-4 opacity-50">shopping_bag</span>
+                            <ShoppingBag size={48} className="mb-4 opacity-50" />
                             <p className="text-lg font-medium tracking-tight uppercase">Your cart is empty</p>
                         </div>
                     ) : (
@@ -139,7 +140,7 @@ export default function CartDrawer({ isOpen, onClose }) {
                                     onClick={() => removeItem(item.variantId)}
                                     className="text-gray-500 hover:text-red-400 transition-colors mt-1 focus:outline-none"
                                 >
-                                    <span className="material-icons text-[18px]">delete_outline</span>
+                                    <Trash2 size={18} />
                                 </button>
                             </div>
                         ))

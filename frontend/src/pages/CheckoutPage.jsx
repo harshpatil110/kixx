@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { ShoppingBag, ChevronDown, ChevronRight, Lock } from 'lucide-react';
+import { ShoppingBag, ChevronDown, ChevronRight, Lock, Trash2, CheckCircle, Pencil } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 import { createOrder, processPayment } from '../services/orderService';
 import useCartStore from '../store/cartStore';
@@ -46,12 +46,20 @@ import { formatPrice } from '../utils/currency';
   Lock row: text-gray-500 material-icons text-base
 */
 export default function CheckoutPage() {
-    const { items, getTotalPrice, clearCart } = useCartStore();
+    const { items, getTotalPrice, clearCart, removeItem } = useCartStore();
     const navigate = useNavigate();
+    const [currentStep, setCurrentStep] = useState(1);
     const [email, setEmail] = useState('');
     const [newsletter, setNewsletter] = useState(false);
     const [errorMsg, setErrorMsg] = useState(null);
     const [paymentDetails] = useState({ cardNumber: '', expiry: '', cvv: '' });
+
+    // Shipping form state
+    const [shipping, setShipping] = useState({
+        firstName: '', lastName: '', address: '',
+        city: '', state: '', pinCode: '', phone: '',
+    });
+    const updateShipping = (field, value) => setShipping(prev => ({ ...prev, [field]: value }));
 
     const checkoutMutation = useMutation({
         mutationFn: async () => {
@@ -104,55 +112,205 @@ export default function CheckoutPage() {
 
                     {/* Left: lg:col-span-7 space-y-6 */}
                     <div className="lg:col-span-7 space-y-6">
-                        {/* Stitch: div.bg-white.rounded-[32px].p-8.shadow-xl */}
-                        <div className="bg-white rounded-[32px] p-8 shadow-xl">
-                            {/* Stitch: div.flex.justify-between.items-center.mb-6.cursor-pointer */}
-                            <div className="flex justify-between items-center mb-6 cursor-pointer">
-                                {/* Stitch: h2.text-2xl.font-bold.uppercase.tracking-tight text-gray-900 */}
-                                <h2 className="text-2xl font-bold uppercase tracking-tight text-gray-900">1. Contact Information</h2>
-                                <ChevronDown className="w-6 h-6 text-gray-900" />
-                            </div>
-                            {/* Stitch: div.space-y-6 */}
-                            <div className="space-y-6">
-                                {/*
-                                  .input-brutalist LIGHT:
-                                  border-none  border-b-2 border-b-black  bg-transparent  rounded-none
-                                  py-[12px] px-0  font:Space Grotesk weight:500
-                                  placeholder: text-gray-400
-                                */}
-                                <input
-                                    type="email" placeholder="Email Address"
-                                    value={email} onChange={(e) => setEmail(e.target.value)}
-                                    className="w-full text-lg bg-transparent border-0 border-b-2 border-b-black rounded-none py-[12px] px-0 font-medium text-gray-900 focus:outline-none focus:ring-0 focus:border-b-[#333] placeholder:text-gray-400"
-                                />
-                                {/* Stitch: div.flex.items-center.gap-3 */}
+
+                        {/* ─── STEP 1: Contact Information ─── */}
+                        <div className={`bg-white rounded-[32px] p-8 shadow-xl transition-all duration-300 ${
+                            currentStep < 1 ? 'opacity-50 pointer-events-none' : ''
+                        }`}>
+                            <div
+                                className="flex justify-between items-center cursor-pointer"
+                                onClick={() => currentStep > 1 && setCurrentStep(1)}
+                            >
                                 <div className="flex items-center gap-3">
-                                    {/* Stitch: input.w-5.h-5.border-2.border-black.rounded-none */}
+                                    {currentStep > 1 && <CheckCircle className="w-6 h-6 text-green-600" />}
+                                    <h2 className="text-2xl font-bold uppercase tracking-tight text-gray-900">1. Contact Information</h2>
+                                </div>
+                                {currentStep === 1 ? (
+                                    <ChevronDown className="w-6 h-6 text-gray-900" />
+                                ) : currentStep > 1 ? (
+                                    <button className="flex items-center gap-1.5 text-sm font-semibold text-[#800000] hover:text-[#600000] transition-colors uppercase tracking-wider">
+                                        <Pencil size={14} /> Edit
+                                    </button>
+                                ) : (
+                                    <ChevronRight className="w-6 h-6 text-gray-900" />
+                                )}
+                            </div>
+
+                            {/* Collapsed summary */}
+                            {currentStep > 1 && email && (
+                                <p className="mt-3 text-sm text-gray-500 pl-9">{email}</p>
+                            )}
+
+                            {/* Expanded form */}
+                            <div className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                                currentStep === 1 ? 'max-h-[500px] opacity-100 mt-6' : 'max-h-0 opacity-0'
+                            }`}>
+                                <div className="space-y-6">
                                     <input
-                                        type="checkbox" id="newsletter" checked={newsletter}
-                                        onChange={(e) => setNewsletter(e.target.checked)}
-                                        className="w-5 h-5 border-2 border-black rounded-none text-black focus:ring-black"
+                                        type="email" placeholder="Email Address"
+                                        value={email} onChange={(e) => setEmail(e.target.value)}
+                                        className="w-full text-lg bg-transparent border-0 border-b-2 border-b-black rounded-none py-[12px] px-0 font-medium text-gray-900 focus:outline-none focus:ring-0 focus:border-b-[#333] placeholder:text-gray-400"
                                     />
-                                    <label htmlFor="newsletter" className="text-sm font-medium text-gray-900">
-                                        Keep me up to date on news and exclusive offers
-                                    </label>
+                                    <div className="flex items-center gap-3">
+                                        <input
+                                            type="checkbox" id="newsletter" checked={newsletter}
+                                            onChange={(e) => setNewsletter(e.target.checked)}
+                                            className="w-5 h-5 border-2 border-black rounded-none text-black focus:ring-black"
+                                        />
+                                        <label htmlFor="newsletter" className="text-sm font-medium text-gray-900">
+                                            Keep me up to date on news and exclusive offers
+                                        </label>
+                                    </div>
+                                    <button
+                                        onClick={() => {
+                                            if (!email.trim()) { setErrorMsg('Please enter your email address.'); return; }
+                                            setErrorMsg(null);
+                                            setCurrentStep(2);
+                                        }}
+                                        className="w-full bg-[#800000] text-white font-bold uppercase tracking-widest py-4 rounded-full hover:scale-[1.02] transition-transform duration-300 mt-2"
+                                    >
+                                        Continue to Shipping
+                                    </button>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Shipping card — inactive: opacity-50 pointer-events-none */}
-                        <div className="bg-white rounded-[32px] p-8 shadow-xl opacity-50 pointer-events-none">
-                            <div className="flex justify-between items-center cursor-pointer">
-                                <h2 className="text-2xl font-bold uppercase tracking-tight text-gray-900">2. Shipping Address</h2>
-                                <ChevronRight className="w-6 h-6 text-gray-900" />
+                        {/* ─── STEP 2: Shipping Address ─── */}
+                        <div className={`bg-white rounded-[32px] p-8 shadow-xl transition-all duration-300 ${
+                            currentStep < 2 ? 'opacity-50 pointer-events-none' : ''
+                        }`}>
+                            <div
+                                className="flex justify-between items-center cursor-pointer"
+                                onClick={() => currentStep > 2 && setCurrentStep(2)}
+                            >
+                                <div className="flex items-center gap-3">
+                                    {currentStep > 2 && <CheckCircle className="w-6 h-6 text-green-600" />}
+                                    <h2 className="text-2xl font-bold uppercase tracking-tight text-gray-900">2. Shipping Address</h2>
+                                </div>
+                                {currentStep === 2 ? (
+                                    <ChevronDown className="w-6 h-6 text-gray-900" />
+                                ) : currentStep > 2 ? (
+                                    <button className="flex items-center gap-1.5 text-sm font-semibold text-[#800000] hover:text-[#600000] transition-colors uppercase tracking-wider">
+                                        <Pencil size={14} /> Edit
+                                    </button>
+                                ) : (
+                                    <ChevronRight className="w-6 h-6 text-gray-900" />
+                                )}
+                            </div>
+
+                            {/* Collapsed summary */}
+                            {currentStep > 2 && shipping.firstName && (
+                                <p className="mt-3 text-sm text-gray-500 pl-9">
+                                    {shipping.firstName} {shipping.lastName}, {shipping.city} — {shipping.pinCode}
+                                </p>
+                            )}
+
+                            {/* Expanded form */}
+                            <div className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                                currentStep === 2 ? 'max-h-[800px] opacity-100 mt-6' : 'max-h-0 opacity-0'
+                            }`}>
+                                <div className="space-y-5">
+                                    {/* First Name / Last Name — side by side */}
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <input
+                                            type="text" placeholder="First Name"
+                                            value={shipping.firstName}
+                                            onChange={(e) => updateShipping('firstName', e.target.value)}
+                                            className="w-full text-lg bg-transparent border-0 border-b-2 border-b-black rounded-none py-[12px] px-0 font-medium text-gray-900 focus:outline-none focus:ring-0 focus:border-b-[#333] placeholder:text-gray-400"
+                                        />
+                                        <input
+                                            type="text" placeholder="Last Name"
+                                            value={shipping.lastName}
+                                            onChange={(e) => updateShipping('lastName', e.target.value)}
+                                            className="w-full text-lg bg-transparent border-0 border-b-2 border-b-black rounded-none py-[12px] px-0 font-medium text-gray-900 focus:outline-none focus:ring-0 focus:border-b-[#333] placeholder:text-gray-400"
+                                        />
+                                    </div>
+
+                                    {/* Street Address — full width */}
+                                    <input
+                                        type="text" placeholder="Street Address"
+                                        value={shipping.address}
+                                        onChange={(e) => updateShipping('address', e.target.value)}
+                                        className="w-full text-lg bg-transparent border-0 border-b-2 border-b-black rounded-none py-[12px] px-0 font-medium text-gray-900 focus:outline-none focus:ring-0 focus:border-b-[#333] placeholder:text-gray-400"
+                                    />
+
+                                    {/* City / PIN Code — side by side */}
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <input
+                                            type="text" placeholder="City"
+                                            value={shipping.city}
+                                            onChange={(e) => updateShipping('city', e.target.value)}
+                                            className="w-full text-lg bg-transparent border-0 border-b-2 border-b-black rounded-none py-[12px] px-0 font-medium text-gray-900 focus:outline-none focus:ring-0 focus:border-b-[#333] placeholder:text-gray-400"
+                                        />
+                                        <input
+                                            type="text" placeholder="PIN Code"
+                                            value={shipping.pinCode}
+                                            onChange={(e) => updateShipping('pinCode', e.target.value)}
+                                            className="w-full text-lg bg-transparent border-0 border-b-2 border-b-black rounded-none py-[12px] px-0 font-medium text-gray-900 focus:outline-none focus:ring-0 focus:border-b-[#333] placeholder:text-gray-400"
+                                        />
+                                    </div>
+
+                                    {/* State — full width */}
+                                    <input
+                                        type="text" placeholder="State"
+                                        value={shipping.state}
+                                        onChange={(e) => updateShipping('state', e.target.value)}
+                                        className="w-full text-lg bg-transparent border-0 border-b-2 border-b-black rounded-none py-[12px] px-0 font-medium text-gray-900 focus:outline-none focus:ring-0 focus:border-b-[#333] placeholder:text-gray-400"
+                                    />
+
+                                    {/* Phone Number — full width */}
+                                    <input
+                                        type="tel" placeholder="Phone Number"
+                                        value={shipping.phone}
+                                        onChange={(e) => updateShipping('phone', e.target.value)}
+                                        className="w-full text-lg bg-transparent border-0 border-b-2 border-b-black rounded-none py-[12px] px-0 font-medium text-gray-900 focus:outline-none focus:ring-0 focus:border-b-[#333] placeholder:text-gray-400"
+                                    />
+
+                                    <button
+                                        onClick={() => {
+                                            if (!shipping.firstName.trim() || !shipping.address.trim() || !shipping.city.trim() || !shipping.pinCode.trim()) {
+                                                setErrorMsg('Please fill in all required shipping fields.');
+                                                return;
+                                            }
+                                            setErrorMsg(null);
+                                            setCurrentStep(3);
+                                        }}
+                                        className="w-full bg-[#800000] text-white font-bold uppercase tracking-widest py-4 rounded-full hover:scale-[1.02] transition-transform duration-300 mt-2"
+                                    >
+                                        Continue to Payment
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
-                        {/* Payment card — inactive */}
-                        <div className="bg-white rounded-[32px] p-8 shadow-xl opacity-50 pointer-events-none">
+                        {/* ─── STEP 3: Payment ─── */}
+                        <div className={`bg-white rounded-[32px] p-8 shadow-xl transition-all duration-300 ${
+                            currentStep < 3 ? 'opacity-50 pointer-events-none' : ''
+                        }`}>
                             <div className="flex justify-between items-center cursor-pointer">
                                 <h2 className="text-2xl font-bold uppercase tracking-tight text-gray-900">3. Payment</h2>
-                                <ChevronRight className="w-6 h-6 text-gray-900" />
+                                {currentStep === 3 ? (
+                                    <ChevronDown className="w-6 h-6 text-gray-900" />
+                                ) : (
+                                    <ChevronRight className="w-6 h-6 text-gray-900" />
+                                )}
+                            </div>
+
+                            {/* Payment form placeholder — when step 3 is active */}
+                            <div className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                                currentStep === 3 ? 'max-h-[300px] opacity-100 mt-6' : 'max-h-0 opacity-0'
+                            }`}>
+                                <p className="text-sm text-gray-500 mb-6">Payment integration coming soon. Click below to place your order.</p>
+                                <button
+                                    onClick={() => {
+                                        if (items.length === 0) { setErrorMsg('Your cart is empty!'); return; }
+                                        checkoutMutation.mutate();
+                                    }}
+                                    disabled={checkoutMutation.isPending || items.length === 0}
+                                    className="w-full bg-[#800000] text-white font-bold uppercase tracking-widest py-4 rounded-full hover:scale-[1.02] transition-transform duration-300 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none"
+                                >
+                                    {checkoutMutation.isPending ? 'Processing…' : 'Place Order'}
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -177,7 +335,7 @@ export default function CheckoutPage() {
                                     <p className="text-sm text-gray-500 text-center py-4">Your cart is empty.</p>
                                 ) : items.map(item => (
                                     /* Stitch: div.flex.items-center.gap-6.mb-8.border-b.border-black/10.pb-6 */
-                                    <div key={item.variantId} className="flex items-center gap-6">
+                                    <div key={item.variantId} className="flex items-center gap-4">
                                         {/* Stitch: div.w-24.h-24.bg-gray-200.rounded-xl.overflow-hidden.flex-shrink-0 */}
                                         <div className="w-24 h-24 bg-gray-200 rounded-xl overflow-hidden flex-shrink-0">
                                             {item.imageUrl
@@ -185,10 +343,8 @@ export default function CheckoutPage() {
                                                 : <div className="w-full h-full flex items-center justify-center text-xs text-gray-400">IMG</div>
                                             }
                                         </div>
-                                        <div className="flex-grow">
-                                            {/* Stitch: h3.font-bold.text-lg.leading-tight.uppercase text-gray-900 */}
-                                            <h3 className="font-bold text-lg leading-tight uppercase text-gray-900">{item.name}</h3>
-                                            {/* Stitch: p.text-sm.text-gray-500.mb-2 */}
+                                        <div className="flex-grow min-w-0">
+                                            <h3 className="font-bold text-lg leading-tight uppercase text-gray-900 truncate">{item.name}</h3>
                                             <p className="text-sm text-gray-500 mb-2">
                                                 {item.color && item.size ? `${item.color} • Size ${item.size}` : 'One Size'}
                                             </p>
@@ -197,6 +353,13 @@ export default function CheckoutPage() {
                                                 <span className="text-sm font-medium text-gray-900">Qty: {item.quantity}</span>
                                             </div>
                                         </div>
+                                        <button
+                                            onClick={() => removeItem(item.variantId)}
+                                            aria-label={`Remove ${item.name}`}
+                                            className="flex-shrink-0 text-gray-400 hover:text-red-600 transition-colors focus:outline-none"
+                                        >
+                                            <Trash2 size={16} />
+                                        </button>
                                     </div>
                                 ))}
                             </div>
@@ -230,12 +393,13 @@ export default function CheckoutPage() {
                             <button
                                 onClick={() => {
                                     if (items.length === 0) { setErrorMsg('Your cart is empty!'); return; }
+                                    if (currentStep < 3) { setErrorMsg('Please complete all checkout steps first.'); return; }
                                     checkoutMutation.mutate();
                                 }}
-                                disabled={checkoutMutation.isPending || items.length === 0}
+                                disabled={checkoutMutation.isPending || items.length === 0 || currentStep < 3}
                                 className="w-full bg-[#800000] text-white font-bold uppercase tracking-widest py-5 rounded-full hover:scale-[1.02] transition-transform duration-300 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none"
                             >
-                                {checkoutMutation.isPending ? 'Processing…' : 'Continue to Shipping'}
+                                {checkoutMutation.isPending ? 'Processing…' : currentStep < 3 ? 'Complete All Steps' : 'Place Order'}
                             </button>
 
                             {/* Stitch: div.mt-6.flex.justify-center.items-center.gap-2.text-sm.text-gray-500 */}
