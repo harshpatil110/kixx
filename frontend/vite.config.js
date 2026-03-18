@@ -7,6 +7,12 @@ export default defineConfig({
 
   build: {
     // ---------------------------------------------------------------------------
+    // Output directory — explicitly set so Vercel can always locate the build
+    // ---------------------------------------------------------------------------
+    outDir: 'dist',
+    emptyOutDir: true,
+
+    // ---------------------------------------------------------------------------
     // Minification
     // esbuild is Vite's default minifier and is significantly faster than Terser
     // while producing comparable output sizes for most production builds.
