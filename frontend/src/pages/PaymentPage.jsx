@@ -1,0 +1,189 @@
+import React from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { ShoppingBag, Lock, Shield, ArrowLeft, Trash2 } from 'lucide-react';
+import useCartStore from '../store/cartStore';
+import { formatPrice } from '../utils/currency';
+
+export default function PaymentPage() {
+    const { items, getTotalPrice, removeItem } = useCartStore();
+    const navigate = useNavigate();
+
+    const subtotal = getTotalPrice();
+    const taxes = Math.round(subtotal * 0.18);
+    const total = subtotal + taxes;
+
+    const handleRazorpay = () => {
+        // TODO: Integrate Razorpay SDK here
+        // 1. Call backend to create a Razorpay order
+        // 2. Open Razorpay checkout with the order ID
+        // 3. On success → navigate('/order-confirmation/:id')
+        alert('Razorpay integration coming soon!');
+    };
+
+    return (
+        <div
+            className="font-['Space_Grotesk',sans-serif] text-gray-900 min-h-screen"
+            style={{ background: 'linear-gradient(135deg,#e0eafc 0%,#cfdef3 100%)', backgroundAttachment: 'fixed' }}
+        >
+            {/* Nav — same as CheckoutPage */}
+            <nav className="w-full px-8 py-6 flex justify-between items-center fixed top-0 z-50 mix-blend-difference text-white">
+                <Link to="/" className="text-3xl font-black tracking-tighter uppercase">KIXX</Link>
+                <div className="flex gap-6 items-center">
+                    <ShoppingBag className="w-6 h-6 cursor-pointer" />
+                </div>
+            </nav>
+
+            <main className="pt-32 pb-24 px-8 max-w-7xl mx-auto">
+                {/* Back link */}
+                <button
+                    onClick={() => navigate('/checkout')}
+                    className="flex items-center gap-2 text-sm font-semibold text-gray-500 hover:text-gray-900 transition-colors mb-8 uppercase tracking-wider"
+                >
+                    <ArrowLeft size={16} />
+                    Back to Checkout
+                </button>
+
+                <h1 className="text-5xl md:text-6xl font-bold tracking-tighter mb-12 uppercase mix-blend-overlay">
+                    Payment
+                </h1>
+
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+
+                    {/* Left: Payment Method Card */}
+                    <div className="lg:col-span-7">
+                        <div className="bg-white rounded-[32px] p-8 shadow-xl">
+                            <h2 className="text-2xl font-bold uppercase tracking-tight text-gray-900 mb-8">
+                                Payment Method
+                            </h2>
+
+                            {/* Security badges */}
+                            <div className="flex items-center gap-6 mb-8 pb-6 border-b border-gray-100">
+                                <div className="flex items-center gap-2 text-sm text-gray-500">
+                                    <Shield size={18} className="text-green-600" />
+                                    <span>100% Secure</span>
+                                </div>
+                                <div className="flex items-center gap-2 text-sm text-gray-500">
+                                    <Lock size={18} className="text-green-600" />
+                                    <span>SSL Encrypted</span>
+                                </div>
+                            </div>
+
+                            {/* Razorpay option */}
+                            <div className="border-2 border-black rounded-2xl p-6 mb-6 bg-gray-50/50">
+                                <div className="flex items-center justify-between mb-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-3 h-3 rounded-full bg-black" />
+                                        <span className="font-bold text-lg uppercase tracking-tight">Razorpay</span>
+                                    </div>
+                                    <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                                        UPI • Cards • NetBanking • Wallets
+                                    </span>
+                                </div>
+                                <p className="text-sm text-gray-500 mb-6">
+                                    You will be redirected to Razorpay's secure gateway to complete your payment. All major payment methods accepted.
+                                </p>
+                                <button
+                                    onClick={handleRazorpay}
+                                    disabled={items.length === 0}
+                                    className="w-full bg-black text-white font-bold uppercase tracking-widest py-5 rounded-full
+                                        hover:bg-gray-900 hover:scale-[1.02] transition-all duration-300
+                                        disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none
+                                        shadow-[0_4px_24px_rgba(0,0,0,0.3)]"
+                                >
+                                    Pay {formatPrice(total)} with Razorpay
+                                </button>
+                            </div>
+
+                            {/* Fine print */}
+                            <p className="text-xs text-gray-400 text-center leading-relaxed">
+                                By proceeding, you agree to KIXX's{' '}
+                                <span className="underline cursor-pointer hover:text-gray-600">Terms of Service</span>{' '}
+                                and{' '}
+                                <span className="underline cursor-pointer hover:text-gray-600">Privacy Policy</span>.
+                                Your payment information is handled securely by Razorpay.
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Right: Order Summary — same glass panel as CheckoutPage */}
+                    <div className="lg:col-span-5 sticky top-32">
+                        <div className="rounded-[32px] p-8 shadow-2xl
+                            bg-[rgba(255,255,255,0.5)]
+                            backdrop-blur-[20px] [-webkit-backdrop-filter:blur(20px)]
+                            border border-[rgba(255,255,255,0.2)]">
+
+                            <h2 className="text-2xl font-bold uppercase tracking-tight mb-8 text-gray-900">Order Summary</h2>
+
+                            {/* Items list */}
+                            <div className="space-y-4 mb-8 border-b border-black/10 pb-6 max-h-60 overflow-y-auto">
+                                {items.length === 0 ? (
+                                    <p className="text-sm text-gray-500 text-center py-4">Your cart is empty.</p>
+                                ) : items.map(item => (
+                                    <div key={item.variantId} className="flex items-center gap-4">
+                                        <div className="w-24 h-24 bg-gray-200 rounded-xl overflow-hidden flex-shrink-0">
+                                            {item.imageUrl
+                                                ? <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover mix-blend-multiply" />
+                                                : <div className="w-full h-full flex items-center justify-center text-xs text-gray-400">IMG</div>
+                                            }
+                                        </div>
+                                        <div className="flex-grow min-w-0">
+                                            <h3 className="font-bold text-lg leading-tight uppercase text-gray-900 truncate">{item.name}</h3>
+                                            <p className="text-sm text-gray-500 mb-2">
+                                                {item.color && item.size ? `${item.color} • Size ${item.size}` : 'One Size'}
+                                            </p>
+                                            <div className="flex justify-between items-center">
+                                                <span className="font-bold text-gray-900">{formatPrice(item.price)}</span>
+                                                <span className="text-sm font-medium text-gray-900">Qty: {item.quantity}</span>
+                                            </div>
+                                        </div>
+                                        <button
+                                            onClick={() => removeItem(item.variantId)}
+                                            aria-label={`Remove ${item.name}`}
+                                            className="flex-shrink-0 text-gray-400 hover:text-red-600 transition-colors focus:outline-none"
+                                        >
+                                            <Trash2 size={16} />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div className="space-y-4 mb-8 text-lg">
+                                <div className="flex justify-between">
+                                    <span className="text-gray-600">Subtotal</span>
+                                    <span className="font-medium text-gray-900">{formatPrice(subtotal)}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-gray-600">Shipping</span>
+                                    <span className="font-medium text-gray-900">Free</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-gray-600">Taxes (18% GST)</span>
+                                    <span className="font-medium text-gray-900">{formatPrice(taxes)}</span>
+                                </div>
+                                <div className="flex justify-between items-center pt-4 border-t border-black/10 mt-4">
+                                    <span className="font-bold text-2xl uppercase text-gray-900">Total</span>
+                                    <span className="font-bold text-3xl tracking-tighter text-gray-900">{formatPrice(total)}</span>
+                                </div>
+                            </div>
+
+                            <button
+                                onClick={handleRazorpay}
+                                disabled={items.length === 0}
+                                className="w-full bg-black text-white font-bold uppercase tracking-widest py-5 rounded-full
+                                    hover:bg-gray-900 hover:scale-[1.02] transition-all duration-300
+                                    disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none"
+                            >
+                                Pay {formatPrice(total)}
+                            </button>
+
+                            <div className="mt-6 flex justify-center items-center gap-2 text-sm text-gray-500">
+                                <Lock className="w-4 h-4" />
+                                <span>Secure SSL encrypted checkout</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    );
+}

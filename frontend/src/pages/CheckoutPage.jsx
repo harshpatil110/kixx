@@ -296,20 +296,24 @@ export default function CheckoutPage() {
                                 )}
                             </div>
 
-                            {/* Payment form placeholder — when step 3 is active */}
+                            {/* Payment redirect — when step 3 is active */}
                             <div className={`overflow-hidden transition-all duration-300 ease-in-out ${
                                 currentStep === 3 ? 'max-h-[300px] opacity-100 mt-6' : 'max-h-0 opacity-0'
                             }`}>
-                                <p className="text-sm text-gray-500 mb-6">Payment integration coming soon. Click below to place your order.</p>
+                                <div className="flex items-center gap-3 mb-4">
+                                    <Lock className="w-5 h-5 text-green-600" />
+                                    <p className="text-sm font-medium text-gray-700">All transactions are secure and encrypted.</p>
+                                </div>
+                                <p className="text-xs text-gray-400 mb-6">You will be redirected to Razorpay's secure payment gateway to complete your purchase.</p>
                                 <button
                                     onClick={() => {
                                         if (items.length === 0) { setErrorMsg('Your cart is empty!'); return; }
-                                        checkoutMutation.mutate();
+                                        navigate('/payment');
                                     }}
-                                    disabled={checkoutMutation.isPending || items.length === 0}
+                                    disabled={items.length === 0}
                                     className="w-full bg-[#800000] text-white font-bold uppercase tracking-widest py-4 rounded-full hover:scale-[1.02] transition-transform duration-300 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none"
                                 >
-                                    {checkoutMutation.isPending ? 'Processing…' : 'Place Order'}
+                                    Proceed to Secure Payment
                                 </button>
                             </div>
                         </div>
@@ -317,16 +321,11 @@ export default function CheckoutPage() {
 
                     {/* Right: lg:col-span-5 sticky top-32 */}
                     <div className="lg:col-span-5 sticky top-32">
-                        {/*
-                          Stitch .glass-panel LIGHT: rounded-[32px] p-8 shadow-2xl
-                          bg: rgba(255,255,255,0.5)  blur:20px  border: rgba(255,255,255,0.2)
-                        */}
                         <div className="rounded-[32px] p-8 shadow-2xl
                             bg-[rgba(255,255,255,0.5)]
                             backdrop-blur-[20px] [-webkit-backdrop-filter:blur(20px)]
                             border border-[rgba(255,255,255,0.2)]">
 
-                            {/* Stitch: h2.text-2xl.font-bold.uppercase.tracking-tight.mb-8 text-gray-900 */}
                             <h2 className="text-2xl font-bold uppercase tracking-tight mb-8 text-gray-900">Order Summary</h2>
 
                             {/* Items list */}
@@ -334,9 +333,7 @@ export default function CheckoutPage() {
                                 {items.length === 0 ? (
                                     <p className="text-sm text-gray-500 text-center py-4">Your cart is empty.</p>
                                 ) : items.map(item => (
-                                    /* Stitch: div.flex.items-center.gap-6.mb-8.border-b.border-black/10.pb-6 */
                                     <div key={item.variantId} className="flex items-center gap-4">
-                                        {/* Stitch: div.w-24.h-24.bg-gray-200.rounded-xl.overflow-hidden.flex-shrink-0 */}
                                         <div className="w-24 h-24 bg-gray-200 rounded-xl overflow-hidden flex-shrink-0">
                                             {item.imageUrl
                                                 ? <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover mix-blend-multiply" />
@@ -364,42 +361,35 @@ export default function CheckoutPage() {
                                 ))}
                             </div>
 
-                            {/* Stitch: div.space-y-4.mb-8.text-lg */}
                             <div className="space-y-4 mb-8 text-lg">
-                                {/* Stitch: div.flex.justify-between  label:text-gray-600  value:font-medium */}
                                 <div className="flex justify-between">
                                     <span className="text-gray-600">Subtotal</span>
                                     <span className="font-medium text-gray-900">{formatPrice(subtotal)}</span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-gray-600">Shipping</span>
-                                    <span className="font-medium text-gray-900">Calculated next step</span>
+                                    <span className="font-medium text-gray-900">Free</span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-gray-600">Taxes (18% GST)</span>
                                     <span className="font-medium text-gray-900">{formatPrice(taxes)}</span>
                                 </div>
-                                {/* Stitch: div.flex.justify-between.items-center.pt-4.border-t.border-black/10.mt-4 */}
                                 <div className="flex justify-between items-center pt-4 border-t border-black/10 mt-4">
-                                    {/* Stitch: span.font-bold.text-2xl.uppercase */}
                                     <span className="font-bold text-2xl uppercase text-gray-900">Total</span>
-                                    {/* Stitch: span.font-bold.text-3xl.tracking-tighter */}
                                     <span className="font-bold text-3xl tracking-tighter text-gray-900">{formatPrice(total)}</span>
                                 </div>
                             </div>
 
-                            {/* Stitch: button.w-full.bg-primary.text-white.font-bold.uppercase.tracking-widest
-                                .py-5.rounded-full.hover:scale-[1.02].transition-transform.duration-300 */}
                             <button
                                 onClick={() => {
-                                    if (items.length === 0) { setErrorMsg('Your cart is empty!'); return; }
+                                    if (items.length === 0) return;
                                     if (currentStep < 3) { setErrorMsg('Please complete all checkout steps first.'); return; }
-                                    checkoutMutation.mutate();
+                                    navigate('/payment');
                                 }}
-                                disabled={checkoutMutation.isPending || items.length === 0 || currentStep < 3}
+                                disabled={items.length === 0 || currentStep < 3}
                                 className="w-full bg-[#800000] text-white font-bold uppercase tracking-widest py-5 rounded-full hover:scale-[1.02] transition-transform duration-300 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none"
                             >
-                                {checkoutMutation.isPending ? 'Processing…' : currentStep < 3 ? 'Complete All Steps' : 'Place Order'}
+                                {currentStep < 3 ? 'Complete All Steps' : 'Proceed to Payment'}
                             </button>
 
                             {/* Stitch: div.mt-6.flex.justify-center.items-center.gap-2.text-sm.text-gray-500 */}

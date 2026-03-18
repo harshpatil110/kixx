@@ -32,6 +32,7 @@ const CartPage = lazy(() => import('./pages/CartPage'));
 
 // ── Post-order (protected) ──
 const CheckoutPage = lazy(() => import('./pages/CheckoutPage'));
+const PaymentPage = lazy(() => import('./pages/PaymentPage'));
 const OrderHistoryPage = lazy(() => import('./pages/OrderHistoryPage'));
 const OrderDetailPage = lazy(() => import('./pages/OrderDetailPage'));
 const OrderConfirmationPage = lazy(() => import('./pages/OrderConfirmationPage'));
@@ -130,6 +131,14 @@ export default function App() {
             element={
               <Suspense fallback={<GenericPageSkeleton />}>
                 <AccountPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/payment"
+            element={
+              <Suspense fallback={<GenericPageSkeleton />}>
+                <PaymentPage />
               </Suspense>
             }
           />
