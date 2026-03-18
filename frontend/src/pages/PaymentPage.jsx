@@ -4,7 +4,30 @@ import { ShoppingBag, Lock, Shield, ArrowLeft, Trash2, Loader2 } from 'lucide-re
 import useCartStore from '../store/cartStore';
 import { formatPrice } from '../utils/currency';
 import { saveCompletedOrder } from '../services/orderService';
+import api from '../services/api';
 
+// ---------------------------------------------------------------------------
+// Razorpay SDK — dynamic script loader
+// ---------------------------------------------------------------------------
+function loadRazorpayScript() {
+    return new Promise((resolve, reject) => {
+        if (window.Razorpay) { resolve(true); return; }
+
+        const existing = document.querySelector('script[src="https://checkout.razorpay.com/v1/checkout.js"]');
+        if (existing) { existing.onload = () => resolve(true); return; }
+
+        const script = document.createElement('script');
+        script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+        script.async = true;
+        script.onload = () => resolve(true);
+        script.onerror = () => reject(new Error('Failed to load Razorpay SDK.'));
+        document.body.appendChild(script);
+    });
+}
+
+// ---------------------------------------------------------------------------
+// Component
+// ---------------------------------------------------------------------------
 export default function PaymentPage() {
     const { items, getTotalPrice, removeItem, clearCart } = useCartStore();
     const navigate = useNavigate();
@@ -23,6 +46,9 @@ export default function PaymentPage() {
         } catch { return null; }
     };
 
+    // -----------------------------------------------------------------------
+    // Full Razorpay checkout flow
+    // -----------------------------------------------------------------------
     const handleRazorpay = async () => {
         if (items.length === 0) return;
 
@@ -36,32 +62,76 @@ export default function PaymentPage() {
         setErrorMsg(null);
 
         try {
-            // Save order to database
-            await saveCompletedOrder({
-                email: checkoutData.email,
-                shippingAddress: checkoutData.shipping,
-                items: items.map(item => ({
-                    variantId: item.variantId,
-                    name: item.name,
-                    price: item.price,
-                    quantity: item.quantity,
-                    size: item.size || null,
-                    color: item.color || null,
-                    imageUrl: item.imageUrl || null,
-                })),
-                totalAmount: total,
+            // 1 — Load the Razorpay SDK
+            await loadRazorpayScript();
+
+            // 2 — Create order on our backend (amount in INR, backend converts to paise)
+            const { data: order } = await api.post('/api/payment/create-order', { amount: total });
+
+            // 3 — Configure & open the Razorpay checkout modal
+            const options = {
+                key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+                amount: order.amount,       // already in paise from backend
+                currency: order.currency,
+                name: 'KIXX Sneakers',
+                description: 'Secure Checkout',
+                order_id: order.id,
+                theme: { color: '#111111' },
+                prefill: {
+                    email: checkoutData.email,
+                    contact: checkoutData.shipping?.phone || '',
+                },
+
+                // ── Payment SUCCESS ──
+                handler: async (response) => {
+                    try {
+                        // Save order snapshot to our database
+                        await saveCompletedOrder({
+                            email: checkoutData.email,
+                            shippingAddress: checkoutData.shipping,
+                            items: items.map(item => ({
+                                variantId: item.variantId,
+                                name: item.name,
+                                price: item.price,
+                                quantity: item.quantity,
+                                size: item.size || null,
+                                color: item.color || null,
+                                imageUrl: item.imageUrl || null,
+                            })),
+                            totalAmount: total,
+                            razorpayPaymentId: response.razorpay_payment_id,
+                            razorpayOrderId: response.razorpay_order_id,
+                        });
+
+                        // Clear cart + session, redirect
+                        clearCart();
+                        sessionStorage.removeItem('kixx-checkout-data');
+                        navigate('/account');
+                    } catch (saveErr) {
+                        console.error('Order save after payment failed:', saveErr);
+                        setErrorMsg('Payment succeeded but order saving failed. Please contact support.');
+                        setProcessing(false);
+                    }
+                },
+
+                // ── Modal dismissed / payment failed ──
+                modal: {
+                    ondismiss: () => {
+                        setProcessing(false);
+                    },
+                },
+            };
+
+            const rzp = new window.Razorpay(options);
+            rzp.on('payment.failed', (resp) => {
+                console.error('Razorpay payment failed:', resp.error);
+                setErrorMsg(`Payment failed: ${resp.error.description || 'Please try again.'}`);
+                setProcessing(false);
             });
-
-            // Clear cart and checkout session
-            clearCart();
-            sessionStorage.removeItem('kixx-checkout-data');
-
-            // Redirect to account / order history
-            navigate('/account');
+            rzp.open();
         } catch (err) {
-            console.error('Payment save failed:', err);
-            setErrorMsg(err?.response?.data?.message || 'Something went wrong saving your order. Please try again.');
-        } finally {
+            console.error('Razorpay checkout error:', err);
+            setErrorMsg(err?.response?.data?.message || err.message || 'Could not initiate payment. Please try again.');
             setProcessing(false);
         }
     };
