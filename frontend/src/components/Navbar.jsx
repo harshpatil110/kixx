@@ -58,10 +58,17 @@ export default function Navbar() {
                 </Link>
 
                 {/* Stitch: div.flex.gap-8.font-semibold  text:gray-900 */}
-                <div className="hidden sm:flex gap-8 font-semibold text-gray-900">
+                <div className="hidden sm:flex gap-8 font-semibold text-gray-900 items-center">
                     <Link to="/catalog?category=new" className="hover:text-[#800000] transition-colors">NEW</Link>
                     <Link to="/catalog" className="hover:text-[#800000] transition-colors">BRANDS</Link>
                     <Link to="/catalog?category=sale" className="hover:text-[#800000] transition-colors">SALE</Link>
+                    <Link
+                        to="/outfit-checker"
+                        className="flex items-center gap-1.5 bg-[#800000] hover:bg-[#600000] text-white text-xs font-black tracking-widest uppercase px-3 py-1.5 rounded-full transition-colors shadow-sm"
+                    >
+                        <span className="material-icons text-[14px]">auto_awesome</span>
+                        Outfit Check
+                    </Link>
                 </div>
 
                 {/* Stitch: div.flex.gap-4  icons: material-symbols-outlined text-gray-900 */}

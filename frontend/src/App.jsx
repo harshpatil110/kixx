@@ -40,6 +40,9 @@ const OrderConfirmationPage = lazy(() => import('./pages/OrderConfirmationPage')
 // ── Account ──
 const AccountPage = lazy(() => import('./pages/AccountPage'));
 
+// ── Features ──
+const OutfitCheckerPage = lazy(() => import('./pages/OutfitCheckerPage'));
+
 // ---------------------------------------------------------------------------
 // Layout component — wraps all routes that need the Navbar
 // ---------------------------------------------------------------------------
@@ -169,6 +172,14 @@ export default function App() {
             element={
               <Suspense fallback={<ProductDetailSkeleton />}>
                 <ProductDetailPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/outfit-checker"
+            element={
+              <Suspense fallback={<GenericPageSkeleton />}>
+                <OutfitCheckerPage />
               </Suspense>
             }
           />
