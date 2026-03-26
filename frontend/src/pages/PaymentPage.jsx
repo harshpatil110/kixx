@@ -1,36 +1,11 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ShoppingBag, Lock, Shield, ArrowLeft, Trash2, Loader2, Zap } from 'lucide-react';
+import { ShoppingBag, Lock, Shield, ArrowLeft, Trash2, Loader2, Zap, CreditCard, Smartphone, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import useCartStore from '../store/cartStore';
 import { formatPrice } from '../utils/currency';
 import { saveCompletedOrder } from '../services/orderService';
 import { generateInvoice } from '../utils/generateInvoice';
-import api from '../services/api';
-
-// ---------------------------------------------------------------------------
-// Environment detection
-// ---------------------------------------------------------------------------
-const isLocalhost = window.location.hostname === 'localhost';
-
-// ---------------------------------------------------------------------------
-// Razorpay SDK — dynamic script loader (only used on localhost)
-// ---------------------------------------------------------------------------
-function loadRazorpayScript() {
-    return new Promise((resolve, reject) => {
-        if (window.Razorpay) { resolve(true); return; }
-
-        const existing = document.querySelector('script[src="https://checkout.razorpay.com/v1/checkout.js"]');
-        if (existing) { existing.onload = () => resolve(true); return; }
-
-        const script = document.createElement('script');
-        script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-        script.async = true;
-        script.onload = () => resolve(true);
-        script.onerror = () => reject(new Error('Failed to load Razorpay SDK.'));
-        document.body.appendChild(script);
-    });
-}
 
 // ---------------------------------------------------------------------------
 // Component
@@ -38,8 +13,12 @@ function loadRazorpayScript() {
 export default function PaymentPage() {
     const { items, getTotalPrice, removeItem, clearCart } = useCartStore();
     const navigate = useNavigate();
-    const [processing, setProcessing] = useState(false);
     const [errorMsg, setErrorMsg] = useState(null);
+
+    // Modal state
+    const [showMockModal, setShowMockModal] = useState(false);
+    const [selectedMethod, setSelectedMethod] = useState('upi');
+    const [isProcessing, setIsProcessing] = useState(false);
 
     const subtotal = getTotalPrice();
     const taxes = Math.round(subtotal * 0.18);
@@ -54,176 +33,72 @@ export default function PaymentPage() {
     };
 
     // -----------------------------------------------------------------------
-    // Mock payment handler — used on production (Vercel) to bypass Razorpay
+    // The Fake Processor
     // -----------------------------------------------------------------------
-    const handleMockPayment = async () => {
+    const executeMockPayment = async () => {
         if (items.length === 0) return;
 
         const checkoutData = getCheckoutData();
         if (!checkoutData?.email) {
             setErrorMsg('Missing checkout info. Please go back and complete checkout steps.');
+            setShowMockModal(false);
             return;
         }
 
-        setProcessing(true);
+        setIsProcessing(true);
         setErrorMsg(null);
 
-        const toastId = toast.loading('Simulating secure transaction...');
+        const toastId = toast.loading('Processing Securely...');
 
         try {
-            // Simulate network latency
-            await new Promise((resolve) => setTimeout(resolve, 1500));
+            // Simulate network latency (2000ms as per directive)
+            await new Promise((resolve) => setTimeout(resolve, 2000));
 
             // Save the order directly (no real payment gateway involved)
             await saveCompletedOrder({
                 email: checkoutData.email,
                 shippingAddress: checkoutData.shipping,
                 items: items.map((item) => ({
-                    variantId: item.variantId,
-                    name: item.name,
-                    price: item.price,
+                    id: item.id || item._id || item.productId,
                     quantity: item.quantity,
-                    size: item.size || null,
-                    color: item.color || null,
-                    imageUrl: item.imageUrl || null,
+                    price: item.price
                 })),
                 totalAmount: total,
             });
 
-            generateInvoice({
+            const orderData = {
                 id: `ORD-${Date.now()}`,
                 email: checkoutData.email,
                 shippingAddress: checkoutData.shipping,
                 items: items,
                 totalAmount: total,
                 createdAt: new Date().toISOString()
-            });
+            };
+
+            generateInvoice(orderData);
 
             clearCart();
             sessionStorage.removeItem('kixx-checkout-data');
-            toast.success('Order Placed Successfully!', { id: toastId });
+            toast.success('Payment Successful!', { id: toastId });
+            setShowMockModal(false);
             navigate('/account');
         } catch (err) {
             console.error('Mock payment error:', err);
-            toast.error('Simulated checkout failed. Please try again.', { id: toastId });
-            setErrorMsg(err?.response?.data?.message || err.message || 'Simulated checkout failed.');
-            setProcessing(false);
+            toast.error('Transaction failed. Please try again.', { id: toastId });
+            setErrorMsg(err?.response?.data?.message || err.message || 'Transaction failed.');
+            setIsProcessing(false);
         }
     };
-
-    // -----------------------------------------------------------------------
-    // Full Razorpay checkout flow (localhost only)
-    // -----------------------------------------------------------------------
-    const handleRazorpay = async () => {
-        if (items.length === 0) return;
-
-        const checkoutData = getCheckoutData();
-        if (!checkoutData?.email) {
-            setErrorMsg('Missing checkout info. Please go back and complete checkout steps.');
-            return;
-        }
-
-        setProcessing(true);
-        setErrorMsg(null);
-
-        try {
-            // 1 — Load the Razorpay SDK
-            await loadRazorpayScript();
-
-            // 2 — Create order on our backend (amount in INR, backend converts to paise)
-            const { data: order } = await api.post('/api/payment/create-order', { amount: total });
-
-            // 3 — Configure & open the Razorpay checkout modal
-            const options = {
-                key: import.meta.env.VITE_RAZORPAY_KEY_ID,
-                amount: order.amount,       // already in paise from backend
-                currency: order.currency,
-                name: 'KIXX Sneakers',
-                description: 'Secure Checkout',
-                order_id: order.id,
-                theme: { color: '#111111' },
-                prefill: {
-                    email: checkoutData.email,
-                    contact: checkoutData.shipping?.phone || '',
-                },
-
-                // ── Payment SUCCESS ──
-                handler: async (response) => {
-                    try {
-                        // Save order snapshot to our database
-                        await saveCompletedOrder({
-                            email: checkoutData.email,
-                            shippingAddress: checkoutData.shipping,
-                            items: items.map(item => ({
-                                variantId: item.variantId,
-                                name: item.name,
-                                price: item.price,
-                                quantity: item.quantity,
-                                size: item.size || null,
-                                color: item.color || null,
-                                imageUrl: item.imageUrl || null,
-                            })),
-                            totalAmount: total,
-                            razorpayPaymentId: response.razorpay_payment_id,
-                            razorpayOrderId: response.razorpay_order_id,
-                        });
-
-                        generateInvoice({
-                            id: response.razorpay_order_id || `ORD-${Date.now()}`,
-                            email: checkoutData.email,
-                            shippingAddress: checkoutData.shipping,
-                            items: items,
-                            totalAmount: total,
-                            createdAt: new Date().toISOString()
-                        });
-
-                        // Clear cart + session, redirect
-                        clearCart();
-                        sessionStorage.removeItem('kixx-checkout-data');
-                        navigate('/account');
-                    } catch (saveErr) {
-                        console.error('Order save after payment failed:', saveErr);
-                        setErrorMsg('Payment succeeded but order saving failed. Please contact support.');
-                        setProcessing(false);
-                    }
-                },
-
-                // ── Modal dismissed / payment failed ──
-                modal: {
-                    ondismiss: () => {
-                        setProcessing(false);
-                    },
-                },
-            };
-
-            const rzp = new window.Razorpay(options);
-            rzp.on('payment.failed', (resp) => {
-                console.error('Razorpay payment failed:', resp.error);
-                setErrorMsg(`Payment failed: ${resp.error.description || 'Please try again.'}`);
-                setProcessing(false);
-            });
-            rzp.open();
-        } catch (err) {
-            console.error('Razorpay checkout error:', err);
-            setErrorMsg(err?.response?.data?.message || err.message || 'Could not initiate payment. Please try again.');
-            setProcessing(false);
-        }
-    };
-
-    // -----------------------------------------------------------------------
-    // Pick the correct handler based on environment
-    // -----------------------------------------------------------------------
-    const handlePay = isLocalhost ? handleRazorpay : handleMockPayment;
 
     return (
         <div
-            className="font-['Space_Grotesk',sans-serif] text-gray-900 min-h-screen"
+            className="font-['Space_Grotesk',sans-serif] text-gray-900 min-h-screen relative"
             style={{ background: 'linear-gradient(135deg,#e0eafc 0%,#cfdef3 100%)', backgroundAttachment: 'fixed' }}
         >
             {/* Nav — same as CheckoutPage */}
             <nav className="w-full px-8 py-6 flex justify-between items-center fixed top-0 z-50 mix-blend-difference text-white">
-                <Link to="/" className="text-3xl font-black tracking-tighter uppercase">KIXX</Link>
-                <div className="flex gap-6 items-center">
+                <Link to="/" className="text-3xl font-black tracking-tighter uppercase relative z-50">KIXX</Link>
+                <div className="flex gap-6 items-center relative z-50">
                     <ShoppingBag className="w-6 h-6 cursor-pointer" />
                 </div>
             </nav>
@@ -232,7 +107,7 @@ export default function PaymentPage() {
                 {/* Back link */}
                 <button
                     onClick={() => navigate('/checkout')}
-                    className="flex items-center gap-2 text-sm font-semibold text-gray-500 hover:text-gray-900 transition-colors mb-8 uppercase tracking-wider"
+                    className="flex items-center gap-2 text-sm font-semibold text-gray-500 hover:text-gray-900 transition-colors mb-8 uppercase tracking-wider relative z-10"
                 >
                     <ArrowLeft size={16} />
                     Back to Checkout
@@ -252,7 +127,7 @@ export default function PaymentPage() {
 
                     {/* Left: Payment Method Card */}
                     <div className="lg:col-span-7">
-                        <div className="bg-white rounded-[32px] p-8 shadow-xl">
+                        <div className="bg-white rounded-[32px] p-8 shadow-xl relative z-10">
                             <h2 className="text-2xl font-bold uppercase tracking-tight text-gray-900 mb-8">
                                 Payment Method
                             </h2>
@@ -269,93 +144,43 @@ export default function PaymentPage() {
                                 </div>
                             </div>
 
-                            {/* ── Conditional: Razorpay (localhost) vs Simulate (production) ── */}
-                            {isLocalhost ? (
-                                /* ── LOCALHOST: Real Razorpay flow ── */
-                                <div className="border-2 border-black rounded-2xl p-6 mb-6 bg-gray-50/50">
-                                    <div className="flex items-center justify-between mb-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-3 h-3 rounded-full bg-black" />
-                                            <span className="font-bold text-lg uppercase tracking-tight">Razorpay</span>
-                                        </div>
-                                        <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                                            UPI • Cards • NetBanking • Wallets
-                                        </span>
+                            <div className="border-2 border-black rounded-2xl p-6 mb-6 bg-gray-50/50">
+                                <div className="flex items-center justify-between mb-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-3 h-3 rounded-full bg-black" />
+                                        <span className="font-bold text-lg uppercase tracking-tight">Secure Payment</span>
                                     </div>
-                                    <p className="text-sm text-gray-500 mb-6">
-                                        You will be redirected to Razorpay's secure gateway to complete your payment. All major payment methods accepted.
-                                    </p>
-                                    <button
-                                        id="btn-pay-razorpay"
-                                        onClick={handleRazorpay}
-                                        disabled={items.length === 0 || processing}
-                                        className="w-full bg-black text-white font-bold uppercase tracking-widest py-5 rounded-full
-                                            hover:bg-gray-900 hover:scale-[1.02] transition-all duration-300
-                                            disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none
-                                            shadow-[0_4px_24px_rgba(0,0,0,0.3)]"
-                                    >
-                                        {processing ? (
-                                            <span className="flex items-center justify-center gap-2">
-                                                <Loader2 size={20} className="animate-spin" /> Processing…
-                                            </span>
-                                        ) : (
-                                            `Pay ${formatPrice(total)} with Razorpay`
-                                        )}
-                                    </button>
+                                    <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider hidden sm:block">
+                                        UPI • Cards • NetBanking • Wallets
+                                    </span>
                                 </div>
-                            ) : (
-                                /* ── PRODUCTION: Simulated checkout bypass ── */
-                                <div className="border-2 border-blue-200 rounded-2xl p-6 mb-6 bg-blue-50/40">
-                                    <div className="flex items-center justify-between mb-4">
-                                        <div className="flex items-center gap-3">
-                                            <Zap size={18} className="text-blue-600" />
-                                            <span className="font-bold text-lg uppercase tracking-tight text-blue-900">Demo Checkout</span>
-                                        </div>
-                                        <span className="text-xs font-semibold text-blue-400 uppercase tracking-wider">
-                                            Simulated
-                                        </span>
-                                    </div>
-                                    <p className="text-sm text-gray-500 mb-6">
-                                        Razorpay is disabled in this live demo. Clicking below will simulate a successful transaction and save your order.
-                                    </p>
-                                    <button
-                                        id="btn-simulate-checkout"
-                                        onClick={handleMockPayment}
-                                        disabled={items.length === 0 || processing}
-                                        className="w-full bg-blue-600 text-white font-bold uppercase tracking-widest py-5 rounded-full
-                                            hover:bg-blue-700 hover:scale-[1.02] transition-all duration-300
-                                            disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none
-                                            shadow-[0_4px_24px_rgba(37,99,235,0.35)]"
-                                    >
-                                        {processing ? (
-                                            <span className="flex items-center justify-center gap-2">
-                                                <Loader2 size={20} className="animate-spin" /> Simulating…
-                                            </span>
-                                        ) : (
-                                            `Simulate Checkout (Demo Mode)`
-                                        )}
-                                    </button>
-                                    <p className="text-xs text-blue-400 text-center mt-3">
-                                        Razorpay is disabled in this live demo. Clicking this will simulate a successful transaction.
-                                    </p>
-                                </div>
-                            )}
+                                <p className="text-sm text-gray-500 mb-6 font-medium">
+                                    Click below to securely complete your order. You can choose from multiple payment methods including UPI and Cards.
+                                </p>
+                                <button
+                                    onClick={() => setShowMockModal(true)}
+                                    disabled={items.length === 0}
+                                    className="w-full bg-black text-white font-bold uppercase tracking-widest py-5 rounded-full
+                                        hover:bg-gray-900 hover:scale-[1.02] transition-all duration-300
+                                        disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none
+                                        shadow-[0_4px_24px_rgba(0,0,0,0.3)]"
+                                >
+                                    Proceed to Pay {formatPrice(total)}
+                                </button>
+                            </div>
 
                             {/* Fine print */}
-                            <p className="text-xs text-gray-400 text-center leading-relaxed">
+                            <p className="text-xs text-gray-400 text-center leading-relaxed font-medium">
                                 By proceeding, you agree to KIXX's{' '}
                                 <span className="underline cursor-pointer hover:text-gray-600">Terms of Service</span>{' '}
                                 and{' '}
                                 <span className="underline cursor-pointer hover:text-gray-600">Privacy Policy</span>.
-                                {isLocalhost
-                                    ? ' Your payment information is handled securely by Razorpay.'
-                                    : ' This demo does not process real payments.'}
                             </p>
                         </div>
                     </div>
 
-                    {/* Right: Order Summary — same glass panel as CheckoutPage */}
-                    <div className="lg:col-span-5 sticky top-32">
+                    {/* Right: Order Summary */}
+                    <div className="lg:col-span-5 sticky top-32 z-10">
                         <div className="rounded-[32px] p-8 shadow-2xl
                             bg-[rgba(255,255,255,0.5)]
                             backdrop-blur-[20px] [-webkit-backdrop-filter:blur(20px)]
@@ -377,7 +202,7 @@ export default function PaymentPage() {
                                         </div>
                                         <div className="flex-grow min-w-0">
                                             <h3 className="font-bold text-lg leading-tight uppercase text-gray-900 truncate">{item.name}</h3>
-                                            <p className="text-sm text-gray-500 mb-2">
+                                            <p className="text-sm text-gray-500 mb-2 font-medium">
                                                 {item.color && item.size ? `${item.color} • Size ${item.size}` : 'One Size'}
                                             </p>
                                             <div className="flex justify-between items-center">
@@ -396,18 +221,18 @@ export default function PaymentPage() {
                                 ))}
                             </div>
 
-                            <div className="space-y-4 mb-8 text-lg">
+                            <div className="space-y-4 mb-8 text-lg font-medium">
                                 <div className="flex justify-between">
                                     <span className="text-gray-600">Subtotal</span>
-                                    <span className="font-medium text-gray-900">{formatPrice(subtotal)}</span>
+                                    <span className="font-bold text-gray-900">{formatPrice(subtotal)}</span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-gray-600">Shipping</span>
-                                    <span className="font-medium text-gray-900">Free</span>
+                                    <span className="font-bold text-gray-900">Free</span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-gray-600">Taxes (18% GST)</span>
-                                    <span className="font-medium text-gray-900">{formatPrice(taxes)}</span>
+                                    <span className="font-bold text-gray-900">{formatPrice(taxes)}</span>
                                 </div>
                                 <div className="flex justify-between items-center pt-4 border-t border-black/10 mt-4">
                                     <span className="font-bold text-2xl uppercase text-gray-900">Total</span>
@@ -415,38 +240,204 @@ export default function PaymentPage() {
                                 </div>
                             </div>
 
-                            {/* Summary CTA also respects environment */}
-                            {isLocalhost ? (
-                                <button
-                                    id="btn-summary-razorpay"
-                                    onClick={handleRazorpay}
-                                    disabled={items.length === 0 || processing}
-                                    className="w-full bg-black text-white font-bold uppercase tracking-widest py-5 rounded-full
-                                        hover:bg-gray-900 hover:scale-[1.02] transition-all duration-300
-                                        disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none"
-                                >
-                                    {processing ? 'Processing…' : `Pay ${formatPrice(total)}`}
-                                </button>
-                            ) : (
-                                <button
-                                    id="btn-summary-simulate"
-                                    onClick={handleMockPayment}
-                                    disabled={items.length === 0 || processing}
-                                    className="w-full bg-blue-600 text-white font-bold uppercase tracking-widest py-5 rounded-full
-                                        hover:bg-blue-700 hover:scale-[1.02] transition-all duration-300
-                                        disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none"
-                                >
-                                    {processing ? 'Simulating…' : `Place Order ${formatPrice(total)}`}
-                                </button>
-                            )}
+                            <button
+                                onClick={() => setShowMockModal(true)}
+                                disabled={items.length === 0}
+                                className="w-full bg-black text-white font-bold uppercase tracking-widest py-5 rounded-full
+                                    hover:bg-gray-900 hover:scale-[1.02] transition-all duration-300
+                                    disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none shadow-[0_4px_24px_rgba(0,0,0,0.3)]"
+                            >
+                                Place Order {formatPrice(total)}
+                            </button>
 
-                            <div className="mt-6 flex justify-center items-center gap-2 text-sm text-gray-500">
+                            <div className="mt-6 flex justify-center items-center gap-2 text-sm text-gray-500 font-medium">
                                 <Lock className="w-4 h-4" />
                                 <span>Secure SSL encrypted checkout</span>
                             </div>
                         </div>
                     </div>
                 </div>
+
+                {/* ----------------------------------------------------------------------- */}
+                {/* MOCK RAZORPAY MODAL (Simulating Payment Gateway)                        */}
+                {/* ----------------------------------------------------------------------- */}
+                {showMockModal && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in zoom-in-95 duration-200">
+                        <div className="max-w-4xl w-full flex bg-white rounded-2xl overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.5)] relative max-h-[90vh] flex-col md:flex-row">
+                            
+                            <button 
+                                onClick={() => !isProcessing && setShowMockModal(false)}
+                                className="absolute top-4 right-4 text-gray-400 hover:text-gray-900 transition-colors z-10 bg-white/50 md:bg-transparent rounded-full p-1"
+                                disabled={isProcessing}
+                            >
+                                <X size={24} />
+                            </button>
+
+                            {/* Left Panel (Dark) */}
+                            <div className="bg-[#1A1A1A] text-white w-full md:w-1/3 p-8 md:p-10 flex flex-col justify-between">
+                                <div>
+                                    <div className="font-black tracking-tighter text-4xl mb-10 uppercase text-white hidden md:block">KIXX</div>
+                                    <div className="font-black tracking-tighter text-2xl mb-4 uppercase text-white md:hidden">KIXX</div>
+                                    
+                                    <div className="mb-2 text-gray-400 text-xs font-bold uppercase tracking-[0.2em]">Price Summary</div>
+                                    <div className="text-4xl md:text-5xl font-black tracking-tight text-white mb-8 border-b border-gray-800 pb-8">
+                                        {formatPrice(total)}
+                                    </div>
+                                    
+                                    <div className="space-y-4 mb-8 text-sm font-medium">
+                                        <div className="flex justify-between text-gray-400">
+                                            <span>Subtotal</span>
+                                            <span className="text-white">{formatPrice(subtotal)}</span>
+                                        </div>
+                                        <div className="flex justify-between text-gray-400">
+                                            <span>GST (18%)</span>
+                                            <span className="text-white">{formatPrice(taxes)}</span>
+                                        </div>
+                                        <div className="mt-6 bg-white/5 px-4 py-3 rounded-xl border border-white/10">
+                                            <div className="text-xs text-gray-500 mb-1 uppercase tracking-wider font-bold">Billed to</div>
+                                            <div className="text-sm text-gray-300 truncate">
+                                                {getCheckoutData()?.email || 'guest@example.com'}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div className="flex items-center justify-center gap-2 text-xs text-gray-500 font-bold bg-white/5 py-4 rounded-xl mt-4 md:mt-0">
+                                    <Shield size={14} className="text-green-500" />
+                                    <span>256-bit Secure Mock Gateway</span>
+                                </div>
+                            </div>
+
+                            {/* Right Panel (Light) */}
+                            <div className="w-full md:w-2/3 p-8 md:p-10 overflow-y-auto">
+                                <h3 className="text-2xl font-black text-gray-900 mb-8 uppercase tracking-tight">Payment Options</h3>
+                                
+                                <div className="space-y-4">
+                                    {/* UPI Option */}
+                                    <div className={`border-2 rounded-2xl transition-all duration-300 overflow-hidden ${selectedMethod === 'upi' ? 'border-[#800000] shadow-[0_4px_20px_rgba(128,0,0,0.1)]' : 'border-gray-200 hover:border-gray-300'}`}>
+                                        <button 
+                                            className="w-full p-5 flex items-center gap-4 text-left focus:outline-none bg-white"
+                                            onClick={() => setSelectedMethod('upi')}
+                                            disabled={isProcessing}
+                                        >
+                                            <div className="flex-grow font-black text-lg text-gray-900 flex items-center gap-3">
+                                                <Smartphone size={24} className={selectedMethod === 'upi' ? 'text-[#800000]' : 'text-gray-400'} />
+                                                UPI Transaction
+                                            </div>
+                                            <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${selectedMethod === 'upi' ? 'border-[#800000]' : 'border-gray-300'}`}>
+                                                {selectedMethod === 'upi' && <div className="w-3 h-3 rounded-full bg-[#800000]" />}
+                                            </div>
+                                        </button>
+
+                                        {selectedMethod === 'upi' && (
+                                            <div className="px-5 pb-5 animate-in slide-in-from-top-2 duration-300 bg-red-50/30">
+                                                <input 
+                                                    type="text" 
+                                                    placeholder="Enter any UPI ID (e.g., test@ybl)" 
+                                                    disabled={isProcessing}
+                                                    defaultValue="test@ybl"
+                                                    className="w-full p-4 border-2 border-gray-200 rounded-xl outline-none focus:border-[#800000] mb-4 bg-white font-medium text-gray-900 transition-colors shadow-sm"
+                                                />
+                                                <button
+                                                    onClick={executeMockPayment}
+                                                    disabled={isProcessing}
+                                                    className="w-full bg-[#800000] text-white font-black uppercase tracking-widest py-4 rounded-xl
+                                                        hover:bg-[#600000] transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-3 shadow-lg hover:shadow-xl"
+                                                >
+                                                    {isProcessing ? (
+                                                        <>
+                                                            <Loader2 size={20} className="animate-spin" /> Processing Securely...
+                                                        </>
+                                                    ) : (
+                                                        'Verify & Pay'
+                                                    )}
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Card Option */}
+                                    <div className={`border-2 rounded-2xl transition-all duration-300 ${selectedMethod === 'card' ? 'border-gray-900 bg-gray-50' : 'border-gray-200 hover:border-gray-300'}`}>
+                                        <button 
+                                            className="w-full p-5 flex items-center gap-4 text-left focus:outline-none bg-transparent"
+                                            onClick={() => setSelectedMethod('card')}
+                                            disabled={isProcessing}
+                                        >
+                                            <div className="flex-grow font-bold text-lg text-gray-900 flex items-center gap-3">
+                                                <CreditCard size={24} className="text-gray-400" />
+                                                Credit / Debit Card
+                                            </div>
+                                            <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${selectedMethod === 'card' ? 'border-gray-900' : 'border-gray-300'}`}>
+                                                {selectedMethod === 'card' && <div className="w-3 h-3 rounded-full bg-gray-900" />}
+                                            </div>
+                                        </button>
+                                        
+                                        {selectedMethod === 'card' && (
+                                            <div className="px-5 pb-5 animate-in slide-in-from-top-2 duration-300 border-t border-gray-200 pt-5">
+                                                <p className="text-sm font-medium text-gray-500 mb-5 text-center">
+                                                    Card processing simulated. Click below to confirm order.
+                                                </p>
+                                                <button
+                                                    onClick={executeMockPayment}
+                                                    disabled={isProcessing}
+                                                    className="w-full bg-gray-900 text-white font-black uppercase tracking-widest py-4 rounded-xl
+                                                        hover:bg-black transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-3 shadow-lg"
+                                                >
+                                                    {isProcessing ? (
+                                                        <>
+                                                            <Loader2 size={20} className="animate-spin" /> Processing Securely...
+                                                        </>
+                                                    ) : (
+                                                        'Confirm & Pay'
+                                                    )}
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Netbanking Option */}
+                                    <div className={`border-2 rounded-2xl transition-all duration-300 ${selectedMethod === 'netbanking' ? 'border-gray-900 bg-gray-50' : 'border-gray-200 hover:border-gray-300'}`}>
+                                        <button 
+                                            className="w-full p-5 flex items-center gap-4 text-left focus:outline-none bg-transparent"
+                                            onClick={() => setSelectedMethod('netbanking')}
+                                            disabled={isProcessing}
+                                        >
+                                            <div className="flex-grow font-bold text-lg text-gray-900 flex items-center gap-3">
+                                                <Zap size={24} className="text-gray-400" />
+                                                NetBanking
+                                            </div>
+                                            <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${selectedMethod === 'netbanking' ? 'border-gray-900' : 'border-gray-300'}`}>
+                                                {selectedMethod === 'netbanking' && <div className="w-3 h-3 rounded-full bg-gray-900" />}
+                                            </div>
+                                        </button>
+                                        
+                                        {selectedMethod === 'netbanking' && (
+                                            <div className="px-5 pb-5 animate-in slide-in-from-top-2 duration-300 border-t border-gray-200 pt-5">
+                                                <p className="text-sm font-medium text-gray-500 mb-5 text-center">
+                                                    Netbanking processing simulated. Click below to confirm order.
+                                                </p>
+                                                <button
+                                                    onClick={executeMockPayment}
+                                                    disabled={isProcessing}
+                                                    className="w-full bg-gray-900 text-white font-black uppercase tracking-widest py-4 rounded-xl
+                                                        hover:bg-black transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-3 shadow-lg"
+                                                >
+                                                    {isProcessing ? (
+                                                        <>
+                                                            <Loader2 size={20} className="animate-spin" /> Processing Securely...
+                                                        </>
+                                                    ) : (
+                                                        'Confirm & Pay'
+                                                    )}
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </main>
         </div>
     );

@@ -3,11 +3,29 @@ import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { getUserOrders } from '../services/orderService';
 import useAuthStore from '../store/authStore';
-import { Loader2, Package, ChevronRight } from 'lucide-react';
+import { Loader2, Package, ChevronRight, Download } from 'lucide-react';
 import { formatPrice } from '../utils/currency';
+import { generateInvoice } from '../utils/generateInvoice';
 
 export default function OrderHistoryPage() {
     const { user } = useAuthStore();
+
+    const handleDownloadInvoice = (order) => {
+        const formattedItems = order.items?.map(item => ({
+            name: item.variant?.product?.name || 'Unknown Item',
+            quantity: item.quantity,
+            price: item.price
+        })) || [];
+
+        generateInvoice({
+            id: order.id,
+            email: user?.email,
+            shippingAddress: null,
+            items: formattedItems,
+            totalAmount: order.totalPrice,
+            createdAt: order.createdAt
+        });
+    };
 
     // user object from neon DB should have .id
     const { data: orders, isLoading, isError } = useQuery({
@@ -89,17 +107,28 @@ export default function OrderHistoryPage() {
                                             </div>
                                         </div>
 
-                                        <div className="flex items-center justify-between sm:justify-end sm:w-1/3">
-                                            <div className="text-2xl font-black text-[#800000] sm:mr-8">
+                                        <div className="flex flex-col sm:flex-row items-center justify-between sm:justify-end w-full sm:w-auto mt-4 sm:mt-0 gap-4">
+                                            <div className="text-2xl font-black text-[#800000] sm:mr-4 self-start sm:self-center">
                                                 {formatPrice(order.totalPrice || 0)}
                                             </div>
-                                            <Link
-                                                to={`/order/${order.id}`}
-                                                className="inline-flex items-center justify-center p-3 sm:px-6 sm:py-3 rounded-xl border-2 border-gray-100 hover:border-[#800000] hover:bg-red-50 text-gray-600 hover:text-[#800000] font-bold transition-all group"
-                                            >
-                                                <span className="hidden sm:inline">View Details</span>
-                                                <ChevronRight className="w-5 h-5 sm:ml-2 text-gray-400 group-hover:text-[#800000]" />
-                                            </Link>
+                                            <div className="flex gap-2 w-full sm:w-auto">
+                                                <button
+                                                    onClick={() => handleDownloadInvoice(order)}
+                                                    className="flex-1 sm:flex-none inline-flex items-center justify-center p-3 sm:px-4 sm:py-3 rounded-xl bg-[#111111] hover:bg-gray-800 text-white font-bold transition-all shadow-md group"
+                                                >
+                                                    <span className="sm:inline hidden">Invoice</span>
+                                                    <span className="sm:hidden">Download</span>
+                                                    <Download className="w-5 h-5 ml-2 text-gray-300 group-hover:text-white" />
+                                                </button>
+                                                <Link
+                                                    to={`/order/${order.id}`}
+                                                    className="flex-1 sm:flex-none inline-flex items-center justify-center p-3 sm:px-5 sm:py-3 rounded-xl border-2 border-gray-100 hover:border-[#800000] hover:bg-red-50 text-gray-600 hover:text-[#800000] font-bold transition-all group"
+                                                >
+                                                    <span className="hidden sm:inline">Details</span>
+                                                    <span className="sm:hidden">View</span>
+                                                    <ChevronRight className="w-5 h-5 sm:ml-2 text-gray-400 group-hover:text-[#800000]" />
+                                                </Link>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

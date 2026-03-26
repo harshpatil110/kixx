@@ -29,8 +29,12 @@ router.post('/save', async (req, res) => {
             return res.status(400).json({ success: false, message: 'Bad Request: email, shippingAddress, items, and totalAmount are required.' });
         }
 
+        console.log("RECEIVED ORDER ITEMS:", req.body.items);
+
         const result = await db.transaction(async (tx) => {
             for (const item of items) {
+                if (!item.id) { throw new Error("Invalid item payload: Missing product ID"); }
+                
                 const [product] = await tx.select().from(products).where(eq(products.id, item.id));
                 
                 if (!product || product.stock < item.quantity) {
@@ -63,7 +67,7 @@ router.post('/save', async (req, res) => {
         return res.status(200).json({ success: true, order: result });
     } catch (error) {
         console.error('[Orders] ❌ Transaction Error:', error.message);
-        return res.status(400).json({ success: false, message: error.message });
+        return res.status(400).json({ success: false, message: error.message || "Transaction failed" });
     }
 });
 
