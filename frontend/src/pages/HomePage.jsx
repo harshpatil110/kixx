@@ -3,6 +3,8 @@ import { useQuery } from '@tanstack/react-query';
 import { getProducts } from '../services/productService';
 import ProductCard from '../components/ProductCard';
 import TigerHeroSection from '../components/TigerHeroSection';
+import RecommendedFeed from '../components/RecommendedFeed';
+import useAuthStore from '../store/authStore';
 import { Search, Filter, RefreshCw, ServerCrash } from 'lucide-react';
 
 // ─── Skeleton card ────────────────────────────────────────────────────────────
@@ -81,6 +83,8 @@ function CatalogError({ error, onRetry, isFetching }) {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export default function HomePage() {
     const [categoryFilter, setCategoryFilter] = useState('');
+    const user = useAuthStore(state => state.user);
+    const userId = user?.id || null;
 
     const {
         data: products,
@@ -131,6 +135,11 @@ export default function HomePage() {
                 800 vh sticky scrollytelling canvas experience
             ══════════════════════════════════════════════════════════════ */}
             <TigerHeroSection />
+
+            {/* ══════════════════════════════════════════════════════════════
+                AI RECOMMENDATION FEED (personalized, only shown if logged in)
+            ══════════════════════════════════════════════════════════════ */}
+            <RecommendedFeed userId={userId} />
 
             {/* ══════════════════════════════════════════════════════════════
                 PRODUCT CATALOG

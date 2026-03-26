@@ -7,6 +7,7 @@ const authRoutes = require('./src/routes/auth');
 const productRoutes = require('./src/routes/products');
 const orderRoutes = require('./src/routes/orders');
 const paymentRoutes = require('./src/routes/payment');
+const recommendationRoutes = require('./src/routes/recommendations');
 
 const app = express();
 
@@ -22,6 +23,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/payment', paymentRoutes);
+app.use('/api/recommendations', recommendationRoutes);
 
 // 404 Route Not Found Middleware
 app.use((req, res, next) => {
