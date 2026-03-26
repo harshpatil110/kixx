@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 import useCartStore from '../store/cartStore';
 import { formatPrice } from '../utils/currency';
 import { saveCompletedOrder } from '../services/orderService';
+import { generateInvoice } from '../utils/generateInvoice';
 import api from '../services/api';
 
 // ---------------------------------------------------------------------------
@@ -89,6 +90,15 @@ export default function PaymentPage() {
                 totalAmount: total,
             });
 
+            generateInvoice({
+                id: `ORD-${Date.now()}`,
+                email: checkoutData.email,
+                shippingAddress: checkoutData.shipping,
+                items: items,
+                totalAmount: total,
+                createdAt: new Date().toISOString()
+            });
+
             clearCart();
             sessionStorage.removeItem('kixx-checkout-data');
             toast.success('Order Placed Successfully!', { id: toastId });
@@ -156,6 +166,15 @@ export default function PaymentPage() {
                             totalAmount: total,
                             razorpayPaymentId: response.razorpay_payment_id,
                             razorpayOrderId: response.razorpay_order_id,
+                        });
+
+                        generateInvoice({
+                            id: response.razorpay_order_id || `ORD-${Date.now()}`,
+                            email: checkoutData.email,
+                            shippingAddress: checkoutData.shipping,
+                            items: items,
+                            totalAmount: total,
+                            createdAt: new Date().toISOString()
                         });
 
                         // Clear cart + session, redirect

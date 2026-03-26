@@ -133,7 +133,18 @@ export default function CatalogPage() {
 
     const { data: products, isLoading, isError } = useQuery({
         queryKey: ['products'],
-        queryFn: () => getProducts(),
+        queryFn: async () => {
+             try {
+                 const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+                 const res = await fetch(`${baseUrl}/api/products`);
+                 if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+                 const data = await res.json();
+                 return data.products;
+             } catch (error) {
+                 console.error("FRONTEND FETCH ERROR:", error);
+                 throw error;
+             }
+        },
     });
 
     const brands = React.useMemo(() => {

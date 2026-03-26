@@ -6,9 +6,11 @@ import { auth } from '../config/firebase';
 import useAuthStore from '../store/authStore';
 import { getUserOrders } from '../services/orderService';
 import { formatPrice } from '../utils/currency';
+import { generateInvoice } from '../utils/generateInvoice';
 import {
     Search, ShoppingCart, User, Package, Heart,
     CreditCard, LogOut, Archive, ChevronDown,
+    Download
 } from 'lucide-react';
 
 /*
@@ -288,9 +290,11 @@ export default function AccountPage() {
                                                     <span className={`w-2 h-2 rounded-full ${statusDot(order.status)}`} />
                                                     {order.status || 'Processing'}
                                                 </span>
-                                                <div className="flex gap-3">
-                                                    {/* Stitch: button.text-sm.font-medium.border-b.border-black.hover:text-primary.hover:border-primary.uppercase */}
-                                                    <Link to={`/orders/${order.id}`} className="text-sm font-medium border-b border-black hover:text-[#800000] hover:border-[#800000] transition-colors uppercase text-gray-900">
+                                                <div className="flex items-center gap-3">
+                                                    <button onClick={() => generateInvoice(order)} className="text-gray-500 hover:text-black transition-colors flex items-center gap-2 text-sm uppercase">
+                                                        <Download size={16} /> Invoice
+                                                    </button>
+                                                    <Link to={`/orders/${order.id}`} className="text-sm font-medium border-b border-black hover:text-[#800000] hover:border-[#800000] transition-colors uppercase text-gray-900 ml-4">
                                                         View Receipt
                                                     </Link>
                                                 </div>
