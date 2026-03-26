@@ -10,6 +10,7 @@
  *   node src/scripts/setupAdmin.js admin@kixx.com
  */
 
+require('../db/dnsHack');
 require('dotenv').config();
 const postgres = require('postgres');
 const { drizzle } = require('drizzle-orm/postgres-js');
