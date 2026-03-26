@@ -41,6 +41,10 @@ const OrderConfirmationPage = lazy(() => import('./pages/OrderConfirmationPage')
 // ── Account ──
 const AccountPage = lazy(() => import('./pages/AccountPage'));
 
+// ── Admin ──
+const AdminLayout = lazy(() => import('./layouts/AdminLayout'));
+const DashboardPage = lazy(() => import('./pages/admin/DashboardPage'));
+
 // ---------------------------------------------------------------------------
 // Layout component — wraps all routes that need the Navbar
 // ---------------------------------------------------------------------------
@@ -119,12 +123,17 @@ export default function App() {
 
         {/* ── Admin Dashboard (Protected by AdminRoute) ─────────── */}
         <Route path="/admin" element={<AdminRoute />}>
-          <Route path="dashboard" element={
-            <div className="flex flex-col min-h-screen bg-[#F5F5DC] items-center justify-center">
-              <h1 className="text-4xl font-black text-[#800000] tracking-tighter uppercase mb-4">Admin Dashboard</h1>
-              <p className="text-gray-500 font-medium">Dashboard components and functionality coming soon.</p>
-            </div>
-          } />
+          <Route element={
+            <Suspense fallback={<GenericPageSkeleton />}>
+              <AdminLayout />
+            </Suspense>
+          }>
+            <Route path="dashboard" element={
+              <Suspense fallback={<GenericPageSkeleton />}>
+                <DashboardPage />
+              </Suspense>
+            } />
+          </Route>
         </Route>
 
         {/* ── Pages with their OWN custom nav (no global Navbar) ── */}
