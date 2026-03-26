@@ -2,6 +2,7 @@ const { pgTable, uuid, varchar, text, decimal, integer, timestamp, boolean, pgEn
 const { relations } = require('drizzle-orm');
 
 // ENUMS
+
 const orderStatusEnum = pgEnum('status', ['pending', 'paid', 'shipped', 'delivered', 'cancelled']);
 
 // Future Phase ENUMS
@@ -15,6 +16,13 @@ const users = pgTable('users', {
     email: varchar('email', { length: 255 }).unique().notNull(),
     passwordHash: varchar('password_hash', { length: 255 }).notNull(),
     role: varchar('role', { length: 20 }).default('customer').notNull(),
+    // Recommendation Engine: Behavioral signals stored as JSONB for fast access
+    browsingHistory: jsonb('browsing_history').default([]),     // [ productId, ... ]
+    purchaseHistory: jsonb('purchase_history').default([]),     // [ productId, ... ]
+    arInteractions: jsonb('ar_interactions').default([]),       // [ { productId, duration, timestamp } ]
+    outfitInsights: jsonb('outfit_insights').default({         // From outfit analysis
+        preferredColors: [], styles: [], occasions: []
+    }),
     createdAt: timestamp('created_at').defaultNow(),
     updatedAt: timestamp('updated_at').defaultNow()
 });
@@ -40,6 +48,13 @@ const products = pgTable('products', {
     stock: integer('stock').default(0).notNull(),
     isNew: boolean('is_new').default(false).notNull(),
     isOnSale: boolean('is_on_sale').default(false).notNull(),
+    arModelUrl: varchar('ar_model_url', { length: 255 }),
+    arPlacement: varchar('ar_placement', { length: 50 }).default('world'),
+    arScale: varchar('ar_scale', { length: 50 }).default('1 1 1'),
+    // Recommendation Engine: Product attributes for content-based matching
+    tags: jsonb('tags').default([]),               // [ 'casual', 'streetwear', 'formal' ]
+    colorPalette: jsonb('color_palette').default([]), // [ 'red', 'white', 'black' ]
+    styleType: varchar('style_type', { length: 100 }), // e.g. 'athletic', 'retro', 'luxury'
     createdAt: timestamp('created_at').defaultNow(),
     updatedAt: timestamp('updated_at').defaultNow()
 });
@@ -115,12 +130,14 @@ const resaleListings = pgTable('resale_listings', {
     updatedAt: timestamp('updated_at').defaultNow()
 });
 
-// 4.2 RecommendationsLog Model (Future Phase)
+// 4.2 RecommendationsLog Model — interaction + score logs for the recommendation engine
 const recommendationsLogs = pgTable('recommendations_logs', {
     id: uuid('id').primaryKey().defaultRandom(),
     userId: uuid('user_id').references(() => users.id).notNull(),
     productId: uuid('product_id').references(() => products.id).notNull(),
-    score: decimal('score', { precision: 5, scale: 2 }).notNull(),
+    score: decimal('score', { precision: 5, scale: 2 }).notNull().default('0'),
+    // actionType: 'view' | 'ar_try_on' | 'cart_add' | 'purchase'
+    actionType: varchar('action_type', { length: 50 }).default('view'),
     createdAt: timestamp('created_at').defaultNow()
 });
 

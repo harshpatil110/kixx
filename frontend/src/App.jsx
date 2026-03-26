@@ -45,6 +45,8 @@ const AccountPage = lazy(() => import('./pages/AccountPage'));
 const AdminLayout = lazy(() => import('./layouts/AdminLayout'));
 const DashboardPage = lazy(() => import('./pages/admin/DashboardPage'));
 
+// ── Features ──
+const OutfitCheckerPage = lazy(() => import('./pages/OutfitCheckerPage'));
 // ---------------------------------------------------------------------------
 // Layout component — wraps all routes that need the Navbar
 // ---------------------------------------------------------------------------
@@ -199,6 +201,14 @@ export default function App() {
             element={
               <Suspense fallback={<ProductDetailSkeleton />}>
                 <ProductDetailPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/outfit-checker"
+            element={
+              <Suspense fallback={<GenericPageSkeleton />}>
+                <OutfitCheckerPage />
               </Suspense>
             }
           />

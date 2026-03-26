@@ -1,12 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Share } from 'lucide-react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { getProductById } from '../services/productService';
 import useCartStore from '../store/cartStore';
+import useAuthStore from '../store/authStore';
 import { formatPrice } from '../utils/currency';
 import VariantSelector from '../components/VariantSelector';
 import toast from 'react-hot-toast';
+import ARTryOn from '../components/ARTryOn';
+import { StyleMatchBadge, GuestStyleMatchInfo } from '../components/RecommendedFeed';
+import api from '../services/api';
 
 /*
   STITCH LIGHT THEME — pdp.html (KIXX Liquid Glass PDP)
@@ -49,6 +53,28 @@ export default function ProductDetailPage() {
     const { id } = useParams();
     const [selectedVariant, setSelectedVariant] = useState(null);
     const [showSuccess, setShowSuccess] = useState(false);
+    const [showAR, setShowAR] = useState(false);
+    const [styleMatchScore, setStyleMatchScore] = useState(null);
+    const user = useAuthStore(state => state.user);
+    const userId = user?.id || null;
+
+    // Log a 'view' interaction when the product is loaded
+    useEffect(() => {
+        if (userId && id) {
+            api.post('/api/recommendations/interaction', {
+                userId, productId: id, actionType: 'view'
+            }).catch(() => {}); // fire-and-forget
+        }
+    }, [userId, id]);
+
+    // Fetch the style match score for logged-in users
+    useEffect(() => {
+        if (userId && id) {
+            api.get(`/api/recommendations/style-match/${userId}/${id}`)
+                .then(r => setStyleMatchScore(r.data.score))
+                .catch(() => {});
+        }
+    }, [userId, id]);
     const addItem = useCartStore((state) => state.addItem);
     const navigate = useNavigate();
 
@@ -164,6 +190,17 @@ export default function ProductDetailPage() {
                                 No Image
                             </div>
                         )}
+                        
+                        {product.arModelUrl && (
+                            <button
+                                onClick={() => setShowAR(true)}
+                                className="absolute bottom-16 left-1/2 -translate-x-1/2 bg-white/70 backdrop-blur-md px-6 py-2 rounded-full font-bold uppercase tracking-widest text-[#800000] border border-white/50 shadow-lg hover:scale-105 transition-transform flex items-center gap-2 z-20"
+                            >
+                                <span className="material-icons">view_in_ar</span>
+                                Try in AR
+                            </button>
+                        )}
+
                         {/* Stitch: dots div.absolute.bottom-6.left-1/2.-translate-x-1/2.flex.gap-2 */}
                         <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2">
                             <div className="w-2 h-2 rounded-full bg-white opacity-100" />
@@ -201,12 +238,22 @@ export default function ProductDetailPage() {
                         <p className="text-sm font-semibold tracking-widest uppercase text-gray-500 mb-4">
                             {product.brand?.name || 'New Release'}
                         </p>
-                        {/* Stitch: h1.font-display(Anton).text-6xl.md:text-8xl.lg:text-9xl.uppercase.leading-[0.85].tracking-tight.mb-6 text-gray-900 */}
-                        <h1 className="font-[Anton,sans-serif] text-6xl md:text-8xl lg:text-9xl uppercase leading-[0.85] tracking-tight mb-6 text-gray-900">
+                        {/* Stitch: h1.font-display(Anton) */}
+                        <h1 className="font-[Anton,sans-serif] text-6xl md:text-8xl lg:text-9xl uppercase leading-[0.85] tracking-tight mb-4 text-gray-900">
                             {product.name}
                         </h1>
-                        {/* Stitch: p.text-3xl.md:text-4xl.font-medium.mb-4  text-gray-900 */}
-                        <p className="text-3xl md:text-4xl font-medium mb-4 text-gray-900">
+                        {/* Style Match Badge — shown for logged-in users, or Login Info for Guests */}
+                        <div className="mb-6">
+                            {userId ? (
+                                styleMatchScore !== null && (
+                                    <StyleMatchBadge score={styleMatchScore} />
+                                )
+                            ) : (
+                                <GuestStyleMatchInfo />
+                            )}
+                        </div>
+                        {/* Stitch: p.text-3xl.md:text-4xl.font-medium.mb-12  text-gray-900 */}
+                        <p className="text-3xl md:text-4xl font-medium mb-12 text-gray-900">
                             {formatPrice(displayPrice)}
                         </p>
 
@@ -309,6 +356,16 @@ export default function ProductDetailPage() {
                     </button>
                 </div>
             </div>
+
+            {/* Fullscreen AR Try On Modal */}
+            {showAR && product.arModelUrl && (
+                <ARTryOn
+                    modelUrl={product.arModelUrl}
+                    placement={product.arPlacement}
+                    scale={product.arScale}
+                    onClose={() => setShowAR(false)}
+                />
+            )}
         </div>
     );
 }
