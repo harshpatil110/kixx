@@ -70,7 +70,7 @@ function buildCatalog(getBrandId) {
     ];
     return catalog.map(p => ({
         ...p,
-        stock: Math.floor(Math.random() * 901) + 100
+        stock: Math.floor(Math.random() * (1000 - 10 + 1)) + 10
     }));
 }
 

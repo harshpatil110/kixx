@@ -1,5 +1,5 @@
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 export function generateInvoice(orderData) {
     if (!orderData) return;
@@ -75,7 +75,7 @@ export function generateInvoice(orderData) {
         `$${(Number(item.price || 0) * Number(item.quantity || 1)).toFixed(2)}`
     ]);
 
-    doc.autoTable({
+    autoTable(doc, {
         startY: 85,
         head: [['Item Description', 'Qty', 'Unit Price', 'Line Total']],
         body: tableBody,

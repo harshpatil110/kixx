@@ -62,9 +62,10 @@ function FloatingInput({ id, label, type, value, onChange, required, rightSlot }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export default function LoginPage() {
-    // ── Guest guard: kick authenticated users back to the catalog ─────────────
+    // ── All hooks MUST be called before any early return ──────────────────────
     const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-    if (isAuthenticated) return <Navigate to="/catalog" replace />;
+    const setAuth = useAuthStore((s) => s.setAuth);
+    const navigate = useNavigate();
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -72,9 +73,6 @@ export default function LoginPage() {
     const [errorMsg, setErrorMsg] = useState(null);
     const [isFirebaseLoading, setFbLoad] = useState(false);
     const [loginRole, setLoginRole] = useState('customer');
-
-    const navigate = useNavigate();
-    const setAuth = useAuthStore((s) => s.setAuth);
 
     // Backend sync mutation
     const syncMutation = useMutation({
@@ -93,6 +91,9 @@ export default function LoginPage() {
             setFbLoad(false);
         },
     });
+
+    // ── Guest guard: kick authenticated users back to the catalog ─────────────
+    if (isAuthenticated) return <Navigate to="/catalog" replace />;
 
     const handleEmailLogin = async (e) => {
         e.preventDefault();

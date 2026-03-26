@@ -95,9 +95,19 @@ export default function App() {
   const { setAuth, setAuthLoading, clearAuth } = useAuthStore();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
+        // Immediately mark as authenticated so protected routes don't flash
         setAuth(firebaseUser, null);
+        // Sync with backend to restore DB user (including role)
+        try {
+          const { syncUserWithBackend } = await import('./services/authService');
+          const data = await syncUserWithBackend();
+          setAuth(firebaseUser, data.user);
+        } catch (err) {
+          console.warn('Backend sync on refresh failed:', err.message);
+          // Keep firebaseUser auth — role just won't be set
+        }
       } else {
         clearAuth();
       }

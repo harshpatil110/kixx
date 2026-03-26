@@ -84,8 +84,9 @@ export default function PaymentPage() {
             navigate('/account');
         } catch (err) {
             console.error('Mock payment error:', err);
-            toast.error('Transaction failed. Please try again.', { id: toastId });
-            setErrorMsg(err?.response?.data?.message || err.message || 'Transaction failed.');
+            const backendMsg = err?.response?.data?.message || err.message || 'Transaction failed. Please try again.';
+            toast.error(backendMsg, { id: toastId });
+            setErrorMsg(backendMsg);
             setIsProcessing(false);
         }
     };

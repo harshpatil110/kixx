@@ -6,6 +6,7 @@ import { getProductById } from '../services/productService';
 import useCartStore from '../store/cartStore';
 import { formatPrice } from '../utils/currency';
 import VariantSelector from '../components/VariantSelector';
+import toast from 'react-hot-toast';
 
 /*
   STITCH LIGHT THEME — pdp.html (KIXX Liquid Glass PDP)
@@ -60,6 +61,22 @@ export default function ProductDetailPage() {
 
     const handleAddToCart = () => {
         if (!selectedVariant || selectedVariant.stock <= 0) return;
+
+        // Stock guard: prevent adding more items than available
+        const currentStock = parseInt(product.stock, 10) || 0;
+        if (currentStock <= 0) {
+            return toast.error('This product is currently out of stock.');
+        }
+
+        const cartItems = useCartStore.getState().items;
+        const existingQty = cartItems
+            .filter(item => item.productId === product.id)
+            .reduce((sum, item) => sum + item.quantity, 0);
+
+        if (existingQty + 1 > currentStock) {
+            return toast.error(`Only ${currentStock} pairs left in stock!`);
+        }
+
         const priceToUse = selectedVariant.price ? parseFloat(selectedVariant.price) : parseFloat(product.basePrice);
         addItem({
             productId: product.id, name: product.name, imageUrl: product.imageUrl,
@@ -70,7 +87,9 @@ export default function ProductDetailPage() {
         setTimeout(() => setShowSuccess(false), 3000);
     };
 
-    const isAddToCartDisabled = !selectedVariant || selectedVariant.stock <= 0;
+    const productStock = parseInt(product?.stock, 10) || 0;
+    const isOutOfStock = productStock === 0;
+    const isAddToCartDisabled = isOutOfStock || !selectedVariant || selectedVariant.stock <= 0;
     const displayPrice = selectedVariant?.price
         ? parseFloat(selectedVariant.price)
         : parseFloat(product?.basePrice || 0);
@@ -186,10 +205,30 @@ export default function ProductDetailPage() {
                         <h1 className="font-[Anton,sans-serif] text-6xl md:text-8xl lg:text-9xl uppercase leading-[0.85] tracking-tight mb-6 text-gray-900">
                             {product.name}
                         </h1>
-                        {/* Stitch: p.text-3xl.md:text-4xl.font-medium.mb-12  text-gray-900 */}
-                        <p className="text-3xl md:text-4xl font-medium mb-12 text-gray-900">
+                        {/* Stitch: p.text-3xl.md:text-4xl.font-medium.mb-4  text-gray-900 */}
+                        <p className="text-3xl md:text-4xl font-medium mb-4 text-gray-900">
                             {formatPrice(displayPrice)}
                         </p>
+
+                        {/* ── Dynamic Inventory Badge ─────────────────────── */}
+                        <div className="mb-10">
+                            {productStock > 20 ? (
+                                <p className="text-sm font-medium text-emerald-600 flex items-center gap-2">
+                                    <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                                    In Stock
+                                </p>
+                            ) : productStock > 0 ? (
+                                <p className="text-sm font-bold text-[#800000] flex items-center gap-2">
+                                    <span className="w-2 h-2 rounded-full bg-[#800000] animate-pulse" />
+                                    Only {productStock} pairs left!
+                                </p>
+                            ) : (
+                                <p className="text-sm font-bold text-gray-400 flex items-center gap-2">
+                                    <span className="w-2 h-2 rounded-full bg-gray-400" />
+                                    Out of Stock
+                                </p>
+                            )}
+                        </div>
                         {/* Stitch: div.mb-12.space-y-4.text-gray-600 */}
                         <div className="mb-12 space-y-4 text-gray-600">
                             <p>{product.description || 'Designed for the city streets. Engineered for the culture.'}</p>
@@ -253,12 +292,20 @@ export default function ProductDetailPage() {
                     <button
                         onClick={handleAddToCart}
                         disabled={isAddToCartDisabled}
-                        className="px-8 py-3 text-sm font-bold tracking-wide uppercase
-                            rounded-full bg-[#800000] text-white hover:bg-black
-                            transition-colors shadow-lg
-                            disabled:opacity-50 disabled:cursor-not-allowed"
+                        className={`px-8 py-3 text-sm font-bold tracking-wide uppercase
+                            rounded-full transition-colors shadow-lg
+                            ${isOutOfStock
+                                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                : 'bg-[#800000] text-white hover:bg-black disabled:opacity-50 disabled:cursor-not-allowed'
+                            }`}
                     >
-                        {showSuccess ? 'Added!' : isAddToCartDisabled ? 'Select Size' : 'Add To Cart'}
+                        {showSuccess
+                            ? 'Added!'
+                            : isOutOfStock
+                                ? 'Out of Stock'
+                                : isAddToCartDisabled
+                                    ? 'Select Size'
+                                    : 'Add To Cart'}
                     </button>
                 </div>
             </div>
