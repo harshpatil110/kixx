@@ -3,8 +3,8 @@ const router = express.Router();
 const OrderService = require('../services/OrderService');
 const { verifyToken } = require('../middleware/auth');
 const { db } = require('../db/index');
-const { users, pastOrders } = require('../db/schema');
-const { eq } = require('drizzle-orm');
+const { users, pastOrders, products, inventoryLogs } = require('../db/schema');
+const { eq, sql } = require('drizzle-orm');
 
 // Internal helper for mapping Firebase email payload to the pure DB UUID
 async function getDbUserId(email) {
@@ -26,22 +26,44 @@ router.post('/save', async (req, res) => {
 
         // Basic validation
         if (!email || !shippingAddress || !items || !Array.isArray(items) || items.length === 0 || !totalAmount) {
-            return res.status(400).json({ error: true, message: 'Bad Request: email, shippingAddress, items, and totalAmount are required.' });
+            return res.status(400).json({ success: false, message: 'Bad Request: email, shippingAddress, items, and totalAmount are required.' });
         }
 
-        const [inserted] = await db.insert(pastOrders).values({
-            email,
-            shippingAddress,
-            items,
-            totalAmount: Math.round(totalAmount),
-            paymentStatus: 'SUCCESS',
-        }).returning();
+        const result = await db.transaction(async (tx) => {
+            for (const item of items) {
+                const [product] = await tx.select().from(products).where(eq(products.id, item.id));
+                
+                if (!product || product.stock < item.quantity) {
+                    throw new Error(`Insufficient stock for ${product ? product.name : 'Unknown Item'}`);
+                }
 
-        console.log(`[Orders] ✅ Past order saved: ${inserted.id}`);
-        return res.status(201).json({ error: false, message: 'Order saved successfully', orderId: inserted.id });
+                await tx.update(products)
+                    .set({ stock: sql`${products.stock} - ${item.quantity}` })
+                    .where(eq(products.id, item.id));
+
+                await tx.insert(inventoryLogs).values({
+                    productId: item.id,
+                    changeType: 'SALE',
+                    quantityChanged: -item.quantity
+                });
+            }
+
+            const [inserted] = await tx.insert(pastOrders).values({
+                email,
+                shippingAddress,
+                items,
+                totalAmount: Math.round(totalAmount),
+                paymentStatus: 'SUCCESS',
+            }).returning();
+
+            return inserted;
+        });
+
+        console.log(`[Orders] ✅ Past order saved transactionally: ${result.id}`);
+        return res.status(200).json({ success: true, order: result });
     } catch (error) {
-        console.error('[Orders] ❌ Error saving past order:', error.message);
-        return res.status(500).json({ error: true, message: 'Failed to save order. Please try again.' });
+        console.error('[Orders] ❌ Transaction Error:', error.message);
+        return res.status(400).json({ success: false, message: error.message });
     }
 });
 
