@@ -5,7 +5,7 @@ import useAuthStore from '../store/authStore';
 import { auth } from '../config/firebase';
 import { signOut } from 'firebase/auth';
 import CartDrawer from './CartDrawer';
-import { Search, User, LogOut, ShoppingCart } from 'lucide-react';
+import { Search, User, LogOut, ShoppingCart, Sparkles } from 'lucide-react';
 
 /*
   STITCH LIGHT THEME — catalog.html nav
@@ -64,9 +64,9 @@ export default function Navbar() {
                     <Link to="/catalog?category=sale" className="hover:text-[#800000] transition-colors">SALE</Link>
                     <Link
                         to="/outfit-checker"
-                        className="flex items-center gap-1.5 bg-[#800000] hover:bg-[#600000] text-white text-xs font-black tracking-widest uppercase px-3 py-1.5 rounded-full transition-colors shadow-sm"
+                        className="flex items-center gap-1.5 bg-[#111111] hover:opacity-80 text-white text-xs font-black tracking-widest uppercase px-4 py-2 rounded-full transition-colors shadow-sm"
                     >
-                        <span className="material-icons text-[14px]">auto_awesome</span>
+                        <Sparkles size={14} />
                         Outfit Check
                     </Link>
                 </div>
