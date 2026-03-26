@@ -7,6 +7,7 @@ const {
     productVariants,
     orders,
     orderItems,
+    inventoryLogs,
 } = require('../db/schema');
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -16,7 +17,7 @@ const {
 // isOnSale → products 10-19 (indices) — no overlap with isNew
 // ─────────────────────────────────────────────────────────────────────────────
 function buildCatalog(getBrandId) {
-    return [
+    const catalog = [
         // ═══════════════════════════ NIKE (8) ═══════════════════════════
         { brandId: getBrandId('Nike'), name: 'Air Max 90 Essential',          description: 'Classic comfort with an iconic silhouette. Built for everyday wear.',                      basePrice: '11999.00', category: 'Lifestyle',    isNew: true,  isOnSale: false, imageUrl: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=800&q=80' },
         { brandId: getBrandId('Nike'), name: 'Air Force 1 \'07',             description: 'The legend lives on. Crisp leather and legendary Air cushioning.',                          basePrice: '8499.00',  category: 'Classic',      isNew: true,  isOnSale: false, imageUrl: 'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&w=800&q=80' },
@@ -67,6 +68,10 @@ function buildCatalog(getBrandId) {
         { brandId: getBrandId('Puma'), name: 'Speedcat OG Sparco',            description: 'Born in motorsport. The low-profile driving shoe that became a street icon.',                basePrice: '10999.00', category: 'Lifestyle',    isNew: false, isOnSale: false, imageUrl: 'https://images.unsplash.com/photo-1595341888016-a392ef81b7de?auto=format&fit=crop&w=800&q=80' },
         { brandId: getBrandId('Puma'), name: 'PUMA x FENTY Creeper',          description: 'Rihanna\'s punk-luxe platform sneaker. Thick sole, premium suede upper.',                   basePrice: '15999.00', category: 'Exclusive',    isNew: false, isOnSale: false, imageUrl: 'https://images.unsplash.com/photo-1581101767113-1677fc2beaa8?auto=format&fit=crop&w=800&q=80' },
     ];
+    return catalog.map(p => ({
+        ...p,
+        stock: Math.floor(Math.random() * 901) + 100
+    }));
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -121,20 +126,20 @@ async function seedSneakers() {
     await db.delete(orderItems);
     await db.delete(orders);
     await db.delete(productVariants);
+    await db.delete(inventoryLogs);
     await db.delete(products);
     await db.delete(brands);
     await db.delete(users);
     console.log('   Done.\n');
 
-    // ── B. Seed admin user ──
-    console.log('👤 Seeding admin user…');
-    const [admin] = await db.insert(users).values({
-        name: 'Admin User',
-        email: 'admin@kixx.com',
-        role: 'admin',
-        passwordHash: 'firebase_handles_auth_but_required_for_schema',
-    }).returning();
-    console.log(`   ✅ ${admin.email}\n`);
+    // ── B. Seed users ──
+    console.log('👤 Seeding users (Admin + Customers)…');
+    const insertedUsers = await db.insert(users).values([
+        { name: "Admin", email: "admin@kixx.com", passwordHash: "hashedpassword123", role: "admin" },
+        { name: "Customer One", email: "customer1@kixx.com", passwordHash: "hashedpassword1", role: "customer" },
+        { name: "Customer Two", email: "customer2@kixx.com", passwordHash: "hashedpassword2", role: "customer" }
+    ]).returning();
+    console.log(`   ✅ Created ${insertedUsers.length} users.\n`);
 
     // ── C. Seed 5 brands ──
     console.log('🏢 Seeding Brands…');
@@ -154,6 +159,16 @@ async function seedSneakers() {
     const catalogData = buildCatalog(getBrandId);
     const insertedProducts = await db.insert(products).values(catalogData).returning();
     console.log(`   ✅ Created ${insertedProducts.length} products.\n`);
+
+    // ── D.2 Seed Inventory Logs ──
+    console.log('📦 Seeding Inventory Logs…');
+    const inventoryLogsData = insertedProducts.map(p => ({
+        productId: p.id,
+        changeType: 'RESTOCK',
+        quantityChanged: p.stock
+    }));
+    await db.insert(inventoryLogs).values(inventoryLogsData);
+    console.log(`   ✅ Created ${inventoryLogsData.length} initial inventory logs.\n`);
 
     // Stats
     const newCount = catalogData.filter((p) => p.isNew).length;

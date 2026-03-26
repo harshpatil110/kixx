@@ -2,7 +2,6 @@ const { pgTable, uuid, varchar, text, decimal, integer, timestamp, boolean, pgEn
 const { relations } = require('drizzle-orm');
 
 // ENUMS
-const roleEnum = pgEnum('role', ['user', 'admin']);
 const orderStatusEnum = pgEnum('status', ['pending', 'paid', 'shipped', 'delivered', 'cancelled']);
 
 // Future Phase ENUMS
@@ -15,7 +14,7 @@ const users = pgTable('users', {
     name: varchar('name', { length: 255 }),
     email: varchar('email', { length: 255 }).unique().notNull(),
     passwordHash: varchar('password_hash', { length: 255 }).notNull(),
-    role: roleEnum('role').default('user'),
+    role: varchar('role', { length: 20 }).default('customer').notNull(),
     createdAt: timestamp('created_at').defaultNow(),
     updatedAt: timestamp('updated_at').defaultNow()
 });
@@ -38,6 +37,7 @@ const products = pgTable('products', {
     basePrice: decimal('base_price', { precision: 10, scale: 2 }).notNull(),
     category: varchar('category', { length: 255 }),
     imageUrl: varchar('image_url', { length: 255 }),
+    stock: integer('stock').default(0).notNull(),
     isNew: boolean('is_new').default(false).notNull(),
     isOnSale: boolean('is_on_sale').default(false).notNull(),
     createdAt: timestamp('created_at').defaultNow(),
@@ -78,7 +78,16 @@ const orderItems = pgTable('order_items', {
     updatedAt: timestamp('updated_at').defaultNow()
 });
 
-// 3.7 PastOrders Model — denormalised snapshot of completed transactions
+// 3.7 InventoryLogs Model
+const inventoryLogs = pgTable('inventory_logs', {
+    id: uuid('id').primaryKey().defaultRandom(),
+    productId: uuid('product_id').references(() => products.id).notNull(),
+    changeType: varchar('change_type', { length: 255 }).notNull(),
+    quantityChanged: integer('quantity_changed').notNull(),
+    createdAt: timestamp('created_at').defaultNow()
+});
+
+// 3.8 PastOrders Model — denormalised snapshot of completed transactions
 const pastOrders = pgTable('past_orders', {
     id: uuid('id').primaryKey().defaultRandom(),
     email: varchar('email', { length: 255 }).notNull(),
@@ -142,7 +151,8 @@ const productsRelations = relations(products, ({ one, many }) => ({
     variants: many(productVariants),
     resaleListings: many(resaleListings),
     recommendations: many(recommendationsLogs),
-    pricingRules: many(pricingRules)
+    pricingRules: many(pricingRules),
+    inventoryLogs: many(inventoryLogs)
 }));
 
 const productVariantsRelations = relations(productVariants, ({ one, many }) => ({
@@ -158,6 +168,10 @@ const ordersRelations = relations(orders, ({ one, many }) => ({
 const orderItemsRelations = relations(orderItems, ({ one }) => ({
     order: one(orders, { fields: [orderItems.orderId], references: [orders.id] }),
     variant: one(productVariants, { fields: [orderItems.variantId], references: [productVariants.id] })
+}));
+
+const inventoryLogsRelations = relations(inventoryLogs, ({ one }) => ({
+    product: one(products, { fields: [inventoryLogs.productId], references: [products.id] })
 }));
 
 // Future Phase Relations
@@ -177,7 +191,6 @@ const pricingRulesRelations = relations(pricingRules, ({ one }) => ({
 
 
 module.exports = {
-    roleEnum,
     orderStatusEnum,
     conditionEnum,
     listingStatusEnum,
@@ -187,6 +200,7 @@ module.exports = {
     productVariants,
     orders,
     orderItems,
+    inventoryLogs,
     resaleListings,
     recommendationsLogs,
     pricingRules,
@@ -197,6 +211,7 @@ module.exports = {
     productVariantsRelations,
     ordersRelations,
     orderItemsRelations,
+    inventoryLogsRelations,
     resaleListingsRelations,
     recommendationsLogsRelations,
     pricingRulesRelations
