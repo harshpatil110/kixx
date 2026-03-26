@@ -36,19 +36,33 @@ router.post('/save', async (req, res) => {
                 if (!item.id) { throw new Error("Invalid item payload: Missing product ID"); }
                 
                 const [product] = await tx.select().from(products).where(eq(products.id, item.id));
-                
-                if (!product || product.stock < item.quantity) {
-                    throw new Error(`Insufficient stock for ${product ? product.name : 'Unknown Item'}`);
+
+                // DIAGNOSTIC LOGGING — exposes exact types at runtime
+                console.log("📊 STOCK CHECK:", {
+                    product: product?.name,
+                    dbStock: product?.stock,
+                    dbStockType: typeof product?.stock,
+                    cartQty: item.quantity,
+                    cartQtyType: typeof item.quantity
+                });
+
+                // STRICT NUMERIC CASTING — eliminates string comparison bug
+                const currentStock = parseInt(product?.stock, 10);
+                const requestedQty = parseInt(item.quantity, 10);
+
+                if (!product || isNaN(currentStock) || isNaN(requestedQty) || currentStock < requestedQty) {
+                    throw new Error(`Insufficient stock for ${product ? product.name : 'Unknown Item'}. Only ${currentStock} left.`);
                 }
 
+                // ATOMIC DEDUCTION — uses parsed integer to prevent PostgreSQL type rejection
                 await tx.update(products)
-                    .set({ stock: sql`${products.stock} - ${item.quantity}` })
+                    .set({ stock: sql`${products.stock} - ${requestedQty}` })
                     .where(eq(products.id, item.id));
 
                 await tx.insert(inventoryLogs).values({
                     productId: item.id,
                     changeType: 'SALE',
-                    quantityChanged: -item.quantity
+                    quantityChanged: -requestedQty
                 });
             }
 
