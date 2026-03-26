@@ -7,6 +7,7 @@ import useAuthStore from './store/authStore';
 
 import Navbar from './components/Navbar';
 import ProtectedRoute from './components/ProtectedRoute';
+import AdminRoute from './components/AdminRoute';
 import {
   HomePageSkeleton,
   ProductDetailSkeleton,
@@ -115,6 +116,16 @@ export default function App() {
             </Suspense>
           }
         />
+
+        {/* ── Admin Dashboard (Protected by AdminRoute) ─────────── */}
+        <Route path="/admin" element={<AdminRoute />}>
+          <Route path="dashboard" element={
+            <div className="flex flex-col min-h-screen bg-[#F5F5DC] items-center justify-center">
+              <h1 className="text-4xl font-black text-[#800000] tracking-tighter uppercase mb-4">Admin Dashboard</h1>
+              <p className="text-gray-500 font-medium">Dashboard components and functionality coming soon.</p>
+            </div>
+          } />
+        </Route>
 
         {/* ── Pages with their OWN custom nav (no global Navbar) ── */}
         <Route element={<ProtectedRoute />}>

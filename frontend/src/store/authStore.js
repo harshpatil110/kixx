@@ -2,12 +2,14 @@ import { create } from 'zustand';
 
 const useAuthStore = create((set) => ({
     user: null,
+    userRole: null,
     firebaseUser: null,
     isAuthenticated: false,
     isAuthLoading: true,
 
     setAuth: (firebaseUser, dbUser) => set({
         user: dbUser,
+        userRole: dbUser?.role || null,
         firebaseUser: firebaseUser,
         isAuthenticated: !!firebaseUser,
         isAuthLoading: false,
@@ -15,6 +17,7 @@ const useAuthStore = create((set) => ({
 
     clearAuth: () => set({
         user: null,
+        userRole: null,
         firebaseUser: null,
         isAuthenticated: false,
         isAuthLoading: false,

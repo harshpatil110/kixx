@@ -23,7 +23,7 @@ class AuthService {
             email: email,
             name: name || 'New User',
             passwordHash: 'EXTERNAL_FIREBASE_AUTH', // Dummy string to satisfy notNull constraint since Firebase handles passwords
-            role: 'user',
+            role: 'customer',
         }).returning();
 
         return newUserResult[0];

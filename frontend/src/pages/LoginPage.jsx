@@ -71,6 +71,7 @@ export default function LoginPage() {
     const [showPw, setShowPw] = useState(false);
     const [errorMsg, setErrorMsg] = useState(null);
     const [isFirebaseLoading, setFbLoad] = useState(false);
+    const [loginRole, setLoginRole] = useState('customer');
 
     const navigate = useNavigate();
     const setAuth = useAuthStore((s) => s.setAuth);
@@ -80,7 +81,11 @@ export default function LoginPage() {
         mutationFn: syncUserWithBackend,
         onSuccess: (data) => {
             setAuth(auth.currentUser, data.user);
-            navigate('/catalog');               // ← redirect to Catalog after login
+            if (data.user?.role === 'admin') {
+                navigate('/admin/dashboard');
+            } else {
+                navigate('/catalog');
+            }
         },
         onError: (err) => {
             console.error('Backend sync error:', err);
@@ -215,6 +220,38 @@ export default function LoginPage() {
                         <div className="flex-1 h-px bg-gray-200" />
                         <span className="text-gray-400 text-xs font-bold tracking-widest uppercase">or</span>
                         <div className="flex-1 h-px bg-gray-200" />
+                    </div>
+
+                    {/* ── Role Toggle (Portfolio) ── */}
+                    <div className="flex p-1 bg-gray-100 rounded-full mb-6 w-full max-w-sm mx-auto">
+                        <div
+                            onClick={() => {
+                                setLoginRole('customer');
+                                setEmail('');
+                                setPassword('');
+                            }}
+                            className={`flex-1 py-2 text-sm font-bold rounded-full transition-all text-center cursor-pointer ${
+                                loginRole === 'customer'
+                                    ? 'bg-white shadow-sm text-[#800000]'
+                                    : 'text-gray-500 hover:text-black'
+                            }`}
+                        >
+                            Customer
+                        </div>
+                        <div
+                            onClick={() => {
+                                setLoginRole('admin');
+                                setEmail('admin@kixx.com');
+                                setPassword('admin123');
+                            }}
+                            className={`flex-1 py-2 text-sm font-bold rounded-full transition-all text-center cursor-pointer ${
+                                loginRole === 'admin'
+                                    ? 'bg-white shadow-sm text-[#800000]'
+                                    : 'text-gray-500 hover:text-black'
+                            }`}
+                        >
+                            Admin
+                        </div>
                     </div>
 
                     {/* Email / password form */}
