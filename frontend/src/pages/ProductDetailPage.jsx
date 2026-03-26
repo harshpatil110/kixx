@@ -6,6 +6,7 @@ import { getProductById } from '../services/productService';
 import useCartStore from '../store/cartStore';
 import { formatPrice } from '../utils/currency';
 import VariantSelector from '../components/VariantSelector';
+import ARTryOn from '../components/ARTryOn';
 
 /*
   STITCH LIGHT THEME — pdp.html (KIXX Liquid Glass PDP)
@@ -48,6 +49,7 @@ export default function ProductDetailPage() {
     const { id } = useParams();
     const [selectedVariant, setSelectedVariant] = useState(null);
     const [showSuccess, setShowSuccess] = useState(false);
+    const [showAR, setShowAR] = useState(false);
     const addItem = useCartStore((state) => state.addItem);
     const navigate = useNavigate();
 
@@ -145,6 +147,17 @@ export default function ProductDetailPage() {
                                 No Image
                             </div>
                         )}
+                        
+                        {product.arModelUrl && (
+                            <button
+                                onClick={() => setShowAR(true)}
+                                className="absolute bottom-16 left-1/2 -translate-x-1/2 bg-white/70 backdrop-blur-md px-6 py-2 rounded-full font-bold uppercase tracking-widest text-[#800000] border border-white/50 shadow-lg hover:scale-105 transition-transform flex items-center gap-2 z-20"
+                            >
+                                <span className="material-icons">view_in_ar</span>
+                                Try in AR
+                            </button>
+                        )}
+
                         {/* Stitch: dots div.absolute.bottom-6.left-1/2.-translate-x-1/2.flex.gap-2 */}
                         <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2">
                             <div className="w-2 h-2 rounded-full bg-white opacity-100" />
@@ -262,6 +275,16 @@ export default function ProductDetailPage() {
                     </button>
                 </div>
             </div>
+
+            {/* Fullscreen AR Try On Modal */}
+            {showAR && product.arModelUrl && (
+                <ARTryOn
+                    modelUrl={product.arModelUrl}
+                    placement={product.arPlacement}
+                    scale={product.arScale}
+                    onClose={() => setShowAR(false)}
+                />
+            )}
         </div>
     );
 }

@@ -2,7 +2,7 @@ const { pgTable, uuid, varchar, text, decimal, integer, timestamp, boolean, pgEn
 const { relations } = require('drizzle-orm');
 
 // ENUMS
-const roleEnum = pgEnum('role', ['user', 'admin']);
+const roleEnum = pgEnum('role', ['user', 'admin', 'customer']);
 const orderStatusEnum = pgEnum('status', ['pending', 'paid', 'shipped', 'delivered', 'cancelled']);
 
 // Future Phase ENUMS
@@ -40,6 +40,9 @@ const products = pgTable('products', {
     imageUrl: varchar('image_url', { length: 255 }),
     isNew: boolean('is_new').default(false).notNull(),
     isOnSale: boolean('is_on_sale').default(false).notNull(),
+    arModelUrl: varchar('ar_model_url', { length: 255 }),
+    arPlacement: varchar('ar_placement', { length: 50 }).default('world'),
+    arScale: varchar('ar_scale', { length: 50 }).default('1 1 1'),
     createdAt: timestamp('created_at').defaultNow(),
     updatedAt: timestamp('updated_at').defaultNow()
 });
