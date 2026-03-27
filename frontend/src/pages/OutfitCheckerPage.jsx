@@ -2,6 +2,7 @@ import React, { useState, useRef, useCallback } from 'react';
 import { Upload, X, Sparkles, RefreshCw } from 'lucide-react';
 import api from '../services/api';
 import { formatPrice } from '../utils/currency';
+import imageCompression from 'browser-image-compression';
 
 
 
@@ -44,9 +45,25 @@ export default function OutfitCheckerPage() {
         setError(null);
         setResult(null);
 
+        const options = {
+            maxSizeMB: 1,          // NVIDIA prefers images under 2MB
+            maxWidthOrHeight: 1920, // Downscale massive photos
+            useWebWorker: true,
+        };
+
+        let compressedFile = imageFile;
+        try {
+            compressedFile = await imageCompression(imageFile, options);
+        } catch (error) {
+            console.error("Compression error:", error);
+            setError("Failed to compress image before analyzing.");
+            setLoading(false);
+            return; 
+        }
+
         try {
             const reader = new FileReader();
-            reader.readAsDataURL(imageFile);
+            reader.readAsDataURL(compressedFile);
             reader.onloadend = async () => {
                 try {
                     const base64String = reader.result;
@@ -93,7 +110,7 @@ export default function OutfitCheckerPage() {
                     <div className="inline-flex items-center gap-2 bg-[#800000]/20 border border-[#800000]/40 rounded-full px-4 py-1.5 mb-6">
                         <Sparkles className="w-4 h-4 text-[#ff6b6b]" />
                         <span className="text-xs font-black uppercase tracking-widest text-[#ff6b6b]">
-                            Powered by Gemini AI
+                            Powered by NVIDIA AI
                         </span>
                     </div>
                     <h1 className="text-5xl md:text-7xl font-black uppercase tracking-tight mb-4 leading-none">
@@ -195,7 +212,7 @@ export default function OutfitCheckerPage() {
                         </div>
                         <div className="text-center">
                             <p className="text-xl font-black text-gray-900 uppercase tracking-widest">Analyzing your outfit…</p>
-                            <p className="text-gray-400 text-sm mt-2">Gemini AI is checking your style, colors, and fit</p>
+                            <p className="text-gray-400 text-sm mt-2">NVIDIA AI is checking your style, colors, and fit</p>
                         </div>
                     </div>
                 )}
