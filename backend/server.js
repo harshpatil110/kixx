@@ -19,7 +19,8 @@ const corsOptions = {
     origin: process.env.CORS_ORIGIN || '*',
 };
 app.use(cors(corsOptions));
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // Main Routes
 app.use('/api/auth', authRoutes);
