@@ -22,8 +22,8 @@ export default function OutfitCheckerPage() {
             setError('Unsupported format. Please use JPEG, PNG, WEBP, or GIF.');
             return;
         }
-        if (file.size > 5 * 1024 * 1024) {
-            setError('Image is too large. Maximum size is 5 MB.');
+        if (file.size > 50 * 1024 * 1024) {
+            setError('Image is too large. Maximum size is 50 MB.');
             return;
         }
         setError(null);
@@ -152,7 +152,7 @@ export default function OutfitCheckerPage() {
                                             <p className="text-sm text-gray-400">
                                                 or <span className="text-[#800000] font-bold underline">browse to upload</span>
                                             </p>
-                                            <p className="text-xs text-gray-300 mt-2">JPEG, PNG, WEBP — max 5 MB</p>
+                                            <p className="text-xs text-gray-300 mt-2">JPEG, PNG, WEBP — max 50 MB</p>
                                         </div>
                                     </div>
                                 )}
