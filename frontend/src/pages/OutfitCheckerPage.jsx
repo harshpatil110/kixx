@@ -1,51 +1,9 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { Link } from 'react-router-dom';
-import { Upload, X, Sparkles, RefreshCw, ChevronRight, Star } from 'lucide-react';
+import { Upload, X, Sparkles, RefreshCw } from 'lucide-react';
 import api from '../services/api';
 import { formatPrice } from '../utils/currency';
 
-// ── Color swatch helper ──────────────────────────────────────────────────────
-const COLOR_MAP = {
-    black: '#111111', white: '#f5f5f5', grey: '#9ca3af', gray: '#9ca3af',
-    red: '#dc2626', blue: '#3b82f6', navy: '#1e3a5f', green: '#16a34a',
-    beige: '#d4b896', brown: '#92400e', yellow: '#eab308', orange: '#f97316',
-    pink: '#ec4899', purple: '#7c3aed', gold: '#d97706', neon: '#4ade80',
-    white: '#f5f5f5', 'light grey': '#d1d5db', 'dark grey': '#374151',
-};
 
-function ColorSwatch({ color }) {
-    const bg = COLOR_MAP[color?.toLowerCase()] || '#e5e7eb';
-    return (
-        <span
-            title={color}
-            className="w-7 h-7 rounded-full border-2 border-white shadow-md inline-block flex-shrink-0"
-            style={{ backgroundColor: bg }}
-        />
-    );
-}
-
-// ── Rating stars ─────────────────────────────────────────────────────────────
-function RatingMeter({ rating }) {
-    const color = rating >= 8 ? '#22c55e' : rating >= 5 ? '#f97316' : '#dc2626';
-    const label = rating >= 8 ? 'Fire 🔥' : rating >= 5 ? 'Decent 👍' : 'Needs Work 🛠️';
-    return (
-        <div className="flex items-center gap-3">
-            <div className="flex gap-1">
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(i => (
-                    <div
-                        key={i}
-                        className="w-3 h-6 rounded-sm transition-all"
-                        style={{
-                            backgroundColor: i <= rating ? color : '#e5e7eb',
-                            transform: i <= rating ? 'scaleY(1)' : 'scaleY(0.6)',
-                        }}
-                    />
-                ))}
-            </div>
-            <span className="text-lg font-black" style={{ color }}>{rating}/10 — {label}</span>
-        </div>
-    );
-}
 
 // ── Main Component ────────────────────────────────────────────────────────────
 export default function OutfitCheckerPage() {
@@ -85,16 +43,34 @@ export default function OutfitCheckerPage() {
         setLoading(true);
         setError(null);
         setResult(null);
+
         try {
-            const formData = new FormData();
-            formData.append('image', imageFile);
-            const res = await api.post('/api/outfit/analyze', formData, {
-                headers: { 'Content-Type': 'multipart/form-data' },
-            });
-            setResult(res.data);
+            const reader = new FileReader();
+            reader.readAsDataURL(imageFile);
+            reader.onloadend = async () => {
+                try {
+                    const base64String = reader.result;
+                    const res = await api.post('/api/ai/analyze-outfit', {
+                        image: base64String
+                    });
+                    
+                    if (res.data.success) {
+                        setResult({ analysis: res.data.analysis });
+                    } else {
+                        setError(res.data.message || 'Analysis failed. Please try again.');
+                    }
+                } catch (err) {
+                    setError(err.response?.data?.message || 'Analysis failed. Please try again.');
+                } finally {
+                    setLoading(false);
+                }
+            };
+            reader.onerror = () => {
+                setError('Failed to read image file.');
+                setLoading(false);
+            };
         } catch (err) {
-            setError(err.response?.data?.message || 'Analysis failed. Please try again.');
-        } finally {
+            setError('Analysis failed. Please try again.');
             setLoading(false);
         }
     };
@@ -227,109 +203,23 @@ export default function OutfitCheckerPage() {
                 {/* ── Results ── */}
                 {result && analysis && (
                     <div className="space-y-6">
-                        {/* ── Image + Quick Stats ── */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {/* Image preview */}
-                            <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 flex items-center justify-center">
+                        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8 flex flex-col md:flex-row gap-8 items-start">
+                            <div className="w-full md:w-1/3 flex justify-center">
                                 <img
                                     src={imagePreview}
                                     alt="Analyzed outfit"
                                     className="max-h-72 object-contain rounded-xl shadow"
                                 />
                             </div>
-
-                            {/* Stats card */}
-                            <div className="bg-gray-900 text-white rounded-3xl shadow-sm p-8 flex flex-col justify-between">
-                                <div>
-                                    <div className="inline-flex items-center gap-2 bg-[#800000]/20 border border-[#800000]/40 rounded-full px-3 py-1 mb-6">
-                                        <Sparkles className="w-3 h-3 text-[#ff6b6b]" />
-                                        <span className="text-[10px] font-black uppercase tracking-widest text-[#ff6b6b]">AI Analysis</span>
-                                    </div>
-                                    <h3 className="text-3xl font-black uppercase tracking-wide mb-1">{analysis.style}</h3>
-                                    <p className="text-gray-400 text-sm mb-6">{analysis.occasion}</p>
-                                    <RatingMeter rating={analysis.rating} />
+                            <div className="w-full md:w-2/3">
+                                <div className="inline-flex items-center gap-2 bg-[#800000]/20 border border-[#800000]/40 rounded-full px-3 py-1 mb-4">
+                                    <Sparkles className="w-3 h-3 text-[#ff6b6b]" />
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-[#ff6b6b]">AI Analysis</span>
                                 </div>
-                                <div className="mt-8">
-                                    <p className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-3">Color Palette</p>
-                                    <div className="flex gap-2 flex-wrap">
-                                        {(analysis.colorPalette || []).map((c, i) => (
-                                            <div key={i} className="flex items-center gap-2 bg-white/10 rounded-full px-3 py-1">
-                                                <ColorSwatch color={c} />
-                                                <span className="text-xs font-medium capitalize">{c}</span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
+                                <h3 className="text-xl font-black uppercase tracking-widest text-gray-900 mb-4">Style Verdict</h3>
+                                <div className="text-gray-700 leading-relaxed text-base whitespace-pre-wrap">{analysis}</div>
                             </div>
                         </div>
-
-                        {/* ── Feedback ── */}
-                        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8">
-                            <h3 className="text-lg font-black uppercase tracking-widest text-gray-900 mb-4">Style Verdict</h3>
-                            <p className="text-gray-700 leading-relaxed text-base">{analysis.feedback}</p>
-                        </div>
-
-                        {/* ── Suggestions ── */}
-                        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8">
-                            <h3 className="text-lg font-black uppercase tracking-widest text-gray-900 mb-5">Improvements</h3>
-                            <ul className="space-y-3">
-                                {(analysis.suggestions || []).map((s, i) => (
-                                    <li key={i} className="flex items-start gap-3">
-                                        <span className="w-6 h-6 rounded-full bg-[#800000] text-white text-xs font-black flex items-center justify-center flex-shrink-0 mt-0.5">
-                                            {i + 1}
-                                        </span>
-                                        <span className="text-gray-700 text-sm leading-relaxed">{s}</span>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-
-                        {/* ── Matched Products ── */}
-                        {matchedProducts?.length > 0 && (
-                            <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8">
-                                <div className="flex items-center justify-between mb-6">
-                                    <h3 className="text-lg font-black uppercase tracking-widest text-gray-900">
-                                        These Shoes Match Your Look
-                                    </h3>
-                                    <Link to="/catalog" className="text-xs font-black text-[#800000] uppercase tracking-widest flex items-center gap-1 hover:underline">
-                                        View All <ChevronRight className="w-4 h-4" />
-                                    </Link>
-                                </div>
-                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                                    {matchedProducts.map(product => (
-                                        <Link
-                                            key={product.id}
-                                            to={`/product/${product.id}`}
-                                            className="group rounded-2xl overflow-hidden border border-gray-100 hover:shadow-lg transition-shadow"
-                                        >
-                                            <div className="aspect-square bg-gray-100 overflow-hidden">
-                                                {product.imageUrl ? (
-                                                    <img
-                                                        src={product.imageUrl}
-                                                        alt={product.name}
-                                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                                                        loading="lazy"
-                                                    />
-                                                ) : (
-                                                    <div className="w-full h-full flex items-center justify-center text-gray-300 text-xs uppercase tracking-widest">
-                                                        No Image
-                                                    </div>
-                                                )}
-                                            </div>
-                                            <div className="p-3">
-                                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">
-                                                    {product.brand?.name}
-                                                </p>
-                                                <p className="text-sm font-black text-gray-900 truncate">{product.name}</p>
-                                                <p className="text-sm font-bold text-[#800000]">
-                                                    {formatPrice(parseFloat(product.basePrice))}
-                                                </p>
-                                            </div>
-                                        </Link>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
 
                         {/* ── Try Again ── */}
                         <div className="text-center">

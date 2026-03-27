@@ -10,6 +10,7 @@ const paymentRoutes = require('./src/routes/payment');
 const adminRoutes = require('./src/routes/admin');
 const recommendationRoutes = require('./src/routes/recommendations');
 const outfitRoutes = require('./src/routes/outfit');
+const aiRoutes = require('./src/routes/aiRoutes');
 
 const app = express();
 
@@ -28,6 +29,7 @@ app.use('/api/payment', paymentRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/recommendations', recommendationRoutes);
 app.use('/api/outfit', outfitRoutes);
+app.use('/api/ai', aiRoutes);
 
 // 404 Route Not Found Middleware
 app.use((req, res, next) => {
@@ -62,6 +64,7 @@ app.listen(PORT, () => {
 });
 
 // Log when the DB finishes its cold-start retry loop
+console.log('API keys reloaded');
 dbReadyPromise
     .then(() => console.log('✅ Neon DB is fully ready. All routes are live.'))
     .catch((err) => console.error('❌ DB never became ready:', err?.message));
