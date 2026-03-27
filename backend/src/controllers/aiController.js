@@ -71,29 +71,40 @@ exports.analyzeOutfit = async (req, res) => {
             }),
         });
 
-        // ── 7. Handle non-2xx responses from NVIDIA ──────────────────────────
-        if (!nvidiaRes.ok) {
-            const errBody = await nvidiaRes.text();
-            console.error(`❌ NVIDIA API error ${nvidiaRes.status}:`, errBody);
+        // ── 7. Parse response (always — we need JSON for both success and errors) ──
+        const data = await nvidiaRes.json();
 
-            let userMessage = 'Failed to analyze outfit. Please try again.';
+        // ── 8. Handle non-2xx responses from NVIDIA ──────────────────────────
+        if (!nvidiaRes.ok) {
+            // Drill into every known NVIDIA error shape
+            const nvidiaErrorMsg =
+                data?.detail ||                        // e.g. "model does not support vision"
+                data?.message ||                       // some endpoints use this
+                data?.error?.message ||                // OpenAI-compatible shape
+                (Array.isArray(data?.detail) && data.detail.map(d => d.msg).join('; ')) ||
+                JSON.stringify(data);                  // fallback: show raw body
+
+            console.error(`❌ NVIDIA API REJECTED (${nvidiaRes.status} ${nvidiaRes.statusText}):`);
+            console.error(JSON.stringify(data, null, 2));
+
+            // Friendly user-facing message, but preserve the real reason for devs
+            let userMessage = `AI request failed: ${nvidiaErrorMsg}`;
             if (nvidiaRes.status === 429) userMessage = 'AI is currently busy (quota exceeded). Please wait and try again.';
-            if (nvidiaRes.status === 401) userMessage = 'Invalid NVIDIA API key. Please check your configuration.';
-            if (nvidiaRes.status === 400) userMessage = 'The image could not be processed. Try a clearer photo.';
+            if (nvidiaRes.status === 401) userMessage = 'Invalid NVIDIA API key. Please check your server configuration.';
 
             return res.status(nvidiaRes.status).json({ success: false, message: userMessage });
         }
 
-        // ── 8. Parse and return the result ───────────────────────────────────
-        const data = await nvidiaRes.json();
+        // ── 9. Return the result ─────────────────────────────────────────────
         const textResponse = data?.choices?.[0]?.message?.content;
 
         if (!textResponse) {
-            console.error('❌ Unexpected NVIDIA response shape:', JSON.stringify(data));
+            console.error('❌ Unexpected NVIDIA response shape:', JSON.stringify(data, null, 2));
             return res.status(502).json({ success: false, message: 'Received an unexpected response from the AI. Please try again.' });
         }
 
         return res.json({ success: true, analysis: textResponse });
+
 
     } catch (error) {
         console.error('❌ OUTFIT ANALYSIS CRASH:', error.message);
