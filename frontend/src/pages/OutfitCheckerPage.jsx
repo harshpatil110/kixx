@@ -3,7 +3,7 @@ import { Upload, X, Sparkles, RefreshCw } from 'lucide-react';
 import api from '../services/api';
 import { formatPrice } from '../utils/currency';
 import imageCompression from 'browser-image-compression';
-
+import ReactMarkdown from 'react-markdown';
 
 
 // ── Main Component ────────────────────────────────────────────────────────────
@@ -234,7 +234,16 @@ export default function OutfitCheckerPage() {
                                     <span className="text-[10px] font-black uppercase tracking-widest text-[#ff6b6b]">AI Analysis</span>
                                 </div>
                                 <h3 className="text-xl font-black uppercase tracking-widest text-gray-900 mb-4">Style Verdict</h3>
-                                <div className="text-gray-700 leading-relaxed text-base whitespace-pre-wrap">{analysis}</div>
+                                <ReactMarkdown
+                                    components={{
+                                        p: ({node, ...props}) => <p className="text-gray-700 leading-relaxed mb-4" {...props} />,
+                                        ul: ({node, ...props}) => <ul className="space-y-4" {...props} />,
+                                        li: ({node, ...props}) => <li className="flex items-start" {...props} />,
+                                        strong: ({node, ...props}) => <strong className="font-bold text-[#800000] tracking-wide" {...props} />
+                                    }}
+                                >
+                                    {analysis}
+                                </ReactMarkdown>
                             </div>
                         </div>
 
