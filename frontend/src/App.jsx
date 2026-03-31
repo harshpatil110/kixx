@@ -16,6 +16,7 @@ import {
 } from './components/PageSkeleton';
 
 import { Toaster } from 'react-hot-toast';
+import LeadMagnetModal from './components/LeadMagnetModal';
 
 // ---------------------------------------------------------------------------
 // Route-Based Code Splitting via React.lazy()
@@ -121,6 +122,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <Toaster position="bottom-right" />
+      <LeadMagnetModal />
       <Routes>
 
         {/* ── Landing page — full-screen, NO Navbar ─────────────── */}
