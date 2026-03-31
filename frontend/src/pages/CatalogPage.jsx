@@ -138,8 +138,9 @@ export default function CatalogPage() {
     React.useEffect(() => {
         const isDismissed = localStorage.getItem('kixx_first_drop_dismissed') === 'true';
         
-        // If user is null (logged out), they haven't used it.
-        // If user exists, check if the flag is explicitly true. If undefined/null, assume false.
+        // If user is null/undefined (logged out or loading), they haven't used it.
+        // If user exists, only hide if the flag is explicitly true.
+        // This safely handles undefined/null/false all as "eligible".
         const hasUsedDiscount = user?.firstPurchaseDiscountUsed === true;
 
         if (!isDismissed && !hasUsedDiscount) {
