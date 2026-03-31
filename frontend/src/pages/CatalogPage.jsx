@@ -128,8 +128,11 @@ function ProductCard({ product }) {
 
 export default function CatalogPage() {
     const [brandFilter, setBrandFilter] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
     const [searchParams] = useSearchParams();
     const category = searchParams.get('category');
+    
+    const itemsPerPage = 8;
 
     const { data: products, isLoading, isError } = useQuery({
         queryKey: ['products'],
@@ -170,6 +173,17 @@ export default function CatalogPage() {
 
         return result;
     }, [products, brandFilter, category]);
+
+    // Reset pagination to page 1 when filters change
+    React.useEffect(() => {
+        setCurrentPage(1);
+    }, [brandFilter, category]);
+
+    const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+    const paginatedProducts = React.useMemo(() => {
+        const start = (currentPage - 1) * itemsPerPage;
+        return filteredProducts.slice(start, start + itemsPerPage);
+    }, [filteredProducts, currentPage, itemsPerPage]);
 
     // Dynamic page title
     const pageTitle = React.useMemo(() => {
@@ -305,23 +319,39 @@ export default function CatalogPage() {
                     {!isLoading && !isError && filteredProducts.length > 0 && (
                         <>
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                                {filteredProducts.map(product => (
+                                {paginatedProducts.map(product => (
                                     <ProductCard key={product.id} product={product} />
                                 ))}
                             </div>
 
-                            {/* Stitch pagination — light: border-gray-300 hover:bg-gray-100 */}
+                            {/* Stitch pagination — dynamic */}
+                            {totalPages > 1 && (
                             <div className="mt-12 flex justify-center gap-2">
-                                <button className="w-10 h-10 rounded-full flex items-center justify-center border border-gray-300 hover:bg-gray-100 text-gray-900">
+                                <button
+                                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                                    disabled={currentPage === 1}
+                                    className={`w-10 h-10 rounded-full flex items-center justify-center border border-gray-300 text-gray-900 transition-colors ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'}`}
+                                >
                                     <ChevronLeft className="w-5 h-5" />
                                 </button>
-                                <button className="w-10 h-10 rounded-full flex items-center justify-center bg-[#800000] text-white font-bold">1</button>
-                                <button className="w-10 h-10 rounded-full flex items-center justify-center border border-gray-300 hover:bg-gray-100 font-bold text-gray-900">2</button>
-                                <button className="w-10 h-10 rounded-full flex items-center justify-center border border-gray-300 hover:bg-gray-100 font-bold text-gray-900">3</button>
-                                <button className="w-10 h-10 rounded-full flex items-center justify-center border border-gray-300 hover:bg-gray-100 text-gray-900">
+                                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                                    <button
+                                        key={page}
+                                        onClick={() => setCurrentPage(page)}
+                                        className={`w-10 h-10 rounded-full flex items-center justify-center font-bold transition-colors ${currentPage === page ? 'bg-[#800000] text-white border-transparent' : 'border border-gray-300 hover:bg-gray-100 text-gray-900'}`}
+                                    >
+                                        {page}
+                                    </button>
+                                ))}
+                                <button
+                                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                                    disabled={currentPage === totalPages}
+                                    className={`w-10 h-10 rounded-full flex items-center justify-center border border-gray-300 text-gray-900 transition-colors ${currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'}`}
+                                >
                                     <ChevronRight className="w-5 h-5" />
                                 </button>
                             </div>
+                            )}
                         </>
                     )}
 

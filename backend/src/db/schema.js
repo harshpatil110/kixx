@@ -23,6 +23,7 @@ const users = pgTable('users', {
     outfitInsights: jsonb('outfit_insights').default({         // From outfit analysis
         preferredColors: [], styles: [], occasions: []
     }),
+    firstPurchaseDiscountUsed: boolean('first_purchase_discount_used').default(false).notNull(),
     createdAt: timestamp('created_at').defaultNow(),
     updatedAt: timestamp('updated_at').defaultNow()
 });

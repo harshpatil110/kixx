@@ -20,10 +20,6 @@ export default function PaymentPage() {
     const [selectedMethod, setSelectedMethod] = useState('upi');
     const [isProcessing, setIsProcessing] = useState(false);
 
-    const subtotal = getTotalPrice();
-    const taxes = Math.round(subtotal * 0.18);
-    const total = subtotal + taxes;
-
     // Retrieve checkout data stored from CheckoutPage
     const getCheckoutData = () => {
         try {
@@ -31,6 +27,15 @@ export default function PaymentPage() {
             return raw ? JSON.parse(raw) : null;
         } catch { return null; }
     };
+
+    const checkoutData = getCheckoutData();
+    const appliedPromo = checkoutData?.promoCode;
+
+    const subtotal = getTotalPrice();
+    const discount = appliedPromo === 'FIRSTDROP' ? subtotal * 0.10 : 0;
+    const discountedSubtotal = subtotal - discount;
+    const taxes = Math.round(discountedSubtotal * 0.18);
+    const total = discountedSubtotal + taxes;
 
     // -----------------------------------------------------------------------
     // The Fake Processor
@@ -63,6 +68,7 @@ export default function PaymentPage() {
                     quantity: item.quantity,
                     price: item.price
                 })),
+                promoCode: checkoutData.promoCode || null,
                 totalAmount: total,
             });
 
@@ -72,6 +78,7 @@ export default function PaymentPage() {
                 shippingAddress: checkoutData.shipping,
                 items: items,
                 totalAmount: total,
+                discount: discount,
                 createdAt: new Date().toISOString()
             };
 
@@ -227,6 +234,12 @@ export default function PaymentPage() {
                                     <span className="text-gray-600">Subtotal</span>
                                     <span className="font-bold text-gray-900">{formatPrice(subtotal)}</span>
                                 </div>
+                                {discount > 0 && (
+                                    <div className="flex justify-between text-[#800000]">
+                                        <span>Discount (10%)</span>
+                                        <span className="font-bold">-{formatPrice(discount)}</span>
+                                    </div>
+                                )}
                                 <div className="flex justify-between">
                                     <span className="text-gray-600">Shipping</span>
                                     <span className="font-bold text-gray-900">Free</span>
@@ -290,6 +303,12 @@ export default function PaymentPage() {
                                             <span>Subtotal</span>
                                             <span className="text-white">{formatPrice(subtotal)}</span>
                                         </div>
+                                        {discount > 0 && (
+                                            <div className="flex justify-between text-green-400">
+                                                <span>Discount (10%)</span>
+                                                <span className="text-green-400">-{formatPrice(discount)}</span>
+                                            </div>
+                                        )}
                                         <div className="flex justify-between text-gray-400">
                                             <span>GST (18%)</span>
                                             <span className="text-white">{formatPrice(taxes)}</span>
@@ -297,7 +316,7 @@ export default function PaymentPage() {
                                         <div className="mt-6 bg-white/5 px-4 py-3 rounded-xl border border-white/10">
                                             <div className="text-xs text-gray-500 mb-1 uppercase tracking-wider font-bold">Billed to</div>
                                             <div className="text-sm text-gray-300 truncate">
-                                                {getCheckoutData()?.email || 'guest@example.com'}
+                                                {checkoutData?.email || 'guest@example.com'}
                                             </div>
                                         </div>
                                     </div>

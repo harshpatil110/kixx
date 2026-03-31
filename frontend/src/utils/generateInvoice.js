@@ -105,9 +105,12 @@ export function generateInvoice(orderData) {
     let currentY = doc.lastAutoTable.finalY + 15;
     
     const rawTotal = Number(orderData.totalAmount || 0);
+    const discount = Number(orderData.discount || 0);
     const taxRate = 0.18; // 18% GST calculation
-    const subtotal = rawTotal / (1 + taxRate);
-    const taxAmount = rawTotal - subtotal;
+    
+    // Subtotal = (rawTotal / 1.18) + discount
+    const subtotal = (rawTotal / (1 + taxRate)) + discount;
+    const taxAmount = rawTotal - (rawTotal / (1 + taxRate));
 
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(10);
@@ -115,6 +118,13 @@ export function generateInvoice(orderData) {
     doc.text('Subtotal:', 140, currentY);
     doc.setTextColor(primaryColor);
     doc.text(`$${subtotal.toFixed(2)}`, 196, currentY, { align: 'right' });
+
+    if (discount > 0) {
+        currentY += 8;
+        doc.setTextColor('#800000'); // Maroon color for discount
+        doc.text('Discount:', 140, currentY);
+        doc.text(`-$${discount.toFixed(2)}`, 196, currentY, { align: 'right' });
+    }
 
     currentY += 8;
     doc.setTextColor(darkGray);

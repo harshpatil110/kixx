@@ -72,13 +72,31 @@ export default function CheckoutPage() {
         onError: (err) => { setErrorMsg(err.message || 'Payment failed. Please try again.'); },
     });
 
+    // Promo code state
+    const [promoCodeInput, setPromoCodeInput] = useState('');
+    const [appliedPromo, setAppliedPromo] = useState(null);
+    const [promoError, setPromoError] = useState(null);
+
+    const handleApplyPromo = () => {
+        if (!promoCodeInput.trim()) return;
+        if (promoCodeInput.trim().toUpperCase() === 'FIRSTDROP') {
+            setAppliedPromo('FIRSTDROP');
+            setPromoError(null);
+        } else {
+            setPromoError('Invalid promo code');
+            setAppliedPromo(null);
+        }
+    };
+
     const subtotal = getTotalPrice();
-    const taxes = Math.round(subtotal * 0.18);
-    const total = subtotal + taxes;
+    const discount = appliedPromo === 'FIRSTDROP' ? subtotal * 0.10 : 0;
+    const discountedSubtotal = subtotal - discount;
+    const taxes = Math.round(discountedSubtotal * 0.18);
+    const total = discountedSubtotal + taxes;
 
     // Persist checkout data to sessionStorage before navigating to payment
     const goToPayment = () => {
-        sessionStorage.setItem('kixx-checkout-data', JSON.stringify({ email, shipping }));
+        sessionStorage.setItem('kixx-checkout-data', JSON.stringify({ email, shipping, promoCode: appliedPromo }));
         navigate('/payment');
     };
 
@@ -367,11 +385,52 @@ export default function CheckoutPage() {
                                 ))}
                             </div>
 
+                            <div className="mb-6 border-b border-black/10 pb-6">
+                                <label className="block text-sm font-bold uppercase tracking-wider text-gray-900 mb-2">Promo Code</label>
+                                <div className="flex gap-2">
+                                    <input 
+                                        type="text" 
+                                        value={promoCodeInput}
+                                        onChange={(e) => setPromoCodeInput(e.target.value)}
+                                        placeholder="Enter code" 
+                                        className="flex-grow text-sm bg-transparent border-0 border-b-2 border-b-black rounded-none py-2 px-0 font-medium text-gray-900 focus:outline-none focus:ring-0 focus:border-b-[#333] placeholder:text-gray-400 uppercase"
+                                        disabled={!!appliedPromo}
+                                    />
+                                    {!appliedPromo ? (
+                                        <button 
+                                            onClick={handleApplyPromo}
+                                            className="px-6 py-2 bg-gray-900 text-white text-xs font-bold uppercase tracking-widest hover:bg-black transition-colors"
+                                        >
+                                            Apply
+                                        </button>
+                                    ) : (
+                                        <button 
+                                            onClick={() => {
+                                                setAppliedPromo(null);
+                                                setPromoCodeInput('');
+                                                setPromoError(null);
+                                            }}
+                                            className="px-6 py-2 bg-red-50 text-red-600 text-xs font-bold uppercase tracking-widest hover:bg-red-100 transition-colors"
+                                        >
+                                            Remove
+                                        </button>
+                                    )}
+                                </div>
+                                {promoError && <p className="text-red-600 text-xs mt-2 font-medium">{promoError}</p>}
+                                {appliedPromo && <p className="text-green-600 text-xs mt-2 font-medium">Promo code '{appliedPromo}' applied! (10% OFF)</p>}
+                            </div>
+
                             <div className="space-y-4 mb-8 text-lg">
                                 <div className="flex justify-between">
                                     <span className="text-gray-600">Subtotal</span>
                                     <span className="font-medium text-gray-900">{formatPrice(subtotal)}</span>
                                 </div>
+                                {discount > 0 && (
+                                    <div className="flex justify-between text-[#800000]">
+                                        <span className="font-medium">Discount (10%)</span>
+                                        <span className="font-bold">-{formatPrice(discount)}</span>
+                                    </div>
+                                )}
                                 <div className="flex justify-between">
                                     <span className="text-gray-600">Shipping</span>
                                     <span className="font-medium text-gray-900">Free</span>

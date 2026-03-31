@@ -22,16 +22,24 @@ router.use(verifyToken);
  */
 router.post('/save', async (req, res) => {
     try {
-        const { email, shippingAddress, items, totalAmount } = req.body;
+        const { email, shippingAddress, items, promoCode } = req.body;
 
         // Basic validation
-        if (!email || !shippingAddress || !items || !Array.isArray(items) || items.length === 0 || !totalAmount) {
-            return res.status(400).json({ success: false, message: 'Bad Request: email, shippingAddress, items, and totalAmount are required.' });
+        if (!email || !shippingAddress || !items || !Array.isArray(items) || items.length === 0) {
+            return res.status(400).json({ success: false, message: 'Bad Request: email, shippingAddress, and items are required.' });
         }
 
         console.log("RECEIVED ORDER ITEMS:", req.body.items);
+        console.log("PROMO CODE APPLIED:", promoCode);
 
         const result = await db.transaction(async (tx) => {
+            const [user] = await tx.select().from(users).where(eq(users.email, email)).limit(1);
+            if (!user) {
+                throw new Error("User not found");
+            }
+
+            let calculatedTotal = 0;
+
             for (const item of items) {
                 if (!item.id) { throw new Error("Invalid item payload: Missing product ID"); }
                 
@@ -54,6 +62,8 @@ router.post('/save', async (req, res) => {
                     throw new Error(`Insufficient stock for ${product ? product.name : 'Unknown Item'}. Only ${currentStock} left.`);
                 }
 
+                calculatedTotal += parseFloat(product.basePrice) * requestedQty;
+
                 // ATOMIC DEDUCTION — uses parsed integer to prevent PostgreSQL type rejection
                 await tx.update(products)
                     .set({ stock: sql`${products.stock} - ${requestedQty}` })
@@ -66,11 +76,26 @@ router.post('/save', async (req, res) => {
                 });
             }
 
+            // Apply 'FIRSTDROP' Promo Code
+            if (promoCode === 'FIRSTDROP') {
+                if (user.firstPurchaseDiscountUsed) {
+                    throw new Error('You have already used the first purchase discount.');
+                }
+                
+                // 10% discount
+                calculatedTotal = calculatedTotal * 0.90;
+
+                // Flip the bit immediately to prevent multiple uses
+                await tx.update(users)
+                    .set({ firstPurchaseDiscountUsed: true })
+                    .where(eq(users.id, user.id));
+            }
+
             const [inserted] = await tx.insert(pastOrders).values({
                 email,
                 shippingAddress,
                 items,
-                totalAmount: Math.round(totalAmount),
+                totalAmount: Math.round(calculatedTotal),
                 paymentStatus: 'SUCCESS',
             }).returning();
 

@@ -6,7 +6,12 @@ const {
     products,
     productVariants,
     orders,
-    orderItems
+    orderItems,
+    inventoryLogs,
+    resaleListings,
+    recommendationsLogs,
+    pricingRules,
+    pastOrders
 } = require('../db/schema');
 
 async function runSeed() {
@@ -16,12 +21,17 @@ async function runSeed() {
 
     // Step A: Clear Existing Data (Reverse Relational Order)
     console.log('🧹 Clearing existing data...');
+    await db.delete(resaleListings);
+    await db.delete(recommendationsLogs);
+    await db.delete(pricingRules);
+    await db.delete(inventoryLogs);
     await db.delete(orderItems);
     await db.delete(orders);
     await db.delete(productVariants);
     await db.delete(products);
     await db.delete(brands);
     await db.delete(users);
+    await db.delete(pastOrders);
 
     // Step B: Insert Users
     console.log('👤 Seeding Users...');
@@ -55,7 +65,7 @@ async function runSeed() {
         // --- NIKE ---
         { brandId: getBrandId('Nike'), name: 'Air Max 90 Essentials', description: 'Classic comfort with an iconic silhouette. Built for everyday wear.', basePrice: '11999.00', category: 'Lifestyle', isNew: false, isOnSale: true, imageUrl: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=800&q=80' },
         { brandId: getBrandId('Nike'), name: 'Air Force 1 \'07', description: 'The legend lives on in the Nike Air Force 1.', basePrice: '8499.00', category: 'Classic', isNew: false, isOnSale: false, imageUrl: 'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&w=800&q=80' },
-        { brandId: getBrandId('Nike'), name: 'ZoomX Vaporfly Next% 2', description: 'Advanced racing shoes engineered for peak speed and energy return.', basePrice: '21999.00', category: 'Running', isNew: true, isOnSale: false, imageUrl: 'https://images.unsplash.com/photo-1608231387042-66d1773070a5?auto=format&fit=crop&w=800&q=80' },
+        { brandId: getBrandId('Nike'), name: 'ZoomX Vaporfly Next2', description: 'Advanced racing shoes engineered for peak speed and energy return.', basePrice: '21999.00', category: 'Running', isNew: true, isOnSale: false, imageUrl: 'https://images.unsplash.com/photo-1608231387042-66d1773070a5?auto=format&fit=crop&w=800&q=80' },
         { brandId: getBrandId('Nike'), name: 'React Infinity Run 3', description: 'A shoe built to help reduce running-related injuries.', basePrice: '14499.00', category: 'Running', isNew: false, isOnSale: true, imageUrl: 'https://images.unsplash.com/photo-1605348532760-6753d2c43329?auto=format&fit=crop&w=800&q=80' },
         { brandId: getBrandId('Nike'), name: 'Dunk Low Retro', description: 'Created for the hardwood but taken to the streets. Classic hoops heritage.', basePrice: '9499.00', category: 'Classic', isNew: true, isOnSale: false, imageUrl: 'https://images.unsplash.com/photo-1612902456551-404854679e02?auto=format&fit=crop&w=800&q=80' },
 
@@ -101,12 +111,13 @@ async function runSeed() {
         'Samba OG': '/products/Samba OG.png',
         'Ultraboost Light': '/products/Ultraboost Light.png',
         'YEEZY BOOST 350 V2': '/products/YEEZY BOOST 350 V2.png',
-        'ZoomX Vaporfly Next% 2': '/products/ZoomX Vaporfly Next% 2.png'
+        'ZoomX Vaporfly Next2': '/products/ZoomX Vaporfly Next2.png'
     };
 
     const catalogData = rawCatalogData.map(item => ({
         ...item,
-        imageUrl: localImageMap[item.name] || '/products/Nike Air Force 1 \'07.png'
+        imageUrl: localImageMap[item.name] || '/products/Nike Air Force 1 \'07.png',
+        stock: Math.floor(Math.random() * (1000 - 100 + 1)) + 100
     }));
 
     let insertedProducts = [];
