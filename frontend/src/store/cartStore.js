@@ -45,7 +45,10 @@ const useCartStore = create(
                 items: state.items.filter((item) => item.variantId !== variantId),
             })),
 
-            clearCart: () => set({ items: [] }),
+            clearCart: () => {
+                set({ items: [] });
+                localStorage.removeItem('kixx-cart-storage');
+            },
 
             getTotalPrice: () => {
                 return get().items.reduce((total, item) => total + (item.price * item.quantity), 0);

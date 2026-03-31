@@ -12,6 +12,7 @@ import {
 import { signOut } from 'firebase/auth';
 import { auth } from '../config/firebase';
 import useAuthStore from '../store/authStore';
+import useCartStore from '../store/cartStore';
 
 const NAV_ITEMS = [
   { to: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -23,10 +24,12 @@ const NAV_ITEMS = [
 
 export default function AdminLayout() {
   const { clearAuth } = useAuthStore();
+  const clearCart = useCartStore((state) => state.clearCart);
   const navigate = useNavigate();
 
   const handleLogout = async () => {
     try {
+      clearCart();
       await signOut(auth);
       clearAuth();
       navigate('/');

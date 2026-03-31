@@ -23,12 +23,18 @@ import { Search, User, LogOut, ShoppingCart, Sparkles } from 'lucide-react';
 */
 export default function Navbar() {
     const getItemCount = useCartStore((state) => state.getItemCount);
+    const clearCart = useCartStore((state) => state.clearCart);
     const { isAuthenticated, clearAuth } = useAuthStore();
     const navigate = useNavigate();
     const [isCartOpen, setIsCartOpen] = useState(false);
 
     const handleLogout = async () => {
-        try { await signOut(auth); clearAuth(); navigate('/'); }
+        try { 
+            clearCart();
+            await signOut(auth); 
+            clearAuth(); 
+            navigate('/'); 
+        }
         catch (error) { console.error('Sign-out error:', error); }
     };
 

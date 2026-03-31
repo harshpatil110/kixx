@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { signOut } from 'firebase/auth';
 import { auth } from '../config/firebase';
 import useAuthStore from '../store/authStore';
+import useCartStore from '../store/cartStore';
 import { getUserOrders } from '../services/orderService';
 import { formatPrice } from '../utils/currency';
 import { generateInvoice } from '../utils/generateInvoice';
@@ -67,6 +68,7 @@ import {
 */
 export default function AccountPage() {
     const { user, firebaseUser, clearAuth } = useAuthStore();
+    const clearCart = useCartStore((state) => state.clearCart);
     const navigate = useNavigate();
     const [isSigningOut, setIsSigningOut] = useState(false);
 
@@ -82,7 +84,12 @@ export default function AccountPage() {
 
     const handleSignOut = async () => {
         setIsSigningOut(true);
-        try { await signOut(auth); clearAuth(); navigate('/'); }
+        try { 
+            clearCart();
+            await signOut(auth); 
+            clearAuth(); 
+            navigate('/'); 
+        }
         catch (err) { console.error('Sign-out error:', err); setIsSigningOut(false); }
     };
 
