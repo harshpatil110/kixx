@@ -32,6 +32,10 @@ export function ProgressiveImage({
             src={isLoaded ? src : (thumbSrc || src)}
             alt={alt}
             onLoad={() => setIsLoaded(true)}
+            onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = 'https://placehold.co/500x500/eeeeee/999999?text=No+Image';
+            }}
             className={`transition-all duration-500 ease-out ${!isLoaded && thumbSrc ? 'blur-md scale-105' : 'blur-0 scale-100'} ${className}`}
             {...rest}
         />
@@ -71,7 +75,7 @@ export default function ProductCard({ product }) {
                         src={product.imageUrl}
                         alt={product.name}
                         loading="lazy"
-                        className="w-full h-auto object-contain transform group-hover:scale-105 transition-transform duration-500"
+                        className="w-full h-full object-cover aspect-square transform group-hover:scale-105 transition-transform duration-500"
                     />
                 ) : (
                     <div className="w-full h-full flex items-center justify-center text-gray-400 font-medium text-sm uppercase tracking-widest">

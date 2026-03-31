@@ -51,7 +51,7 @@ async function runSeed() {
     const getBrandId = (name) => insertedBrands.find(b => b.name === name).id;
 
     // Define the full catalog (22 high-quality products with isNew/isOnSale flags)
-    const catalogData = [
+    const rawCatalogData = [
         // --- NIKE ---
         { brandId: getBrandId('Nike'), name: 'Air Max 90 Essentials', description: 'Classic comfort with an iconic silhouette. Built for everyday wear.', basePrice: '11999.00', category: 'Lifestyle', isNew: false, isOnSale: true, imageUrl: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=800&q=80' },
         { brandId: getBrandId('Nike'), name: 'Air Force 1 \'07', description: 'The legend lives on in the Nike Air Force 1.', basePrice: '8499.00', category: 'Classic', isNew: false, isOnSale: false, imageUrl: 'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&w=800&q=80' },
@@ -80,6 +80,21 @@ async function runSeed() {
         { brandId: getBrandId('New Balance'), name: '2002R Protection Pack', description: 'Deconstructed upper design meets modern performance.', basePrice: '15999.00', category: 'Lifestyle', isNew: true, isOnSale: false, imageUrl: 'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?auto=format&fit=crop&w=800&q=80' },
         { brandId: getBrandId('New Balance'), name: '327 Lifestyle', description: 'A bold, angular redesign of classic 1970s running shoes.', basePrice: '8499.00', category: 'Lifestyle', isNew: false, isOnSale: true, imageUrl: 'https://images.unsplash.com/photo-1551107696-a4b0c5a0d9a2?auto=format&fit=crop&w=800&q=80' },
     ];
+
+    const reliableShoeImages = [
+        'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&q=80',
+        'https://images.unsplash.com/photo-1552346154-21d32810baa3?w=500&q=80',
+        'https://images.unsplash.com/photo-1608231387042-66d1773070a5?w=500&q=80',
+        'https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?w=500&q=80',
+        'https://images.unsplash.com/photo-1511556532299-8f662fc26c06?w=500&q=80',
+        'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=500&q=80',
+        'https://images.unsplash.com/photo-1605348532760-6753d2c43329?w=500&q=80'
+    ];
+
+    const catalogData = rawCatalogData.map((item, index) => ({
+        ...item,
+        imageUrl: reliableShoeImages[index % reliableShoeImages.length]
+    }));
 
     let insertedProducts = [];
     // Insert in chunks or all at once
