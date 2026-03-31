@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { prefetchProduct } from '../config/queryClient';
 import { formatPrice } from '../utils/currency';
 import useCartStore from '../store/cartStore';
+import toast from 'react-hot-toast';
 
 export function buildThumbUrl(fullUrl) {
     if (!fullUrl) return null;
@@ -51,12 +52,23 @@ export default function ProductCard({ product }) {
 
     const handleAddToCart = (e) => {
         e.preventDefault();
+        e.stopPropagation();
         addItem({
             ...product,
             variantId: product.id,
             price: product.basePrice,
             quantity: 1,
             stock: product.stock || 10
+        });
+        toast.success(`${product.name} added to cart!`, {
+            style: {
+                background: '#1A1A1A',
+                color: '#fff',
+                fontWeight: 600,
+                borderRadius: '12px',
+            },
+            iconTheme: { primary: '#800000', secondary: '#fff' },
+            duration: 2000,
         });
     };
 
