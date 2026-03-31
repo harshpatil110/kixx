@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { getProducts } from '../services/productService';
 import { formatPrice } from '../utils/currency';
 import useCartStore from '../store/cartStore';
+import useAuthStore from '../store/authStore';
 import { prefetchProduct } from '../config/queryClient';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 
@@ -131,14 +132,19 @@ export default function CatalogPage() {
     const [currentPage, setCurrentPage] = useState(1);
     const [searchParams] = useSearchParams();
     const category = searchParams.get('category');
+    const { user } = useAuthStore();
     const [showBanner, setShowBanner] = useState(false);
     
     React.useEffect(() => {
-        const hasDismissed = localStorage.getItem('kixx_first_drop_dismissed');
-        if (!hasDismissed) {
+        const hasDismissed = localStorage.getItem('kixx_first_drop_dismissed') === 'true';
+        const isEligible = !user || user.firstPurchaseDiscountUsed === false;
+
+        if (!hasDismissed && isEligible) {
             setShowBanner(true);
+        } else {
+            setShowBanner(false); // Make sure to hide it if user logs in and is ineligible
         }
-    }, []);
+    }, [user]);
 
     const dismissBanner = () => {
         setShowBanner(false);
