@@ -6,7 +6,8 @@ import { formatPrice } from '../utils/currency';
 import useCartStore from '../store/cartStore';
 import useAuthStore from '../store/authStore';
 import { prefetchProduct } from '../config/queryClient';
-import { ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import PromoToast from '../components/PromoToast';
 
 /*
   STITCH LIGHT THEME — catalog.html
@@ -133,26 +134,23 @@ export default function CatalogPage() {
     const [searchParams] = useSearchParams();
     const category = searchParams.get('category');
     const { user } = useAuthStore();
-    const [showBanner, setShowBanner] = useState(false);
-    
+    const [showPromo, setShowPromo] = useState(false);
+
     React.useEffect(() => {
-        const isDismissed = localStorage.getItem('kixx_first_drop_dismissed') === 'true';
-        
-        // If user is null/undefined (logged out or loading), they haven't used it.
-        // If user exists, only hide if the flag is explicitly true.
-        // This safely handles undefined/null/false all as "eligible".
+        const isDismissed = localStorage.getItem('kixx_promo_dismissed') === 'true';
         const hasUsedDiscount = user?.firstPurchaseDiscountUsed === true;
 
         if (!isDismissed && !hasUsedDiscount) {
-            setShowBanner(true);
+            const timer = setTimeout(() => setShowPromo(true), 1500);
+            return () => clearTimeout(timer);
         } else {
-            setShowBanner(false);
+            setShowPromo(false);
         }
     }, [user]);
 
-    const dismissBanner = () => {
-        setShowBanner(false);
-        localStorage.setItem('kixx_first_drop_dismissed', 'true');
+    const handleClosePromo = () => {
+        localStorage.setItem('kixx_promo_dismissed', 'true');
+        setShowPromo(false);
     };
     
     const itemsPerPage = 8;
@@ -217,10 +215,11 @@ export default function CatalogPage() {
     }, [category, brandFilter]);
 
     return (
-        /*
+        <>
+        {/*
           Stitch body: bg-background-light (#ffffff) text-gray-900 min-h-screen antialiased
           bg-image: two radial-gradients (fixed attachment)
-        */
+        */}
         <div
             className="bg-[#ffffff] text-gray-900 min-h-screen antialiased font-[Inter,sans-serif] bg-fixed"
             style={{
@@ -303,26 +302,7 @@ export default function CatalogPage() {
 
                 {/* Stitch: main.flex-1 */}
                 <main className="flex-1">
-                    {/* CRM Inline Promo Banner */}
-                    {showBanner && (
-                        <div className="bg-[#FDF5F5] p-6 rounded-[24px] border border-[#800000]/10 mb-8 relative flex flex-col md:flex-row items-start md:items-center justify-between shadow-[0_4px_24px_rgba(0,0,0,0.02)] transition-all duration-300">
-                            <button 
-                                onClick={dismissBanner}
-                                className="absolute top-4 right-4 text-gray-400 hover:text-black transition-colors"
-                            >
-                                <X size={20} />
-                            </button>
-                            <div className="flex-1 mb-4 md:mb-0">
-                                <h2 className="text-2xl font-bold tracking-[-0.05em] text-[#800000]">UNLOCK 10% OFF</h2>
-                                <p className="text-gray-700 mt-2 max-w-xl text-sm leading-relaxed font-medium">
-                                    Join the Inner Circle and claim your <strong className="font-extrabold text-gray-900">First Drop Credit</strong> on your first pair.
-                                </p>
-                            </div>
-                            <div className="font-mono font-black text-xl md:text-2xl tracking-[0.2em] text-white bg-[#800000] px-6 py-3 rounded-xl shadow-[0_4px_16px_rgba(128,0,0,0.2)] select-all shrink-0 uppercase">
-                                FIRSTDROP
-                            </div>
-                        </div>
-                    )}
+
 
                     {/* Stitch: div.flex.justify-between.items-end.mb-8 */}
                     <div className="flex justify-between items-end mb-8">
@@ -408,5 +388,7 @@ export default function CatalogPage() {
                 </main>
             </div>
         </div>
+        <PromoToast isOpen={showPromo} onClose={handleClosePromo} />
+        </>
     );
 }
