@@ -136,13 +136,16 @@ export default function CatalogPage() {
     const [showBanner, setShowBanner] = useState(false);
     
     React.useEffect(() => {
-        const hasDismissed = localStorage.getItem('kixx_first_drop_dismissed') === 'true';
-        const isEligible = !user || user.firstPurchaseDiscountUsed === false;
+        const isDismissed = localStorage.getItem('kixx_first_drop_dismissed') === 'true';
+        
+        // If user is null (logged out), they haven't used it.
+        // If user exists, check if the flag is explicitly true. If undefined/null, assume false.
+        const hasUsedDiscount = user?.firstPurchaseDiscountUsed === true;
 
-        if (!hasDismissed && isEligible) {
+        if (!isDismissed && !hasUsedDiscount) {
             setShowBanner(true);
         } else {
-            setShowBanner(false); // Make sure to hide it if user logs in and is ineligible
+            setShowBanner(false);
         }
     }, [user]);
 
