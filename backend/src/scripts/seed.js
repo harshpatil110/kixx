@@ -81,19 +81,32 @@ async function runSeed() {
         { brandId: getBrandId('New Balance'), name: '327 Lifestyle', description: 'A bold, angular redesign of classic 1970s running shoes.', basePrice: '8499.00', category: 'Lifestyle', isNew: false, isOnSale: true, imageUrl: 'https://images.unsplash.com/photo-1551107696-a4b0c5a0d9a2?auto=format&fit=crop&w=800&q=80' },
     ];
 
-    const reliableShoeImages = [
-        'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&q=80',
-        'https://images.unsplash.com/photo-1552346154-21d32810baa3?w=500&q=80',
-        'https://images.unsplash.com/photo-1608231387042-66d1773070a5?w=500&q=80',
-        'https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?w=500&q=80',
-        'https://images.unsplash.com/photo-1511556532299-8f662fc26c06?w=500&q=80',
-        'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=500&q=80',
-        'https://images.unsplash.com/photo-1605348532760-6753d2c43329?w=500&q=80'
-    ];
+    const localImageMap = {
+        '327 Lifestyle': '/products/327 Lifestyle.png',
+        '550 Vintage White': '/products/550 Vintage White.png',
+        '2002R Protection Pack': '/products/2002R Protection Pack.png',
+        'Air Jordan 1 Retro High': '/products/Air Jordan 1 Retro High.png',
+        'Air Jordan 4 Retro': '/products/Air Jordan 4 Retro.png',
+        'Air Jordan 11 Retro': '/products/Air Jordan 11 Retro.png',
+        'Air Max 90 Essentials': '/products/Air Max 90 Essentials.png',
+        'Dunk Low Retro': '/products/Dunk Low Retro.png',
+        'Forum Low': '/products/Forum Low.png',
+        'Fresh Foam 1080v13': '/products/Fresh Foam 1080v13.png',
+        'Gazelle Indoor': '/products/Gazelle Indoor.png',
+        'Jordan Luka 2': '/products/Jordan Luka 2.png',
+        'Made in USA 990v6': '/products/Made in USA 990v6.png',
+        'Air Force 1 \'07': '/products/Nike Air Force 1 \'07.png',
+        'NMD_R1 V2': '/products/NMD_R1 V2.png',
+        'React Infinity Run 3': '/products/React Infinity Run 3.png',
+        'Samba OG': '/products/Samba OG.png',
+        'Ultraboost Light': '/products/Ultraboost Light.png',
+        'YEEZY BOOST 350 V2': '/products/YEEZY BOOST 350 V2.png',
+        'ZoomX Vaporfly Next% 2': '/products/ZoomX Vaporfly Next% 2.png'
+    };
 
-    const catalogData = rawCatalogData.map((item, index) => ({
+    const catalogData = rawCatalogData.map(item => ({
         ...item,
-        imageUrl: reliableShoeImages[index % reliableShoeImages.length]
+        imageUrl: localImageMap[item.name] || '/products/Nike Air Force 1 \'07.png'
     }));
 
     let insertedProducts = [];
