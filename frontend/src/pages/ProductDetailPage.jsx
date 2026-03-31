@@ -179,17 +179,16 @@ export default function ProductDetailPage() {
                 <section className="w-full md:w-1/2 h-[50vh] md:h-screen sticky top-0 md:relative z-10">
                     <div className="w-full h-full relative overflow-hidden hide-scrollbar flex snap-x snap-mandatory overflow-x-auto">
                         {/* Stitch: img.w-full.h-full.object-cover.shrink-0.snap-center */}
-                        {product.imageUrl ? (
-                            <img
-                                src={product.imageUrl} alt={product.name}
-                                className="w-full h-full object-cover shrink-0 snap-center"
-                                loading="eager" fetchPriority="high" decoding="async"
-                            />
-                        ) : (
-                            <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-400 uppercase tracking-widest shrink-0 snap-center">
-                                No Image
-                            </div>
-                        )}
+                        <img
+                            src={product?.imageUrl || 'https://placehold.co/600x600?text=No+Image+Available'}
+                            alt={product?.name || 'Product Image'}
+                            className="w-full h-full object-cover shrink-0 snap-center bg-gray-100"
+                            onError={(e) => {
+                                e.target.onerror = null;
+                                e.target.src = 'https://placehold.co/600x600?text=No+Image+Available';
+                            }}
+                            loading="eager" fetchPriority="high" decoding="async"
+                        />
                         
                         {product.arModelUrl && (
                             <button
@@ -232,14 +231,14 @@ export default function ProductDetailPage() {
                 </section>
 
                 {/* RIGHT: Stitch section.w-full.md:w-1/2.p-8.md:p-16.lg:p-24.flex.flex-col.justify-center.min-h-[50vh].z-20 */}
-                <section className="w-full md:w-1/2 p-8 md:p-16 lg:p-24 flex flex-col justify-center min-h-[50vh] z-20">
-                    <div className="max-w-xl">
+                <section className="w-full md:w-1/2 p-8 pb-32 md:p-16 lg:p-24 flex flex-col justify-center min-h-[50vh] z-20 overflow-hidden">
+                    <div className="max-w-xl w-full overflow-hidden">
                         {/* Stitch: p.text-sm.font-semibold.tracking-widest.uppercase.text-gray-500.mb-4 */}
                         <p className="text-sm font-semibold tracking-widest uppercase text-gray-500 mb-4">
                             {product.brand?.name || 'New Release'}
                         </p>
                         {/* Stitch: h1.font-display(Anton) */}
-                        <h1 className="font-[Anton,sans-serif] text-6xl md:text-8xl lg:text-9xl uppercase leading-[0.85] tracking-tight mb-4 text-gray-900">
+                        <h1 className="font-[Anton,sans-serif] text-4xl md:text-5xl lg:text-6xl uppercase leading-tight tracking-tight mb-4 text-gray-900 break-words whitespace-normal">
                             {product.name}
                         </h1>
                         {/* Style Match Badge — shown for logged-in users, or Login Info for Guests */}
