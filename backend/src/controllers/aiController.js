@@ -162,17 +162,27 @@ function buildEmailHtml(analysisText, recommendation) {
     `;
 }
 
-// ── Helper: Fire-and-forget email ────────────────────────────────────────────
+// ── Helper: Fire-and-forget email (completely isolated, never throws) ────────
 async function sendStyleVerdictEmail(userEmail, analysisText) {
     try {
+        console.log('5. Attempting to send style verdict email to:', userEmail);
+        // ── Fail-safe: SMTP credentials check ────────────────────────────────
         if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
             console.warn('⚠️  EMAIL_USER / EMAIL_PASS not set — skipping CRM email.');
             return;
         }
 
-        const recommendation = await getRandomRecommendation();
+        // ── Fetch a random product recommendation (isolated) ─────────────────
+        let recommendation = null;
+        try {
+            recommendation = await getRandomRecommendation();
+        } catch (dbErr) {
+            console.error('⚠️  DB query for recommendation failed, sending email without product:', dbErr.message);
+        }
+
         const html = buildEmailHtml(analysisText, recommendation);
 
+        // ── Send the email (isolated) ────────────────────────────────────────
         await transporter.sendMail({
             from: `"KIXX Studios" <${process.env.EMAIL_USER}>`,
             to: userEmail,
@@ -193,6 +203,7 @@ async function sendStyleVerdictEmail(userEmail, analysisText) {
 
 exports.analyzeOutfit = async (req, res) => {
     try {
+        console.log('1. Request received at /analyze-outfit');
         const { image } = req.body;
 
         // ── 1. Presence check ────────────────────────────────────────────────
@@ -249,6 +260,7 @@ exports.analyzeOutfit = async (req, res) => {
         ];
 
         // ── 6. Call NVIDIA's OpenAI-compatible endpoint ──────────────────────
+        console.log('2. Sending image to Qwen AI...');
         const nvidiaRes = await fetch('https://integrate.api.nvidia.com/v1/chat/completions', {
             method: 'POST',
             headers: {
@@ -266,6 +278,7 @@ exports.analyzeOutfit = async (req, res) => {
 
         // ── 7. Parse response ────────────────────────────────────────────────
         const data = await nvidiaRes.json();
+        console.log('3. AI Response received successfully. Status:', nvidiaRes.status);
 
         // ── 8. Handle non-2xx responses from NVIDIA ──────────────────────────
         if (!nvidiaRes.ok) {
@@ -295,25 +308,30 @@ exports.analyzeOutfit = async (req, res) => {
         }
 
         // ── 10. FIRE AND FORGET: Send CRM email asynchronously ───────────────
-        const userEmail = req.user?.email;
-        if (userEmail) {
-            // Do NOT await — respond to the client immediately
-            sendStyleVerdictEmail(userEmail, textResponse);
+        //    This block is completely isolated — it can NEVER crash the response.
+        if (!req.user || !req.user.email) {
+            console.log('ℹ️  No user email found. Skipping automated email.');
+        } else {
+            // Do NOT await — respond to the client immediately.
+            // The outer .catch() is a safety net for any edge-case unhandled rejection.
+            sendStyleVerdictEmail(req.user.email, textResponse).catch((unexpectedErr) => {
+                console.error('❌ Unexpected email error (safety net caught):', unexpectedErr.message);
+            });
         }
 
+        console.log('4. Sending 200 response to frontend.');
         return res.json({ success: true, analysis: textResponse });
 
 
     } catch (error) {
-        console.error('❌ OUTFIT ANALYSIS CRASH:', error.message);
-        if (error.cause)  console.error('🔍 UNDERLYING CAUSE:', error.cause);
+        console.error('🔥 FATAL ROUTE ERROR:', error.message);
+        console.error('🔥 FULL STACK:', error.stack);
+        if (error.cause) console.error('🔍 UNDERLYING CAUSE:', error.cause);
 
-        const isNetworkError = error.message?.includes('fetch failed');
         return res.status(500).json({
             success: false,
-            message: isNetworkError
-                ? 'Network error reaching the AI service. Check your server\'s internet connection.'
-                : 'Failed to analyze outfit. Please try again.',
+            error: 'Failed to analyze outfit',
+            details: error.message || 'Unknown error',
         });
     }
 };
