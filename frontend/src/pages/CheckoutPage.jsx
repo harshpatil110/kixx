@@ -61,7 +61,13 @@ export default function CheckoutPage() {
              const payload = {
                  email,
                  shippingAddress: shipping,
-                 items,
+                 items: items.map(item => ({
+                     id: item.productId || item.id || item._id || item.variantId,
+                     productId: item.productId || item.id || item._id || item.variantId,
+                     quantity: item.quantity,
+                     size: item.size,
+                     price: item.price
+                 })),
                  promoCode: appliedPromo
              };
              return await saveCompletedOrder(payload);
