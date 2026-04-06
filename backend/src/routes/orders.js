@@ -26,6 +26,10 @@ router.post('/save', async (req, res) => {
 
         // Basic validation
         if (!email || !shippingAddress || !items || !Array.isArray(items) || items.length === 0) {
+            console.error("🔥 ORDER SAVE FAILED: Missing or malformed required payload fields.");
+            console.error("➡️ Received email:", email);
+            console.error("➡️ Received shippingAddress:", shippingAddress);
+            console.error("➡️ Received items array length:", items ? items.length : "undefined/null");
             return res.status(400).json({ success: false, message: 'Bad Request: email, shippingAddress, and items are required.' });
         }
 

@@ -56,8 +56,7 @@ export default function CheckoutPage() {
                  throw new Error("Your cart is empty.");
              }
 
-             // Submit the final payload directly to our backend endpoint that registers 
-             // the complete transaction and flips the firstPurchase boolean
+             // Ensure explicit ID mappings to satisfy strict backend routing requirements
              const payload = {
                  email,
                  shippingAddress: shipping,
@@ -70,22 +69,32 @@ export default function CheckoutPage() {
                  })),
                  promoCode: appliedPromo
              };
+             
              return await saveCompletedOrder(payload);
-        },
-        onSuccess: (data) => {
-            clearCart();
-            // Expecting data { success: true, order: { id: ...} } from the /save endpoint
-            const orderId = data?.order?.id || data?.id || 'new';
-            navigate(`/order-confirmation/${orderId}`);
-        },
-        onError: (err) => {
-            toast.error(err.message || 'Payment failed. Please try again.');
         }
     });
 
-    const handleCheckout = (e) => {
+    const handleCheckout = async (e) => {
         e.preventDefault();
-        checkoutMutation.mutate();
+        try {
+            // Wait for the API call to completely resolve
+            const responseData = await checkoutMutation.mutateAsync();
+            
+            // STRICT NAVIGATION LOCK: Only proceed if explicitly successful
+            if (responseData && (responseData.success === true || responseData.ok)) {
+                clearCart();
+                const orderId = responseData?.order?.id || responseData?.id || 'new';
+                navigate(`/order-confirmation/${orderId}`);
+            } else {
+                // Return 200 OK but success is false fallback
+                toast.error(responseData?.message || "Checkout failed. Server refused order.");
+            }
+        } catch (error) {
+            // If the response is a 400/500, Axios throws an error and hits this block. Halt execution.
+            console.error("Frontend Checkout Delivery Error:", error);
+            const errorMsg = error.response?.data?.message || error.message || "Checkout failed";
+            toast.error(errorMsg);
+        }
     };
 
     return (
