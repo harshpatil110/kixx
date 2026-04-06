@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { auth } from '../config/firebase';
 import { useMutation } from '@tanstack/react-query';
 import { saveCompletedOrder } from '../services/orderService';
 import useCartStore from '../store/cartStore';
@@ -47,53 +48,68 @@ export default function CheckoutPage() {
     const taxes = Math.round(discountedSubtotal * 0.18);
     const total = discountedSubtotal + taxes;
 
-    const checkoutMutation = useMutation({
-        mutationFn: async () => {
-             if (!email || !shipping.firstName || !shipping.lastName || !shipping.address || !shipping.city || !shipping.pinCode) {
-                 throw new Error("Please fill out all shipping details.");
-             }
-             if (items.length === 0) {
-                 throw new Error("Your cart is empty.");
-             }
-
-             // Ensure explicit ID mappings to satisfy strict backend routing requirements
-             const payload = {
-                 email,
-                 shippingAddress: shipping,
-                 items: items.map(item => ({
-                     id: item.productId || item.id || item._id || item.variantId,
-                     productId: item.productId || item.id || item._id || item.variantId,
-                     quantity: item.quantity,
-                     size: item.size,
-                     price: item.price
-                 })),
-                 promoCode: appliedPromo
-             };
-             
-             return await saveCompletedOrder(payload);
-        }
-    });
+    const [isCheckingOut, setIsCheckingOut] = useState(false);
 
     const handleCheckout = async (e) => {
         e.preventDefault();
+        
+        if (!email || !shipping.firstName || !shipping.lastName || !shipping.address || !shipping.city || !shipping.pinCode) {
+            toast.error("Please fill out all shipping details.");
+            return;
+        }
+        if (items.length === 0) {
+            toast.error("Your cart is empty.");
+            return;
+        }
+
+        setIsCheckingOut(true);
+
         try {
-            // Wait for the API call to completely resolve
-            const responseData = await checkoutMutation.mutateAsync();
-            
-            // STRICT NAVIGATION LOCK: Only proceed if explicitly successful
-            if (responseData && (responseData.success === true || responseData.ok)) {
-                clearCart();
-                const orderId = responseData?.order?.id || responseData?.id || 'new';
-                navigate(`/order-confirmation/${orderId}`);
-            } else {
-                // Return 200 OK but success is false fallback
-                toast.error(responseData?.message || "Checkout failed. Server refused order.");
+            const orderPayload = {
+                email,
+                shippingAddress: shipping,
+                items: items.map(item => ({
+                    id: item.productId || item.id || item._id || item.variantId,
+                    productId: item.productId || item.id || item._id || item.variantId,
+                    quantity: item.quantity,
+                    size: item.size,
+                    price: item.price
+                })),
+                promoCode: appliedPromo
+            };
+
+            const token = auth.currentUser ? await auth.currentUser.getIdToken() : '';
+            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
+            const response = await fetch(`${apiUrl}/api/orders/save`, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}` 
+                },
+                body: JSON.stringify(orderPayload)
+            });
+
+            // 1. IF IT FAILS: Parse the error, alert the user, and STOP execution.
+            if (!response.ok) {
+                const errorData = await response.json();
+                console.error("Checkout Validation Error:", errorData);
+                alert(`Checkout Failed: ${errorData.error || errorData.message || 'Unknown data error'}`);
+                setIsCheckingOut(false);
+                return; // <-- CRITICAL: This stops the navigation from happening
             }
-        } catch (error) {
-            // If the response is a 400/500, Axios throws an error and hits this block. Halt execution.
-            console.error("Frontend Checkout Delivery Error:", error);
-            const errorMsg = error.response?.data?.message || error.message || "Checkout failed";
-            toast.error(errorMsg);
+
+            // 2. IF IT SUCCEEDS: Parse the successful data and navigate.
+            const successData = await response.json();
+            clearCart();
+            const orderId = successData.order?.id || successData.orderId || successData.id || 'new';
+            navigate(`/order-confirmation/${orderId}`);
+
+        } catch (err) {
+            console.error("Network/Server Crash:", err);
+            alert("A critical error occurred. Please try again.");
+            setIsCheckingOut(false);
+            return; // <-- CRITICAL
         }
     };
 
@@ -247,10 +263,10 @@ export default function CheckoutPage() {
                         <div className="pt-8">
                             <button 
                                 type="submit"
-                                disabled={checkoutMutation.isPending || items.length === 0}
+                                disabled={isCheckingOut || items.length === 0}
                                 className="w-full bg-[#31332c] text-white py-6 rounded-sm font-['Inter',sans-serif] font-bold uppercase text-xs tracking-[0.2em] hover:bg-black transition-all flex justify-center items-center gap-3 active:scale-[0.99] duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                {checkoutMutation.isPending ? 'Processing Payment...' : (
+                                {isCheckingOut ? 'Processing Payment...' : (
                                     <>
                                         Complete Payment <span className="material-symbols-outlined text-sm">arrow_forward</span>
                                     </>
