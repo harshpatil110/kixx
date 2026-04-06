@@ -21,11 +21,12 @@ export function buildThumbUrl(fullUrl) {
 
 export function ProgressiveImage({
     src,
+    fallbackSrc,
     alt = '',
     className = '',
     ...rest
 }) {
-    const thumbSrc = buildThumbUrl(src);
+    const thumbSrc = buildThumbUrl(fallbackSrc || src);
     const [isLoaded, setIsLoaded] = useState(false);
 
     return (
@@ -34,8 +35,12 @@ export function ProgressiveImage({
             alt={alt}
             onLoad={() => setIsLoaded(true)}
             onError={(e) => {
-                e.target.onerror = null;
-                e.target.src = 'https://placehold.co/500x500/eeeeee/999999?text=No+Image';
+                if (fallbackSrc && !e.target.src.includes(fallbackSrc)) {
+                    e.target.src = fallbackSrc;
+                } else {
+                    e.target.onerror = null;
+                    e.target.src = 'https://placehold.co/500x500/eeeeee/999999?text=No+Image';
+                }
             }}
             className={`transition-all duration-500 ease-out ${!isLoaded && thumbSrc ? 'blur-md scale-105' : 'blur-0 scale-100'} ${className}`}
             {...rest}
@@ -102,6 +107,7 @@ export default function ProductCard({ product }) {
                     {transparentImgUrl || product.imageUrl ? (
                         <ProgressiveImage
                             src={transparentImgUrl || product.imageUrl}
+                            fallbackSrc={product.imageUrl}
                             alt={product.name}
                             loading="lazy"
                             className="w-full object-contain image-bleed transition-transform duration-700 group-hover:scale-110"
