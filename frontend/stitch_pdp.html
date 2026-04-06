@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>KIXX | AIR MAX SCULPT</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&amp;family=Newsreader:ital,wght@0,400;0,700;1,400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-primary-fixed-variant": "#5f5b58",
+              "secondary": "#645e59",
+              "on-background": "#31332c",
+              "on-secondary": "#fff7f4",
+              "error-dim": "#5c1202",
+              "surface": "#fbf9f4",
+              "tertiary-fixed": "#6d89fa",
+              "outline": "#797c73",
+              "surface-tint": "#625d5b",
+              "surface-container-highest": "#e2e3d9",
+              "on-error": "#fff7f6",
+              "error": "#9e422c",
+              "inverse-surface": "#0e0e0c",
+              "tertiary-fixed-dim": "#607cec",
+              "on-tertiary-fixed": "#000000",
+              "error-container": "#fe8b70",
+              "secondary-dim": "#58524d",
+              "primary-dim": "#56514f",
+              "inverse-primary": "#ffffff",
+              "tertiary-container": "#6d89fa",
+              "surface-variant": "#e2e3d9",
+              "tertiary-dim": "#2949b7",
+              "on-primary": "#fef6f2",
+              "on-primary-fixed": "#433e3c",
+              "on-secondary-fixed-variant": "#615a56",
+              "on-secondary-fixed": "#443e3a",
+              "secondary-container": "#eae1da",
+              "surface-bright": "#fbf9f4",
+              "on-tertiary": "#faf8ff",
+              "primary-container": "#e9e1dd",
+              "background": "#fbf9f4",
+              "surface-container": "#efeee6",
+              "surface-dim": "#d9dbcf",
+              "surface-container-high": "#e8e9e0",
+              "on-primary-container": "#55514e",
+              "on-tertiary-container": "#000a36",
+              "on-secondary-container": "#57514c",
+              "tertiary": "#3856c4",
+              "surface-container-low": "#f5f4ed",
+              "on-surface-variant": "#5e6058",
+              "primary": "#625d5b",
+              "on-tertiary-fixed-variant": "#001454",
+              "inverse-on-surface": "#9e9d99",
+              "outline-variant": "#b1b3a9",
+              "on-error-container": "#742410",
+              "surface-container-lowest": "#ffffff",
+              "secondary-fixed-dim": "#dcd3cd",
+              "on-surface": "#31332c",
+              "secondary-fixed": "#eae1da",
+              "primary-fixed": "#e9e1dd",
+              "primary-fixed-dim": "#dad3cf"
+            },
+            fontFamily: {
+              "headline": ["Inter"],
+              "body": ["Newsreader"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0px", "lg": "0px", "xl": "0px", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+            font-size: 20px;
+        }
+        body { background-color: #fbf9f4; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .tracking-tighter-extreme { letter-spacing: -0.06em; }
+    </style>
+</head>
+<body class="font-body text-on-surface selection:bg-tertiary/20">
+<!-- Top Navigation Bar -->
+<nav class="fixed top-0 w-full z-50 bg-[#fbf9f4]/80 backdrop-blur-xl dark:bg-stone-900/80 border-b border-outline-variant/10">
+<div class="flex justify-between items-center px-8 h-20 w-full max-w-screen-2xl mx-auto">
+<div class="text-2xl font-black text-[#31332c] dark:text-[#fbf9f4] tracking-tighter font-headline">KIXX</div>
+<div class="hidden md:flex gap-10 items-center">
+<a class="text-[#5e6058] dark:text-stone-400 hover:text-[#3856c4] transition-colors duration-300 font-headline font-bold tracking-tight text-[11px] uppercase" href="#">Archive</a>
+<a class="text-[#31332c] dark:text-[#fbf9f4] border-b border-[#3856c4] pb-1 font-headline font-bold tracking-tight text-[11px] uppercase" href="#">Editorial</a>
+<a class="text-[#5e6058] dark:text-stone-400 hover:text-[#3856c4] transition-colors duration-300 font-headline font-bold tracking-tight text-[11px] uppercase" href="#">Curated</a>
+<a class="text-[#5e6058] dark:text-stone-400 hover:text-[#3856c4] transition-colors duration-300 font-headline font-bold tracking-tight text-[11px] uppercase" href="#">About</a>
+</div>
+<div class="flex items-center gap-6">
+<button class="scale-95 active:duration-100 text-[#31332c]">
+<span class="material-symbols-outlined" data-icon="shopping_bag">shopping_bag</span>
+</button>
+<button class="scale-95 active:duration-100 text-[#31332c]">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+</button>
+</div>
+</div>
+</nav>
+<main class="pt-32 pb-24 px-8 max-w-screen-2xl mx-auto">
+<div class="grid grid-cols-1 md:grid-cols-12 gap-20 items-start">
+<!-- Left: Sticky Gallery -->
+<div class="md:col-span-7 lg:col-span-8 space-y-20">
+<div class="relative group overflow-hidden">
+<img class="w-full aspect-[4/5] object-cover" data-alt="Premium minimalist sneaker with sculptural organic lines in bone and cream tones, soft cinematic lighting, architectural studio setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAwUY6r-W3ZpOA5RgRc8JVW9OxQnSLTZWE_kXZG3GlhApdJFQonQZPhUCT8wOAgBSogTU9wgNYfl_bqZ0inE2S55r6PzhXPTwbwYFYvMhZ2Y3pi0wLbvmROX7Ug2a1dy3SVcT-6VOxRyfai9HkFPxI3B35rnqtjpIYZ4UC3hebgMGld9gSeTJMNnJi6hc5opaNFWTJ1t7XmNJlqbBFb_ibNfetjUjSZ-YCbFU_VkjL0Pvuce4lCdh9usfEC63IUSSW1LGR-7WkCu71Q"/>
+<div class="absolute top-8 left-8">
+<span class="font-headline font-bold text-[0.625rem] tracking-[0.25em] bg-surface px-4 py-2 uppercase border border-outline-variant/20">Curated Drop № 042</span>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-12">
+<img class="w-full aspect-square object-cover" data-alt="Close-up technical shot of sneaker heel construction, premium leather texture and mesh details, warm neutral lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCzE3dTccpid7eEiAAw3bEAFpAqXJyaXWXa_g7fmix8djmw3NTc0AcWm7y_sfTNxBZeXNOQ_Voez1twIeqrg8_qyrTLSy1ziKRIMEzAuKj9wunGZBjNezlK6Iror-LpMi7wz8BaJAmk4JK8PmhT2zMJ0hFisNswJV3-Arrw_FIwWnl9NQXV3Y-zkBORGTRxMkuCOjitHDdWp4LK_UHaHhLN02o0-gcsXPuiBi6Fvefhzh2PAfV-eOv_7a2ra6JxjA-rHtVQlAufYK9K"/>
+<img class="w-full aspect-square object-cover" data-alt="Top down view of sneaker lacing system, high quality material detail, soft shadows on warm off-white background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDIH8Ze3Mvt7TTKstdzqaila5FaujYhL-NMm0jRPgPy3LqdhfgQdomqr1IG63I-B3nbH5moGs_cFeLm2_sZvedHEMaCj8MrMCiE_pgq5ZjYjSTEKsJQnvGJ5H1zYYKCD4A7KzSTv9BRlX0072i-qsoEbjW6TOEmGDd9OcRJK27Ql81K6ADpy9LIjBzpAtVekWOXiy_Q6TQj1Hyl3C-jywMq9WuN2_oLVCE2tTQChpmoGNNS-ATQtLRA9EGWIq1_Ig0FRGNaaMHatQpk"/>
+<img class="w-full aspect-square object-cover" data-alt="Detailed view of the sneaker sole with ergonomic grip pattern, architectural perspective, soft natural studio light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA0HU9FiFfLKju0O2gYgPfUTqJ-395OnNKP2GiS_Ty4i_rgpk-V9Yvl8gjx0qt_JRze7747TdfaZ8gHKIpsA_DT3nvj9n3sehfLNMgFNdK0zyfDQT15w90_IbgY9XU3J9dxRsgT98qx1hfvOfVGyiBZU7OZKL66hNzl00Eo_6LqO_r8l0DoHprzHtLlvwVOPHvMAnNQeqlf_3BiFUGt5FuJ_hSBkwmpybHm39HHPOwskqNgFYUhURHNEIMbYmcpOFVob-u6vc5_ZzC4"/>
+<img class="w-full aspect-square object-cover" data-alt="Profile shot of the sneaker showing the silhouette against a minimalist warm stone background, editorial style" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC2qc1SjDQ3akMpYKgSqeTTr-JlKEVPLB1hAPkREfqJIXX1RVVRidyAw5CKwU--pcFIpNfr-2UhN0HRsjDlRTiDZMfZtBOr4C588l6BWP0ffSJxs7-5gG1W0CKOVrxkQREwrz-6HwpizOzGpjeKuHah-D25OClaCn21GwKA0ag4iVoOxF5KQGCZObxcmIFXSxr90XsGGOE8gSaHegPT9pZxOmrjflVU0m47X0ag8Gfh6X69I8YMKDvGIW3RO9Zb_LrAP-rwaXJHv0Dn"/>
+</div>
+<div class="py-24 border-t border-outline-variant/15">
+<h3 class="font-headline font-bold text-[10px] tracking-[0.3em] uppercase mb-10 text-on-surface-variant">The Narrative</h3>
+<p class="font-body text-2xl md:text-3xl leading-relaxed text-on-surface max-w-2xl">
+                        The AIR MAX SCULPT is an exercise in restraint. Drawing inspiration from 1960s Japanese brutalism and organic bone structures, this silhouette bridges the gap between high-performance engineering and wearable sculpture.
+                    </p>
+</div>
+</div>
+<!-- Right: Product Info (Sticky) -->
+<div class="md:col-span-5 lg:col-span-4 md:sticky md:top-32 space-y-16">
+<header class="space-y-6">
+<div class="flex justify-between items-end border-b border-outline-variant/10 pb-4">
+<span class="font-headline font-bold text-[10px] tracking-[0.3em] text-on-surface-variant uppercase">Original Series</span>
+<span class="font-body italic text-xl text-tertiary">$340.00</span>
+</div>
+<h1 class="font-headline font-black text-7xl lg:text-8xl xl:text-9xl leading-[0.85] tracking-tighter-extreme text-on-surface uppercase -ml-2">
+                        AIR MAX<br/>SCULPT
+                    </h1>
+</header>
+<div class="space-y-12">
+<!-- Size Selector -->
+<div class="space-y-6">
+<div class="flex justify-between items-center">
+<span class="font-headline font-bold text-[10px] tracking-[0.3em] uppercase">Select Size (EU)</span>
+<button class="font-body italic text-xs text-on-surface-variant hover:text-on-surface underline underline-offset-4">Size Guide</button>
+</div>
+<div class="grid grid-cols-4 gap-0 border border-outline-variant/20">
+<button class="h-14 border-r border-b border-outline-variant/20 flex items-center justify-center font-headline font-bold text-[11px] transition-all hover:bg-surface-container-low">40</button>
+<button class="h-14 border-r border-b border-outline-variant/20 flex items-center justify-center font-headline font-bold text-[11px] bg-on-surface text-surface ring-1 ring-inset ring-blue-300">41</button>
+<button class="h-14 border-r border-b border-outline-variant/20 flex items-center justify-center font-headline font-bold text-[11px] transition-all hover:bg-surface-container-low">42</button>
+<button class="h-14 border-b border-outline-variant/20 flex items-center justify-center font-headline font-bold text-[11px] transition-all hover:bg-surface-container-low">43</button>
+<button class="h-14 border-r border-outline-variant/20 flex items-center justify-center font-headline font-bold text-[11px] transition-all hover:bg-surface-container-low">44</button>
+<button class="h-14 border-r border-outline-variant/20 flex items-center justify-center font-headline font-bold text-[11px] transition-all hover:bg-surface-container-low">45</button>
+<button class="h-14 border-r border-outline-variant/20 flex items-center justify-center font-headline font-bold text-[11px] opacity-20 cursor-not-allowed bg-surface-container-low">46</button>
+<button class="h-14 flex items-center justify-center font-headline font-bold text-[11px] opacity-20 cursor-not-allowed bg-surface-container-low">47</button>
+</div>
+</div>
+<!-- Color Selector -->
+<div class="space-y-6">
+<span class="font-headline font-bold text-[10px] tracking-[0.3em] uppercase">Colorway</span>
+<div class="flex gap-2">
+<button class="w-12 h-12 bg-[#f5f4ed] border border-outline-variant/20 ring-1 ring-blue-300 ring-offset-2 ring-offset-surface"></button>
+<button class="w-12 h-12 bg-[#31332c] border border-outline-variant/20"></button>
+<button class="w-12 h-12 bg-[#797c73] border border-outline-variant/20"></button>
+</div>
+<p class="font-body text-xs italic text-on-surface-variant">Selected: 'Bone/Aegean Blue'</p>
+</div>
+<!-- Action -->
+<div class="space-y-4 pt-6">
+<button class="w-full bg-on-surface text-surface py-6 font-headline font-bold text-[11px] tracking-[0.3em] uppercase hover:bg-primary-dim transition-all duration-300">
+                            Add to Cart
+                        </button>
+<button class="w-full border border-outline-variant/40 flex items-center justify-center gap-3 py-6 font-headline font-bold text-[11px] tracking-[0.3em] uppercase hover:bg-surface-container-low transition-all duration-300">
+<span class="material-symbols-outlined !text-[16px]" data-icon="favorite">favorite</span>
+                            Add to Wishlist
+                        </button>
+</div>
+<!-- Specs -->
+<div class="space-y-6 pt-12 border-t border-outline-variant/15">
+<div class="flex flex-col gap-5">
+<div class="flex justify-between">
+<span class="font-headline font-bold text-[10px] tracking-[0.2em] text-on-surface-variant uppercase">SKU</span>
+<span class="font-headline text-[10px] tracking-[0.2em] text-on-surface">KX-SC-042</span>
+</div>
+<div class="flex justify-between">
+<span class="font-headline font-bold text-[10px] tracking-[0.2em] text-on-surface-variant uppercase">Material</span>
+<span class="font-headline text-[10px] tracking-[0.2em] text-on-surface">Bio-Knit &amp; Calfskin</span>
+</div>
+<div class="flex justify-between">
+<span class="font-headline font-bold text-[10px] tracking-[0.2em] text-on-surface-variant uppercase">Origin</span>
+<span class="font-headline text-[10px] tracking-[0.2em] text-on-surface">Made in Italy</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Related Section: Editorial Bento -->
+<section class="mt-48 space-y-16">
+<h2 class="font-headline font-black text-5xl tracking-tighter uppercase">The Collection</h2>
+<div class="grid grid-cols-1 md:grid-cols-12 gap-8 h-[900px]">
+<div class="md:col-span-8 relative overflow-hidden bg-surface-container-low group">
+<img class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" data-alt="Atmospheric shot of a minimalist gallery space with sneakers displayed on raw concrete plinths, soft top lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA72m0i4FoOE9u63FKA-r9CHjvng6I10g3YV7klQV3fIbaJejMesG6nX4HcOYKFJoBOrbXmYKyPRqj7FdfYkZ_00e2tXgOwvmbKspB8uSOICj0yakiGrwhx2d46EglHLzfseYuCHz8n7-Ojrc1wI71qSxIC9Z34Wr1bNwNxcNfUc6FEPAhsTbP4IWDOwKq2x0Tpe5yZ9Ue33CXNtzOqaqSDDrpCDldl2wFfVpr9HOqbVpGY2MO6dFbCTCrCSrSwe7N4Ojop8smUt_Kn"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-16">
+<span class="text-white/60 font-headline font-bold text-[10px] tracking-[0.4em] uppercase mb-6">Editorial</span>
+<h3 class="text-white text-6xl font-headline font-black tracking-tighter-extreme mb-8 leading-none">THE BRUTALIST<br/>ETHOS</h3>
+<a class="text-white font-body italic border-b border-white/40 self-start pb-1 text-lg" href="#">Read the Story</a>
+</div>
+</div>
+<div class="md:col-span-4 flex flex-col gap-8">
+<div class="h-1/2 relative overflow-hidden bg-surface-container-low group">
+<img class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" data-alt="Artistic detail of premium shoe materials, textures of suede and technical mesh, warm tone lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCY8QnXXR_LYWf6i_d5JVJ4jrvdIZj0hJTdc6_OjynUktayMPdIQmmnXbCweDkn7PYTz5bpgSarg2FwUItrMCXtb4B2UUq5meE3ER8jkEW-c1KmkTB6FHmQgEOWEw7y5duQcv5GD_7ljlTnFmuHVjykRMxm10p0TNGa_odA8eTmrMAF4WRIUZNJhemhwudBc3N3qxYgJhmTbRrQDqkdEKxQlor2y2BMo9I42y_0rbekeQLp4SA1K-dOKqDLsKQM9RP9_pgBtwJsq3jK"/>
+<div class="absolute bottom-8 left-8 right-8 p-6 bg-surface border border-outline-variant/10">
+<p class="font-headline font-bold text-[10px] tracking-[0.3em] uppercase text-on-surface">Material Archive</p>
+</div>
+</div>
+<div class="h-1/2 relative overflow-hidden bg-surface-container-low group">
+<img class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" data-alt="Wide shot of a model walking in a desert landscape wearing tonal minimalist streetwear and sneakers, cinematic wide angle" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCu2CehKqFLfE_kmoEYWT8Tl9bJnafsHfDMH7e8ugqhkH4WUdR0h-tavm1TBGv0OsMSYfo4MTQtn_r2BjGKhM8QBd9tL4oWonvwJfeKQSSvNAChckqyV8aTXainn9Pts1pZCHcmd2geO2KYZ2g7IZUDcp7IN_tf4YkH0W860apu6k67hRQwg7L7j2OrRuevKDb366OKNeBE9s_242wZLYDeH10N_rPl8RLOxgfUHyNwY7rPAeot26DSsXzGq9srnA9YhLbaoxQ19YuL"/>
+<div class="absolute bottom-8 left-8 right-8 p-6 bg-surface border border-outline-variant/10">
+<p class="font-headline font-bold text-[10px] tracking-[0.3em] uppercase text-on-surface">Lookbook FW24</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="w-full py-24 px-8 mt-auto bg-[#f5f4ed] dark:bg-stone-950 flex flex-col items-center gap-12 border-t border-outline-variant/10">
+<div class="font-headline font-black uppercase text-[10px] tracking-[0.4em] text-[#31332c] dark:text-stone-300">KIXX DIGITAL CURATION</div>
+<div class="flex flex-wrap justify-center gap-12">
+<a class="text-[#5e6058] dark:text-stone-500 font-body text-sm italic hover:text-[#31332c] dark:hover:text-white transition-colors" href="#">Privacy Policy</a>
+<a class="text-[#5e6058] dark:text-stone-500 font-body text-sm italic hover:text-[#31332c] dark:hover:text-white transition-colors" href="#">Terms of Service</a>
+<a class="text-[#5e6058] dark:text-stone-500 font-body text-sm italic hover:text-[#31332c] dark:hover:text-white transition-colors" href="#">Shipping &amp; Returns</a>
+<a class="text-[#5e6058] dark:text-stone-500 font-body text-sm italic hover:text-[#31332c] dark:hover:text-white transition-colors" href="#">Contact</a>
+</div>
+<div class="text-[9px] font-headline tracking-[0.4em] text-on-surface-variant/30 mt-12 uppercase">© 2024 KIXX DIGITAL CURATION. ALL RIGHTS RESERVED.</div>
+</footer>
+</body></html>

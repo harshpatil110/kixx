@@ -53,6 +53,12 @@ export default function ProductCard({ product }) {
     const handleAddToCart = (e) => {
         e.preventDefault();
         e.stopPropagation();
+        
+        if (product.stock === 0) {
+            toast.error('Product is out of stock!');
+            return;
+        }
+
         addItem({
             ...product,
             variantId: product.id,
@@ -74,52 +80,68 @@ export default function ProductCard({ product }) {
 
     if (!product) return null;
 
-    return (
-        <Link
-            to={`/product/${product.id}`}
-            className="group flex flex-col relative overflow-hidden bg-white dark:bg-gray-900 rounded-[32px] p-4 border border-gray-100 dark:border-gray-800 transition-transform duration-300 hover:-translate-y-1 shadow-sm"
-            onMouseEnter={handleMouseEnter}
-            onFocus={handleMouseEnter}
-        >
-            <div className="aspect-square bg-gray-50 dark:bg-gray-800 rounded-[20px] mb-4 flex items-center justify-center p-4 relative overflow-hidden">
-                {product.imageUrl ? (
-                    <ProgressiveImage
-                        src={product.imageUrl}
-                        alt={product.name}
-                        loading="lazy"
-                        className="w-full h-full object-cover aspect-square transform group-hover:scale-105 transition-transform duration-500"
-                    />
-                ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-400 font-medium text-sm uppercase tracking-widest">
-                        No Image
-                    </div>
-                )}
+    const shortId = product.id ? String(product.id).substring(0, 4).toUpperCase() : '0000';
+    const transparentImgUrl = product.imageUrl ? product.imageUrl.replace(/\.(jpg|jpeg|png)$/i, '-transparent.png') : null;
 
+    return (
+        <div className="group cursor-pointer">
+            <Link
+                to={`/product/${product.id}`}
+                className="card-3d relative bg-transparent border border-outline-variant/20 aspect-[4/5] p-8 flex flex-col justify-between mb-6 shadow-sm w-full h-full block"
+                onMouseEnter={handleMouseEnter}
+                onFocus={handleMouseEnter}
+            >
+                <div className="flex justify-between items-start z-10 relative">
+                    <span className="font-label text-[10px] tracking-tighter text-on-surface-variant">SKU: KX-{shortId}</span>
+                    <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); }} className="material-symbols-outlined text-on-surface-variant hover:text-tertiary transition-colors z-20">
+                        favorite
+                    </button>
+                </div>
+                
+                <div className="flex-grow flex items-center justify-center p-4 z-0 relative">
+                    {transparentImgUrl || product.imageUrl ? (
+                        <ProgressiveImage
+                            src={transparentImgUrl || product.imageUrl}
+                            alt={product.name}
+                            loading="lazy"
+                            className="w-full object-contain image-bleed transition-transform duration-700 group-hover:scale-110"
+                        />
+                    ) : (
+                        <div className="w-full h-full flex items-center justify-center text-gray-400 font-medium text-sm uppercase tracking-widest">
+                            No Image
+                        </div>
+                    )}
+                </div>
+                
                 {product.isNew && (
-                    <div className="absolute top-4 left-4 bg-black text-white text-xs font-bold px-2 py-1 rounded">
+                    <div className="absolute top-8 left-1/2 -translate-x-1/2 bg-[#31332c] text-white text-[10px] font-bold px-3 py-1 rounded-full z-10 tracking-[0.2em]">
                         NEW
                     </div>
                 )}
+                
+                <div className="flex justify-between items-end z-10 relative">
+                    <div className="space-y-1">
+                        <h3 className="font-headline font-bold text-lg tracking-tight uppercase text-on-surface">{product.name}</h3>
+                        <p className="font-label text-[10px] tracking-widest text-on-surface-variant uppercase">
+                            {product.brand?.name || product.category || 'Sneaker'}
+                        </p>
+                    </div>
+                    <p className="font-body italic text-xl text-on-surface">{formatPrice(product.basePrice)}</p>
+                </div>
 
-                <button
-                    onClick={handleAddToCart}
-                    className="absolute bottom-4 left-1/2 transform -translate-x-1/2 px-6 py-2 rounded-full font-bold text-sm tracking-wide shadow-lg w-max flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-white/60 dark:bg-black/60 backdrop-blur-[10px] border border-white/90 dark:border-white/30 text-black dark:text-white"
-                >
-                    + QUICK ADD
-                </button>
-            </div>
-
-            <div className="mt-auto px-1">
-                <p className="text-sm text-gray-500 dark:text-gray-400 font-semibold mb-1 uppercase">
-                    {product.brand?.name || product.category || 'Sneaker'}
-                </p>
-                <h3 className="text-lg font-bold leading-tight mb-2 text-gray-900 dark:text-white" style={{ letterSpacing: '-0.05em' }}>
-                    {product.name}
-                </h3>
-                <p className="text-xl font-extrabold text-[#800000]">
-                    {formatPrice(product.basePrice)}
-                </p>
-            </div>
-        </Link>
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-20">
+                    <button
+                        onClick={handleAddToCart}
+                        disabled={product.stock === 0}
+                        className={`pointer-events-auto px-6 py-3 rounded-full font-bold text-xs tracking-widest shadow-xl flex items-center gap-2 transition-all 
+                            ${product.stock === 0 
+                                ? 'bg-gray-400 text-white cursor-not-allowed hidden' 
+                                : 'bg-surface/90 backdrop-blur-md border border-outline-variant/30 text-on-surface hover:bg-tertiary hover:text-white'}`}
+                    >
+                        {product.stock === 0 ? 'OUT OF STOCK' : '+ QUICK ADD'}
+                    </button>
+                </div>
+            </Link>
+        </div>
     );
 }

@@ -49,4 +49,46 @@
     .product-card:hover .quick-add-btn {
         opacity: 1;
     }
+
+    .perspective-container {
+      perspective: 1200px;
+    }
+
+    .card-3d {
+      transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+      transform-style: preserve-3d;
+      will-change: transform;
+    }
+
+    .group:hover .card-3d {
+      transform: translateZ(60px) rotateY(-8deg) rotateX(4deg);
+      box-shadow: 40px 40px 60px rgba(0,0,0,0.05), -10px -10px 40px rgba(255,255,255,0.8);
+    }
+
+    .card-3d::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: inherit; /* will inherit if possible, but works for effect */
+      transform: translateZ(-20px) scale(0.98);
+      opacity: 0.5;
+      z-index: -1;
+      border: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .card-3d::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: inherit;
+      transform: translateZ(-40px) scale(0.96);
+      opacity: 0.2;
+      z-index: -2;
+      border: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .image-bleed {
+      filter: drop-shadow(0 20px 30px rgba(49, 51, 44, 0.08));
+      transform: translateZ(40px);
+    }
 }

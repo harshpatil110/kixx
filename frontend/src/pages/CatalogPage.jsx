@@ -1,132 +1,9 @@
 import React, { useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { getProducts } from '../services/productService';
-import { formatPrice } from '../utils/currency';
-import useCartStore from '../store/cartStore';
 import useAuthStore from '../store/authStore';
-import { prefetchProduct } from '../config/queryClient';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
 import PromoToast from '../components/PromoToast';
-
-/*
-  STITCH LIGHT THEME — catalog.html
-  ────────────────────────────────────────
-  body bg: #ffffff  text: gray-900  font: Inter
-  body bg-image: radial-gradient(circle at 10% 20%, rgba(200,200,200,0.2) 0%, transparent 40%),
-                 radial-gradient(circle at 90% 80%, rgba(128,0,0,0.1) 0%, transparent 40%)
-  bg-attachment: fixed
-
-  .liquid-glass (LIGHT):
-    background: rgba(255,255,255,0.4)
-    backdrop-filter: blur(20px)
-    border-top: 1px solid rgba(255,255,255,0.8)
-    border-left: 1px solid rgba(255,255,255,0.8)
-    box-shadow: 0 8px 32px 0 rgba(0,0,0,0.1)
-
-  product-card: bg-white  border-gray-100
-  product-card image box: bg-gray-50
-  quick-add-btn (LIGHT): bg rgba(255,255,255,0.6) border rgba(255,255,255,0.9)
-  h1/h2/h3 nav-logo: letter-spacing -0.05em
-  primary: #800000
-*/
-
-function ProductCard({ product }) {
-    const addItem = useCartStore((state) => state.addItem);
-    const navigate = useNavigate();
-
-    const handleMouseEnter = () => { prefetchProduct(String(product.id)); };
-
-    /* Card-level click: navigate ONLY if the click did NOT originate from the quick-add button */
-    const handleCardClick = (e) => {
-        if (e.target.closest('[data-quick-add]')) return;   // ← bail out
-        navigate('/product/' + product.id);
-    };
-
-    /* Quick-add click: triple-guarded so navigation never fires */
-    const handleAddToCart = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        e.nativeEvent.stopImmediatePropagation();
-        addItem({
-            ...product,
-            variantId: product.id,
-            price: parseFloat(product.basePrice),
-            quantity: 1,
-            stock: product.stock || 10,
-        });
-    };
-
-    if (!product) return null;
-
-    return (
-        <div
-            onClick={handleCardClick}
-            onMouseEnter={handleMouseEnter}
-            onFocus={handleMouseEnter}
-            /* Stitch: product-card bg-white rounded-2xl p-4 flex flex-col relative overflow-hidden group
-               border border-gray-100  transition:transform 0.3s ease  hover:translateY(-5px) */
-            className="group bg-white rounded-2xl p-4 flex flex-col relative overflow-hidden border border-gray-100 transition-transform duration-[300ms] ease-[ease] hover:-translate-y-[5px] cursor-pointer"
-        >
-            {/* Image area — relative wrapper (no overflow-hidden here so quick-add stays visible) */}
-            <div className="aspect-square w-full bg-gray-50 rounded-xl mb-4 relative">
-                {/* Inner image box — pointer-events-none so clicks pass through to the button */}
-                <div className="absolute inset-0 overflow-hidden rounded-xl pointer-events-none">
-                    {product.imageUrl ? (
-                        <img
-                            src={product.imageUrl}
-                            alt={product.name}
-                            loading="lazy"
-                            className="w-full h-full object-cover object-center transform group-hover:scale-105 transition-transform duration-500"
-                        />
-                    ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm uppercase tracking-widest">No Image</div>
-                    )}
-                </div>
-
-                {/* Badges: NEW / SALE */}
-                {product.isNew && (
-                    <div className="absolute top-4 left-4 bg-black text-white text-xs font-bold px-2 py-1 rounded z-10">NEW</div>
-                )}
-                {product.isOnSale && (
-                    <div className={`absolute top-4 ${product.isNew ? 'left-20' : 'left-4'} bg-[#800000] text-white text-xs font-bold px-2 py-1 rounded z-10`}>SALE</div>
-                )}
-
-                {/* Stitch quick-add-btn — data-quick-add attribute lets handleCardClick bail out */}
-                <button
-                    data-quick-add
-                    onClick={handleAddToCart}
-                    className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10
-                        px-6 py-2 rounded-full font-bold text-sm tracking-wide shadow-lg
-                        w-max flex items-center gap-2 text-black
-                        opacity-0 group-hover:opacity-100 transition-opacity duration-[300ms] ease-[ease]
-                        bg-[rgba(255,255,255,0.6)]
-                        backdrop-blur-[10px] [-webkit-backdrop-filter:blur(10px)]
-                        border border-[rgba(255,255,255,0.9)]
-                        pointer-events-auto"
-                >
-                    <span>+ QUICK ADD</span>
-                </button>
-            </div>
-
-            {/* Stitch: div.mt-auto */}
-            <div className="mt-auto">
-                {/* Stitch: p.text-sm.text-gray-500.font-semibold.mb-1.uppercase */}
-                <p className="text-sm text-gray-500 font-semibold mb-1 uppercase">
-                    {product.brand?.name || product.category || 'Sneaker'}
-                </p>
-                {/* Stitch: h3.text-lg.font-bold.leading-tight.mb-2  letter-spacing:-0.05em */}
-                <h3 className="text-lg font-bold leading-tight mb-2 tracking-[-0.05em] text-gray-900">
-                    {product.name}
-                </h3>
-                {/* Stitch: p.text-xl.font-extrabold.text-primary (#800000) */}
-                <p className="text-xl font-extrabold text-[#800000]">
-                    {formatPrice(product.basePrice)}
-                </p>
-            </div>
-        </div>
-    );
-}
+import ProductCard from '../components/ProductCard';
 
 export default function CatalogPage() {
     const [brandFilter, setBrandFilter] = useState('');
@@ -152,22 +29,22 @@ export default function CatalogPage() {
         localStorage.setItem('kixx_promo_dismissed', 'true');
         setShowPromo(false);
     };
-    
+
     const itemsPerPage = 8;
 
     const { data: products, isLoading, isError } = useQuery({
         queryKey: ['products'],
         queryFn: async () => {
-             try {
-                 const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-                 const res = await fetch(`${baseUrl}/api/products`);
-                 if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-                 const data = await res.json();
-                 return data.products;
-             } catch (error) {
-                 console.error("FRONTEND FETCH ERROR:", error);
-                 throw error;
-             }
+            try {
+                const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+                const res = await fetch(`${baseUrl}/api/products`);
+                if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+                const data = await res.json();
+                return data.products;
+            } catch (error) {
+                console.error("FRONTEND FETCH ERROR:", error);
+                throw error;
+            }
         },
     });
 
@@ -180,14 +57,12 @@ export default function CatalogPage() {
         if (!products) return [];
         let result = products;
 
-        // URL category filter (NEW / SALE)
         if (category === 'new') {
             result = result.filter(p => p.isNew === true);
         } else if (category === 'sale') {
             result = result.filter(p => p.isOnSale === true);
         }
 
-        // Sidebar brand filter
         if (brandFilter) {
             result = result.filter(p => p.brand?.name?.toLowerCase() === brandFilter.toLowerCase());
         }
@@ -195,7 +70,6 @@ export default function CatalogPage() {
         return result;
     }, [products, brandFilter, category]);
 
-    // Reset pagination to page 1 when filters change
     React.useEffect(() => {
         setCurrentPage(1);
     }, [brandFilter, category]);
@@ -206,189 +80,112 @@ export default function CatalogPage() {
         return filteredProducts.slice(start, start + itemsPerPage);
     }, [filteredProducts, currentPage, itemsPerPage]);
 
-    // Dynamic page title
-    const pageTitle = React.useMemo(() => {
-        if (category === 'new') return 'NEW ARRIVALS';
-        if (category === 'sale') return 'SALE';
-        if (brandFilter) return brandFilter.toUpperCase();
-        return 'ALL SNEAKERS';
+    const pageTitleParts = React.useMemo(() => {
+        if (category === 'new') return { main: 'NEW', sub: 'ARRIVALS' };
+        if (category === 'sale') return { main: 'CURATED', sub: 'SALE' };
+        if (brandFilter) return { main: brandFilter.toUpperCase(), sub: 'COLLECTION' };
+        return { main: 'ARCHIVE', sub: 'COLLECTION' };
     }, [category, brandFilter]);
 
     return (
-        <>
-        {/*
-          Stitch body: bg-background-light (#ffffff) text-gray-900 min-h-screen antialiased
-          bg-image: two radial-gradients (fixed attachment)
-        */}
-        <div
-            className="bg-[#ffffff] text-gray-900 min-h-screen antialiased font-[Inter,sans-serif] bg-fixed"
-            style={{
-                backgroundImage: `radial-gradient(circle at 10% 20%, rgba(200,200,200,0.2) 0%, transparent 40%),
-                                  radial-gradient(circle at 90% 80%, rgba(128,0,0,0.1) 0%, transparent 40%)`,
-            }}
-        >
-            {/* Stitch: div.pt-28.px-8.pb-12.max-w-7xl.mx-auto.flex.flex-col.md:flex-row.gap-8 */}
-            <div className="pt-28 pb-12 w-full px-4 sm:px-6 flex flex-col md:flex-row gap-8">
-
-                {/* Stitch: aside.w-full.md:w-64.flex-shrink-0 */}
-                <aside className="w-full md:w-64 flex-shrink-0">
-                    {/*
-                      Stitch: div.liquid-glass.rounded.p-6.sticky.top-32
-                      "rounded" = borderRadius DEFAULT = 32px
-                      LIGHT .liquid-glass values:
-                        bg: rgba(255,255,255,0.4)  blur:20px
-                        border-top: rgba(255,255,255,0.8)  border-left: rgba(255,255,255,0.8)
-                        shadow: 0 8px 32px 0 rgba(0,0,0,0.1)
-                    */}
-                    <div className="rounded-[32px] p-6 sticky top-32
-                        bg-white/60
-                        backdrop-blur-md [-webkit-backdrop-filter:blur(16px)]
-                        border border-white/40
-                        shadow-[2px_0_10px_rgba(0,0,0,0.03)]">
-
-                        {/* Stitch: h2.text-2xl.font-bold.mb-6  letter-spacing:-0.05em  text:gray-900 */}
-                        <h2 className="text-2xl font-bold mb-6 tracking-[-0.05em] text-gray-900">FILTERS</h2>
-
-                        {/* BRAND */}
-                        <div className="mb-8">
-                            <h3 className="font-semibold mb-3 tracking-[-0.05em] text-gray-900">BRAND</h3>
-                            <div className="space-y-2">
-                                <label className="flex items-center gap-3 cursor-pointer text-gray-900">
-                                    <input
-                                        type="radio" name="brand" checked={brandFilter === ''}
-                                        onChange={() => setBrandFilter('')}
-                                        className="form-radio text-[#800000] rounded border-gray-400 bg-transparent focus:ring-[#800000] h-4 w-4"
-                                    />
-                                    <span>All</span>
-                                </label>
-                                {brands.map(brand => (
-                                    <label key={brand} className="flex items-center gap-3 cursor-pointer text-gray-900">
-                                        <input
-                                            type="radio" name="brand" checked={brandFilter === brand}
-                                            onChange={() => setBrandFilter(brand)}
-                                            className="form-radio text-[#800000] rounded border-gray-400 bg-transparent focus:ring-[#800000] h-4 w-4"
-                                        />
-                                        <span>{brand}</span>
-                                    </label>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* SIZE */}
-                        <div>
-                            <h3 className="font-semibold mb-3 tracking-[-0.05em] text-gray-900">SIZE (US)</h3>
-                            {/*
-                              Stitch size btn classes:
-                              default: border border-gray-300 py-2 rounded-md hover:border-primary transition-colors
-                              grey:    border border-gray-300 py-2 rounded-md bg-gray-100
-                              active:  border border-primary bg-primary/10 py-2 rounded-md text-primary font-bold
-                            */}
-                            <div className="grid grid-cols-3 gap-2">
-                                {[
-                                    { size: 7, v: 'default' }, { size: 8, v: 'grey' },
-                                    { size: 9, v: 'default' }, { size: 10, v: 'active' },
-                                    { size: 11, v: 'default' }, { size: 12, v: 'default' },
-                                ].map(({ size, v }) => (
-                                    <button key={size} className={
-                                        v === 'active'   ? 'border border-[#800000] bg-[#800000]/10 py-2 rounded-md text-[#800000] font-bold' :
-                                        v === 'grey'     ? 'border border-gray-300 py-2 rounded-md bg-gray-100 text-gray-900' :
-                                                           'border border-gray-300 py-2 rounded-md hover:border-[#800000] transition-colors text-gray-900'
-                                    }>{size}</button>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                </aside>
-
-                {/* Stitch: main.flex-1 */}
-                <main className="flex-1">
-
-
-                    {/* Stitch: div.flex.justify-between.items-end.mb-8 */}
-                    <div className="flex justify-between items-end mb-8">
-                        {/* Stitch: h1.text-4xl.md:text-5xl.font-extrabold  text:gray-900  letter-spacing:-0.05em */}
-                        <h1 className="text-4xl md:text-5xl font-extrabold tracking-[-0.05em] uppercase text-gray-900">
-                            {pageTitle}
+        <div className="bg-surface font-body text-on-surface min-h-screen">
+            <main className="pt-32 pb-24 px-8 max-w-screen-2xl mx-auto">
+                <section className="mb-20 grid grid-cols-12 gap-8 items-end">
+                    <div className="col-span-12 lg:col-span-8">
+                        <span className="font-label text-[10px] tracking-[0.3em] text-on-surface-variant uppercase mb-4 block">Issue No. 04 / {(new Date()).getFullYear()}</span>
+                        <h1 className="font-headline font-black text-6xl lg:text-8xl tracking-tighter leading-[0.9] text-on-surface uppercase">
+                            THE <span className="text-tertiary">{pageTitleParts.main}</span><br />{pageTitleParts.sub}
                         </h1>
-                        {/* Stitch: span.text-gray-500.font-medium */}
-                        <span className="text-gray-500 font-medium">
-                            {isLoading ? '—' : `${filteredProducts.length} Results`}
-                        </span>
                     </div>
+                    <div className="col-span-12 lg:col-span-4 pb-2">
+                        <p className="text-lg italic text-on-surface-variant leading-relaxed border-l-2 border-tertiary pl-6">
+                            A curated selection of technical silhouettes and timeless artifacts. We redefine the sneaker as a sculptural object through high-contrast editorial discovery.
+                        </p>
+                    </div>
+                </section>
 
-                    {/* Skeleton — Stitch card shape, light */}
-                    {isLoading && (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                            {Array.from({ length: 8 }).map((_, i) => (
-                                <div key={i} className="animate-pulse bg-white rounded-2xl p-4 border border-gray-100">
-                                    <div className="aspect-square bg-gray-100 rounded-xl mb-4" />
-                                    <div className="space-y-2">
-                                        <div className="h-3 bg-gray-100 w-1/4 rounded" />
-                                        <div className="h-5 bg-gray-100 w-3/4 rounded" />
-                                        <div className="h-5 bg-gray-100 w-1/3 rounded" />
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    )}
+                <div className="flex justify-between items-center mb-12 border-b border-outline-variant/10 pb-6">
+                    <div className="flex gap-8 items-center font-label text-[10px] tracking-widest text-on-surface-variant overflow-x-auto whitespace-nowrap pb-2 scrollbar-none px-2 -mx-2">
+                        <button
+                            onClick={() => setBrandFilter('')}
+                            className={!brandFilter ? "text-on-surface font-bold border-b border-on-surface uppercase py-1" : "hover:text-on-surface transition-colors uppercase py-1"}
+                        >
+                            ALL OBJECTS
+                        </button>
+                        {brands.map(brand => (
+                            <button
+                                key={brand}
+                                onClick={() => setBrandFilter(brand)}
+                                className={brandFilter === brand ? "text-on-surface font-bold border-b border-on-surface uppercase py-1" : "hover:text-on-surface transition-colors uppercase py-1"}
+                            >
+                                {brand}
+                            </button>
+                        ))}
+                    </div>
+                    <div className="flex items-center gap-4 flex-shrink-0">
+                        <span className="font-label text-[10px] tracking-widest text-on-surface-variant">SORT BY: RECENT</span>
+                        <span className="material-symbols-outlined text-sm">keyboard_arrow_down</span>
+                    </div>
+                </div>
 
-                    {/* Error */}
-                    {!isLoading && isError && (
-                        <div className="text-center py-24 text-gray-500">
-                            <p className="text-lg font-semibold">Failed to load products.</p>
-                        </div>
-                    )}
+                {isLoading && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-y-24 gap-x-12">
+                        {Array.from({ length: 6 }).map((_, i) => (
+                            <div key={i} className="animate-pulse bg-surface-container border border-outline-variant/20 aspect-[4/5] p-8"></div>
+                        ))}
+                    </div>
+                )}
 
-                    {/* Stitch: div.grid.grid-cols-1.sm:grid-cols-2.lg:grid-cols-3.gap-6 */}
-                    {!isLoading && !isError && filteredProducts.length > 0 && (
-                        <>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                                {paginatedProducts.map(product => (
-                                    <ProductCard key={product.id} product={product} />
-                                ))}
+                {!isLoading && isError && (
+                    <div className="text-center py-24 text-on-surface-variant">
+                        <p className="font-headline text-lg font-semibold">Failed to load artifacts.</p>
+                    </div>
+                )}
+
+                {!isLoading && !isError && filteredProducts.length > 0 && (
+                    <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-y-24 gap-x-12 perspective-container">
+                        {paginatedProducts.map((product, index) => (
+                            <div key={product.id} className={index % 3 === 1 ? 'lg:mt-12' : ''}>
+                                <ProductCard product={product} />
                             </div>
+                        ))}
+                    </section>
+                )}
 
-                            {/* Stitch pagination — dynamic */}
-                            {totalPages > 1 && (
-                            <div className="mt-12 flex justify-center gap-2">
-                                <button
-                                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                                    disabled={currentPage === 1}
-                                    className={`w-10 h-10 rounded-full flex items-center justify-center border border-gray-300 text-gray-900 transition-colors ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'}`}
-                                >
-                                    <ChevronLeft className="w-5 h-5" />
-                                </button>
-                                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                                    <button
-                                        key={page}
-                                        onClick={() => setCurrentPage(page)}
-                                        className={`w-10 h-10 rounded-full flex items-center justify-center font-bold transition-colors ${currentPage === page ? 'bg-[#800000] text-white border-transparent' : 'border border-gray-300 hover:bg-gray-100 text-gray-900'}`}
-                                    >
-                                        {page}
-                                    </button>
-                                ))}
-                                <button
-                                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                                    disabled={currentPage === totalPages}
-                                    className={`w-10 h-10 rounded-full flex items-center justify-center border border-gray-300 text-gray-900 transition-colors ${currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'}`}
-                                >
-                                    <ChevronRight className="w-5 h-5" />
-                                </button>
-                            </div>
-                            )}
-                        </>
-                    )}
+                {!isLoading && !isError && filteredProducts.length === 0 && (
+                    <div className="text-center py-24 text-on-surface-variant">
+                        <p className="font-headline text-lg font-semibold uppercase tracking-widest">No artifacts found.</p>
+                    </div>
+                )}
 
-                    {/* Empty */}
-                    {!isLoading && !isError && filteredProducts.length === 0 && (
-                        <div className="text-center py-24 text-gray-500">
-                            <p className="text-lg font-semibold uppercase tracking-[-0.05em]">No sneakers found.</p>
+                {!isLoading && !isError && totalPages > 1 && (
+                    <div className="mt-20 flex justify-center gap-4">
+                        <button
+                            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                            disabled={currentPage === 1}
+                            className={`px-4 py-2 font-label text-xs tracking-widest uppercase transition-colors border border-outline/20 ${currentPage === 1 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-surface-variant text-on-surface'}`}
+                        >
+                            PREV
+                        </button>
+                        <div className="flex items-center gap-2 font-label text-[10px] tracking-[0.2em] text-on-surface-variant">
+                           {currentPage} / {totalPages}
                         </div>
-                    )}
-                </main>
-            </div>
+                        <button
+                            onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                            disabled={currentPage === totalPages}
+                            className={`px-4 py-2 font-label text-xs tracking-widest uppercase transition-colors border border-outline/20 ${currentPage === totalPages ? 'opacity-30 cursor-not-allowed' : 'hover:bg-surface-variant text-on-surface'}`}
+                        >
+                            NEXT
+                        </button>
+                    </div>
+                )}
+
+                <div className="mt-40 mb-32 max-w-3xl mx-auto text-center hidden md:block">
+                    <h2 className="font-headline font-bold text-4xl mb-8 leading-tight tracking-tighter text-on-surface">"SNEAKERS ARE NO LONGER COMMODITIES; THEY ARE THE TEXTURES OF MODERN ARCHITECTURE FOR THE FEET."</h2>
+                    <span className="font-label text-[10px] tracking-[0.4em] uppercase text-tertiary">— KIXX EDITORIAL TEAM</span>
+                </div>
+            </main>
+            <PromoToast isOpen={showPromo} onClose={handleClosePromo} />
         </div>
-        <PromoToast isOpen={showPromo} onClose={handleClosePromo} />
-        </>
     );
 }

@@ -6,49 +6,11 @@ import { getProductById } from '../services/productService';
 import useCartStore from '../store/cartStore';
 import useAuthStore from '../store/authStore';
 import { formatPrice } from '../utils/currency';
-import VariantSelector from '../components/VariantSelector';
 import toast from 'react-hot-toast';
 import ARTryOn from '../components/ARTryOn';
 import { StyleMatchBadge, GuestStyleMatchInfo } from '../components/RecommendedFeed';
 import api from '../services/api';
 
-/*
-  STITCH LIGHT THEME — pdp.html (KIXX Liquid Glass PDP)
-  ──────────────────────────────────────────────────────
-  body: bg-[#f5f5f5]  text-gray-900  font-body:Inter  min-h-screen
-  .orb: fixed rounded-full blur-[80px] z-[-1] opacity-50
-    orb1: w-[500px] h-[500px] bg-red-200      top-[-100px]   left-[-100px]
-    orb2: w-[400px] h-[400px] bg-blue-200     bottom-[-50px] right-[-100px]
-    animation: float 20s infinite ease-in-out alternate
-    @keyframes float: translate(0,0)→translate(50px,-50px) scale(1)→scale(1.1)
-
-  GLASS BUTTONS (back / fav / size) — LIGHT:
-    bg: rgba(255,255,255,0.7)
-    border: 1px solid rgba(255,255,255,0.2)
-    backdrop-filter: blur(16px)
-    box-shadow: 0 8px 32px 0 rgba(31,38,135,0.1)
-    text: text-gray-900
-
-  Size btn LIGHT (default):
-    bg: rgba(255,255,255,0.7)  border: rgba(255,255,255,0.2)  blur(16px)
-    text-gray-900  hover:-translate-y-1 hover:border-primary
-  Size btn ACTIVE:  border-2 border-[#800000]  font-bold
-  Size btn OOS:     opacity-50 cursor-not-allowed
-
-  Product name h1: font-display (Anton) text-gray-900
-  Price p: text-gray-900
-  Desc p: text-gray-600
-
-  Fixed bottom bar — LIGHT glass:
-    rounded-[32px]
-    bg: rgba(255,255,255,0.7)
-    border: rgba(255,255,255,0.2)
-    backdrop-filter: blur(16px)
-    shadow-[0_20px_40px_rgba(0,0,0,0.1)]
-  Price label: text-gray-500  price value: text-gray-900
-  share btn: bg-white/10  text-gray-900
-  Add-to-cart btn: bg-[#800000] text-white  hover:bg-[#600000]  rounded-[24px]
-*/
 export default function ProductDetailPage() {
     const { id } = useParams();
     const [selectedVariant, setSelectedVariant] = useState(null);
@@ -58,16 +20,14 @@ export default function ProductDetailPage() {
     const user = useAuthStore(state => state.user);
     const userId = user?.id || null;
 
-    // Log a 'view' interaction when the product is loaded
     useEffect(() => {
         if (userId && id) {
             api.post('/api/recommendations/interaction', {
                 userId, productId: id, actionType: 'view'
-            }).catch(() => {}); // fire-and-forget
+            }).catch(() => {}); 
         }
     }, [userId, id]);
 
-    // Fetch the style match score for logged-in users
     useEffect(() => {
         if (userId && id) {
             api.get(`/api/recommendations/style-match/${userId}/${id}`)
@@ -75,6 +35,7 @@ export default function ProductDetailPage() {
                 .catch(() => {});
         }
     }, [userId, id]);
+
     const addItem = useCartStore((state) => state.addItem);
     const navigate = useNavigate();
 
@@ -86,9 +47,11 @@ export default function ProductDetailPage() {
     });
 
     const handleAddToCart = () => {
-        if (!selectedVariant || selectedVariant.stock <= 0) return;
+        if (!selectedVariant || selectedVariant.stock <= 0) {
+            toast.error('Please select an available size.');
+            return;
+        }
 
-        // Stock guard: prevent adding more items than available
         const currentStock = parseInt(product.stock, 10) || 0;
         if (currentStock <= 0) {
             return toast.error('This product is currently out of stock.');
@@ -109,51 +72,33 @@ export default function ProductDetailPage() {
             variantId: selectedVariant.id, size: selectedVariant.size, color: selectedVariant.color,
             price: priceToUse, stock: selectedVariant.stock, quantity: 1,
         });
+        
         setShowSuccess(true);
         setTimeout(() => setShowSuccess(false), 3000);
+        
+        toast.success(`${product.name} added to cart!`, {
+            style: { background: '#1A1A1A', color: '#fff', fontWeight: 600, borderRadius: '12px' },
+            iconTheme: { primary: '#625d5b', secondary: '#fff' },
+            duration: 2000,
+        });
     };
 
-    const productStock = parseInt(product?.stock, 10) || 0;
-    const isOutOfStock = productStock === 0;
-    const isAddToCartDisabled = isOutOfStock || !selectedVariant || selectedVariant.stock <= 0;
-    const displayPrice = selectedVariant?.price
-        ? parseFloat(selectedVariant.price)
-        : parseFloat(product?.basePrice || 0);
-
-    /* Inline orb animation */
-    const orbStyle = `
-        @keyframes orb-float {
-            0%   { transform: translate(0,0) scale(1); }
-            100% { transform: translate(50px,-50px) scale(1.1); }
-        }
-        .hide-scrollbar::-webkit-scrollbar { display: none; }
-        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-    `;
-
-    /* Loading */
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-[#f5f5f5] relative overflow-x-hidden flex items-center justify-center">
-                <div className="fixed w-[500px] h-[500px] rounded-full bg-red-200 top-[-100px] left-[-100px] blur-[80px] opacity-50 z-[-1]" />
-                <div className="fixed w-[400px] h-[400px] rounded-full bg-blue-200 bottom-[-50px] right-[-100px] blur-[80px] opacity-50 z-[-1]" />
-                <div className="text-center">
-                    <div className="w-14 h-14 border-4 border-[#800000] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-                    <p className="text-gray-500 font-medium uppercase tracking-widest text-sm font-[Inter,sans-serif]">Loading</p>
-                </div>
+            <div className="min-h-screen bg-surface relative flex items-center justify-center">
+                <div className="w-14 h-14 border-4 border-on-surface border-t-transparent rounded-full animate-spin mx-auto mb-4" />
             </div>
         );
     }
 
-    /* Error */
     if (isError || !product) {
         return (
-            <div className="min-h-screen bg-[#f5f5f5] relative overflow-x-hidden flex items-center justify-center px-8">
-                <div className="fixed w-[500px] h-[500px] rounded-full bg-red-200 top-[-100px] left-[-100px] blur-[80px] opacity-50 z-[-1]" />
+            <div className="min-h-screen bg-surface flex items-center justify-center px-8">
                 <div className="text-center max-w-sm">
-                    <h2 className="font-[Anton,sans-serif] text-5xl uppercase mb-4 text-gray-900">Not Found</h2>
-                    <p className="text-gray-500 mb-8 font-[Inter,sans-serif]">{error?.message || 'This product could not be found.'}</p>
-                    <Link to="/catalog" className="inline-flex items-center gap-2 bg-[#800000] text-white rounded-full px-8 py-3 font-bold uppercase tracking-widest hover:bg-[#600000] transition-colors">
-                        <span className="material-icons">arrow_back</span>
+                    <h2 className="font-headline font-black text-5xl uppercase mb-4 text-on-surface tracking-tighter">Not Found</h2>
+                    <p className="text-on-surface-variant font-body mb-8 italic text-xl">{error?.message || 'This product could not be found.'}</p>
+                    <Link to="/catalog" className="inline-flex items-center gap-2 bg-on-surface text-surface py-4 px-8 font-headline font-bold uppercase tracking-widest hover:bg-primary-dim transition-all">
+                        <span className="material-symbols-outlined">arrow_back</span>
                         Back to Catalog
                     </Link>
                 </div>
@@ -161,202 +106,259 @@ export default function ProductDetailPage() {
         );
     }
 
+    const productStock = parseInt(product?.stock, 10) || 0;
+    const isOutOfStock = productStock === 0;
+    const displayPrice = selectedVariant?.price ? parseFloat(selectedVariant.price) : parseFloat(product?.basePrice || 0);
+
+    // Extract unique variants
+    const productVariants = product.variants || [];
+    const uniqueVariants = productVariants.reduce((acc, curr) => {
+        if (!acc.some(v => v.id === curr.id)) acc.push(curr);
+        return acc;
+    }, []);
+
+    // Helper to select variant
+    const onSelectVariant = (variant) => {
+        if (variant.stock > 0) setSelectedVariant(variant);
+    };
+
     return (
-        /* Stitch body: bg-[#f5f5f5] text-gray-900 font-body(Inter) min-h-screen relative overflow-x-hidden */
-        <div className="bg-[#f5f5f5] text-gray-900 font-[Inter,sans-serif] min-h-screen relative overflow-x-hidden transition-colors duration-300">
-            <style>{orbStyle}</style>
+        <div className="font-body text-on-surface selection:bg-tertiary/20 bg-surface min-h-screen">
+            <style>{`
+                .tracking-tighter-extreme { letter-spacing: -0.06em; }
+            `}</style>
 
-            {/* Stitch orb-1: fixed w-[500px] h-[500px] bg-red-200 top-[-100px] left-[-100px] blur-[80px] opacity-50 */}
-            <div className="fixed w-[500px] h-[500px] rounded-full bg-red-200 top-[-100px] left-[-100px] blur-[80px] opacity-50 z-[-1]"
-                style={{ animation: 'orb-float 20s infinite ease-in-out alternate' }} />
-            <div className="fixed w-[400px] h-[400px] rounded-full bg-blue-200 bottom-[-50px] right-[-100px] blur-[80px] opacity-50 z-[-1]"
-                style={{ animation: 'orb-float 20s infinite ease-in-out alternate', animationDelay: '-5s' }} />
+            <main className="pt-24 pb-24 px-8 max-w-screen-2xl mx-auto">
+                <div className="mb-8 flex items-center gap-2 font-headline text-[10px] uppercase tracking-widest text-on-surface-variant">
+                    <Link to="/" className="hover:text-tertiary transition-colors">Home</Link>
+                    <span>/</span>
+                    <Link to="/catalog" className="hover:text-tertiary transition-colors">Archive</Link>
+                    <span>/</span>
+                    <span className="text-on-surface font-bold">{product.name}</span>
+                </div>
 
-            {/* Stitch: main.w-full.min-h-screen.flex.flex-col.md:flex-row.pb-24.md:pb-0 */}
-            <main className="w-full min-h-screen flex flex-col md:flex-row pb-24 md:pb-0">
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-20 items-start">
+                    {/* Left: Sticky Gallery */}
+                    <div className="md:col-span-7 lg:col-span-8 space-y-20">
+                        <div className="relative group overflow-hidden bg-surface-container-low">
+                            <img 
+                                className="w-full aspect-[4/5] object-cover mix-blend-multiply" 
+                                src={product.imageUrl || 'https://placehold.co/800x1000?text=No+Image'} 
+                                alt={product.name} 
+                            />
+                            {product.isNew && (
+                                <div className="absolute top-8 left-8">
+                                    <span className="font-headline font-bold text-[0.625rem] tracking-[0.25em] bg-surface px-4 py-2 uppercase border border-outline-variant/20">
+                                        New Arrival
+                                    </span>
+                                </div>
+                            )}
+                            
+                            {product.arModelUrl && (
+                                <button
+                                    onClick={() => setShowAR(true)}
+                                    className="absolute bottom-8 left-1/2 -translate-x-1/2 bg-surface/80 backdrop-blur-md px-6 py-3 font-headline font-bold uppercase tracking-widest text-on-surface border border-outline-variant/20 shadow-lg hover:bg-surface transition-all flex items-center gap-2 z-20"
+                                >
+                                    <span className="material-symbols-outlined">view_in_ar</span>
+                                    Try in AR
+                                </button>
+                            )}
+                        </div>
 
-                {/* LEFT: Stitch section.w-full.md:w-1/2.h-[50vh].md:h-screen.sticky.top-0.md:relative.z-10 */}
-                <section className="w-full md:w-1/2 h-[50vh] md:h-screen sticky top-0 md:relative z-10">
-                    <div className="w-full h-full relative overflow-hidden hide-scrollbar flex snap-x snap-mandatory overflow-x-auto">
-                        {/* Stitch: img.w-full.h-full.object-cover.shrink-0.snap-center */}
-                        <img
-                            src={product?.imageUrl || 'https://placehold.co/600x600?text=No+Image+Available'}
-                            alt={product?.name || 'Product Image'}
-                            className="w-full h-full object-cover shrink-0 snap-center bg-gray-100"
-                            onError={(e) => {
-                                e.target.onerror = null;
-                                e.target.src = 'https://placehold.co/600x600?text=No+Image+Available';
-                            }}
-                            loading="eager" fetchPriority="high" decoding="async"
-                        />
-                        
-                        {product.arModelUrl && (
-                            <button
-                                onClick={() => setShowAR(true)}
-                                className="absolute bottom-16 left-1/2 -translate-x-1/2 bg-white/70 backdrop-blur-md px-6 py-2 rounded-full font-bold uppercase tracking-widest text-[#800000] border border-white/50 shadow-lg hover:scale-105 transition-transform flex items-center gap-2 z-20"
-                            >
-                                <span className="material-icons">view_in_ar</span>
-                                Try in AR
-                            </button>
-                        )}
+                        {/* Additional images mapped dynamically. If we have them in product.images, map them. Else fallback to placeholder grid like Stitch. */}
+                        <div className="grid grid-cols-2 gap-12">
+                            {product.images?.length > 1 ? product.images.slice(1, 5).map((imgUrl, i) => (
+                                <img key={i} className="w-full aspect-square object-cover" src={imgUrl} alt={`${product.name} detail ${i}`} />
+                            )) : (
+                                // No multiple images? Add placeholders or duplicate image to replicate design ethos.
+                                <>
+                                    <img className="w-full aspect-square object-cover mix-blend-multiply" src={product.imageUrl || 'https://placehold.co/600x600'} alt="detail 1" />
+                                    <img className="w-full aspect-square object-cover mix-blend-multiply" src={product.imageUrl || 'https://placehold.co/600x600'} alt="detail 2" />
+                                </>
+                            )}
+                        </div>
 
-                        {/* Stitch: dots div.absolute.bottom-6.left-1/2.-translate-x-1/2.flex.gap-2 */}
-                        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2">
-                            <div className="w-2 h-2 rounded-full bg-white opacity-100" />
-                            <div className="w-2 h-2 rounded-full bg-white opacity-50" />
-                            <div className="w-2 h-2 rounded-full bg-white opacity-50" />
+                        {/* Product Narrative / Description */}
+                        <div className="py-24 border-t border-outline-variant/15">
+                            <h3 className="font-headline font-bold text-[10px] tracking-[0.3em] uppercase mb-10 text-on-surface-variant">The Narrative</h3>
+                            <p className="font-body text-2xl md:text-3xl leading-relaxed text-on-surface max-w-2xl">
+                                {product.description || `The ${product.name} is an exercise in restraint. Drawing inspiration from brutalism and organic bone structures, this silhouette bridges the gap between high-performance engineering and wearable sculpture.`}
+                            </p>
                         </div>
                     </div>
 
-                    {/* Back button — LIGHT glass: rgba(255,255,255,0.7) blur(16px) border rgba(255,255,255,0.2) */}
-                    <button onClick={() => navigate(-1)}
-                        className="absolute top-6 left-6 w-12 h-12 flex items-center justify-center rounded-full z-20
-                            bg-[rgba(255,255,255,0.7)]
-                            border border-[rgba(255,255,255,0.2)]
-                            backdrop-blur-[16px] [-webkit-backdrop-filter:blur(16px)]
-                            shadow-[0_8px_32px_0_rgba(31,38,135,0.1)]
-                            transition-transform hover:scale-105 text-gray-900">
-                        <span className="material-icons">arrow_back</span>
-                    </button>
-
-                    {/* Fav button — same LIGHT glass */}
-                    <button className="absolute top-6 right-6 w-12 h-12 flex items-center justify-center rounded-full z-20
-                            bg-[rgba(255,255,255,0.7)]
-                            border border-[rgba(255,255,255,0.2)]
-                            backdrop-blur-[16px] [-webkit-backdrop-filter:blur(16px)]
-                            shadow-[0_8px_32px_0_rgba(31,38,135,0.1)]
-                            transition-transform hover:scale-105 text-gray-900">
-                        <span className="material-icons">favorite_border</span>
-                    </button>
-                </section>
-
-                {/* RIGHT: Stitch section.w-full.md:w-1/2.p-8.md:p-16.lg:p-24.flex.flex-col.justify-center.min-h-[50vh].z-20 */}
-                <section className="w-full md:w-1/2 p-8 pb-32 md:p-16 lg:p-24 flex flex-col justify-center min-h-[50vh] z-20 overflow-hidden">
-                    <div className="max-w-xl w-full overflow-hidden">
-                        {/* Stitch: p.text-sm.font-semibold.tracking-widest.uppercase.text-gray-500.mb-4 */}
-                        <p className="text-sm font-semibold tracking-widest uppercase text-gray-500 mb-4">
-                            {product.brand?.name || 'New Release'}
-                        </p>
-                        {/* Stitch: h1.font-display(Anton) */}
-                        <h1 className="font-[Anton,sans-serif] text-4xl md:text-5xl lg:text-6xl uppercase leading-tight tracking-tight mb-4 text-gray-900 break-words whitespace-normal">
-                            {product.name}
-                        </h1>
-                        {/* Style Match Badge — shown for logged-in users, or Login Info for Guests */}
-                        <div className="mb-6">
-                            {userId ? (
-                                styleMatchScore !== null && (
-                                    <StyleMatchBadge score={styleMatchScore} />
-                                )
-                            ) : (
-                                <GuestStyleMatchInfo />
-                            )}
-                        </div>
-                        {/* Stitch: p.text-3xl.md:text-4xl.font-medium.mb-12  text-gray-900 */}
-                        <p className="text-3xl md:text-4xl font-medium mb-12 text-gray-900">
-                            {formatPrice(displayPrice)}
-                        </p>
-
-                        {/* ── Dynamic Inventory Badge ─────────────────────── */}
-                        <div className="mb-10">
-                            {productStock > 20 ? (
-                                <p className="text-sm font-medium text-emerald-600 flex items-center gap-2">
-                                    <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                                    In Stock
-                                </p>
-                            ) : productStock > 0 ? (
-                                <p className="text-sm font-bold text-[#800000] flex items-center gap-2">
-                                    <span className="w-2 h-2 rounded-full bg-[#800000] animate-pulse" />
-                                    Only {productStock} pairs left!
-                                </p>
-                            ) : (
-                                <p className="text-sm font-bold text-gray-400 flex items-center gap-2">
-                                    <span className="w-2 h-2 rounded-full bg-gray-400" />
-                                    Out of Stock
-                                </p>
-                            )}
-                        </div>
-                        {/* Stitch: div.mb-12.space-y-4.text-gray-600 */}
-                        <div className="mb-12 space-y-4 text-gray-600">
-                            <p>{product.description || 'Designed for the city streets. Engineered for the culture.'}</p>
-                        </div>
-
-                        {/* Size section */}
-                        <div className="mb-12">
-                            <div className="flex justify-between items-center mb-4">
-                                <h3 className="font-semibold uppercase tracking-wider text-sm text-gray-900">Select Size</h3>
-                                <a href="#" className="text-sm text-gray-500 hover:text-[#800000] transition-colors underline decoration-dotted">
-                                    Size Guide
-                                </a>
+                    {/* Right: Product Info (Sticky) */}
+                    <div className="md:col-span-5 lg:col-span-4 md:sticky md:top-32 space-y-16">
+                        <header className="space-y-6">
+                            <div className="flex justify-between items-end border-b border-outline-variant/10 pb-4">
+                                <span className="font-headline font-bold text-[10px] tracking-[0.3em] text-on-surface-variant uppercase">{product.brand?.name || 'Original Series'}</span>
+                                <span className="font-body italic text-xl text-on-surface-variant">{formatPrice(displayPrice)}</span>
                             </div>
-                            <VariantSelector variants={product.variants || []} onSelectVariant={setSelectedVariant} />
-                        </div>
-
-                        {/* Accordion — Stitch: div.border-t.border-gray-200 */}
-                        <div className="border-t border-gray-200">
-                            <div className="py-6 flex justify-between items-center cursor-pointer group">
-                                <h4 className="font-[Anton,sans-serif] text-xl uppercase tracking-wider group-hover:text-[#800000] transition-colors text-gray-900">
-                                    Product Details
-                                </h4>
-                                <span className="material-icons text-gray-400 group-hover:text-[#800000] transition-colors">add</span>
+                            <h1 className="font-headline font-black text-6xl lg:text-7xl xl:text-8xl leading-[0.85] tracking-tighter-extreme text-on-surface uppercase -ml-2 break-words">
+                                {product.name.split(' ').map((word, i) => <React.Fragment key={i}>{word}<br/></React.Fragment>)}
+                            </h1>
+                            
+                            {/* Style Match Badge */}
+                            <div className="pt-2">
+                                {userId ? (
+                                    styleMatchScore !== null && <StyleMatchBadge score={styleMatchScore} />
+                                ) : (
+                                    <GuestStyleMatchInfo />
+                                )}
                             </div>
-                            <div className="border-t border-gray-200" />
-                            <div className="py-6 flex justify-between items-center cursor-pointer group">
-                                <h4 className="font-[Anton,sans-serif] text-xl uppercase tracking-wider group-hover:text-[#800000] transition-colors text-gray-900">
-                                    Delivery &amp; Returns
-                                </h4>
-                                <span className="material-icons text-gray-400 group-hover:text-[#800000] transition-colors">add</span>
+                            
+                            {/* Stock Indicator */}
+                            <div className="pt-2">
+                                {productStock > 20 ? (
+                                    <p className="font-headline text-[10px] tracking-[0.2em] font-bold text-emerald-700 uppercase flex items-center gap-2">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> In Stock
+                                    </p>
+                                ) : productStock > 0 ? (
+                                    <p className="font-headline text-[10px] tracking-[0.2em] font-bold text-error uppercase flex items-center gap-2">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-error animate-pulse" /> {productStock} Limited Pairs
+                                    </p>
+                                ) : (
+                                    <p className="font-headline text-[10px] tracking-[0.2em] font-bold text-outline uppercase flex items-center gap-2">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-outline" /> Out of Stock
+                                    </p>
+                                )}
                             </div>
-                            <div className="border-t border-gray-200" />
-                        </div>
+                        </header>
 
-                        {/* Stitch: div.h-24.md:hidden  (spacer) */}
-                        <div className="h-24 md:hidden" />
+                        <div className="space-y-12">
+                            {/* Variant Grid */}
+                            <div className="space-y-6">
+                                <div className="flex justify-between items-center">
+                                    <span className="font-headline font-bold text-[10px] tracking-[0.3em] uppercase">Select Variant</span>
+                                    <button className="font-body italic text-xs text-on-surface-variant hover:text-on-surface underline underline-offset-4">Size Guide</button>
+                                </div>
+                                <div className="grid grid-cols-4 gap-0 border border-outline-variant/20">
+                                    {uniqueVariants.length > 0 ? uniqueVariants.map((variant, index) => {
+                                        const isSelected = selectedVariant?.id === variant.id;
+                                        const isOOS = variant.stock <= 0;
+                                        
+                                        // Adding border classes to mimic the dense grid style of Stitch
+                                        const borderClasses = "border-outline-variant/20 " + 
+                                            ((index + 1) % 4 !== 0 ? "border-r " : "") + 
+                                            (index < uniqueVariants.length - 4 ? "border-b " : "");
+
+                                        return (
+                                            <button 
+                                                key={variant.id}
+                                                onClick={() => onSelectVariant(variant)}
+                                                disabled={isOOS}
+                                                className={`h-14 flex items-center justify-center font-headline font-bold text-[11px] transition-all ${borderClasses} ${isSelected ? 'bg-on-surface text-surface ring-1 ring-inset ring-blue-300' : isOOS ? 'opacity-20 cursor-not-allowed bg-surface-container-low' : 'hover:bg-surface-container-low/50'}`}
+                                            >
+                                                {variant.size || variant.color || `Opt ${index+1}`}
+                                            </button>
+                                        );
+                                    }) : (
+                                        <div className="col-span-4 h-14 flex items-center justify-center font-headline font-bold text-[11px] text-on-surface-variant bg-surface-container-low border border-outline-variant/20 opacity-50">
+                                            No explicit sizes (One Size)
+                                        </div>
+                                    )}
+                                </div>
+                                {selectedVariant && (
+                                    <p className="font-body text-xs italic text-on-surface-variant">
+                                        Selected: '{selectedVariant.size} {selectedVariant.color}'
+                                    </p>
+                                )}
+                            </div>
+
+                            {/* Actions */}
+                            <div className="space-y-4 pt-6">
+                                <button 
+                                    onClick={handleAddToCart}
+                                    className={`w-full py-6 font-headline font-bold text-[11px] tracking-[0.3em] uppercase transition-all duration-300 ${isOutOfStock ? 'bg-surface-container-high text-on-surface-variant cursor-not-allowed' : !selectedVariant && uniqueVariants.length > 0 ? 'bg-on-surface/50 text-surface cursor-not-allowed' : showSuccess ? 'bg-emerald-700 text-white' : 'bg-on-surface text-surface hover:bg-primary-dim'}`}
+                                >
+                                    {isOutOfStock ? 'Sold Out' : showSuccess ? 'Added to Archive' : 'Add to Cart'}
+                                </button>
+                            </div>
+
+                            {/* Specs Box */}
+                            <div className="space-y-6 pt-12 border-t border-outline-variant/15">
+                                <div className="flex flex-col gap-5">
+                                    <div className="flex justify-between">
+                                        <span className="font-headline font-bold text-[10px] tracking-[0.2em] text-on-surface-variant uppercase">SKU</span>
+                                        <span className="font-headline text-[10px] tracking-[0.2em] text-on-surface">KX-{product.id.substring(0,6).toUpperCase()}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="font-headline font-bold text-[10px] tracking-[0.2em] text-on-surface-variant uppercase">Category</span>
+                                        <span className="font-headline text-[10px] tracking-[0.2em] text-on-surface">{product.category || 'Footwear'}</span>
+                                    </div>
+                                    {product.brand?.name && (
+                                        <div className="flex justify-between">
+                                            <span className="font-headline font-bold text-[10px] tracking-[0.2em] text-on-surface-variant uppercase">Curator</span>
+                                            <span className="font-headline text-[10px] tracking-[0.2em] text-on-surface">{product.brand.name}</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Related Section (Static visual replica for cohesive narrative) */}
+                <section className="mt-48 space-y-16">
+                    <h2 className="font-headline font-black text-5xl tracking-tighter uppercase">The Collection</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-12 gap-8 h-[900px]">
+                        <div className="md:col-span-8 relative overflow-hidden bg-surface-container-low group">
+                            <img className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA72m0i4FoOE9u63FKA-r9CHjvng6I10g3YV7klQV3fIbaJejMesG6nX4HcOYKFJoBOrbXmYKyPRqj7FdfYkZ_00e2tXgOwvmbKspB8uSOICj0yakiGrwhx2d46EglHLzfseYuCHz8n7-Ojrc1wI71qSxIC9Z34Wr1bNwNxcNfUc6FEPAhsTbP4IWDOwKq2x0Tpe5yZ9Ue33CXNtzOqaqSDDrpCDldl2wFfVpr9HOqbVpGY2MO6dFbCTCrCSrSwe7N4Ojop8smUt_Kn" alt="Editorial" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-16">
+                                <span className="text-white/60 font-headline font-bold text-[10px] tracking-[0.4em] uppercase mb-6">Editorial</span>
+                                <h3 className="text-white text-6xl font-headline font-black tracking-tighter-extreme mb-8 leading-none">THE BRUTALIST<br/>ETHOS</h3>
+                                <Link to="/catalog" className="text-white font-body italic border-b border-white/40 self-start pb-1 text-lg">Read the Story</Link>
+                            </div>
+                        </div>
+                        <div className="md:col-span-4 flex flex-col gap-8">
+                            <div className="h-1/2 relative overflow-hidden bg-surface-container-low group">
+                                <img className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCY8QnXXR_LYWf6i_d5JVJ4jrvdIZj0hJTdc6_OjynUktayMPdIQmmnXbCweDkn7PYTz5bpgSarg2FwUItrMCXtb4B2UUq5meE3ER8jkEW-c1KmkTB6FHmQgEOWEw7y5duQcv5GD_7ljlTnFmuHVjykRMxm10p0TNGa_odA8eTmrMAF4WRIUZNJhemhwudBc3N3qxYgJhmTbRrQDqkdEKxQlor2y2BMo9I42y_0rbekeQLp4SA1K-dOKqDLsKQM9RP9_pgBtwJsq3jK" alt="Detail" />
+                                <div className="absolute bottom-8 left-8 right-8 p-6 bg-surface border border-outline-variant/10">
+                                    <p className="font-headline font-bold text-[10px] tracking-[0.3em] uppercase text-on-surface">Material Archive</p>
+                                </div>
+                            </div>
+                            <div className="h-1/2 relative overflow-hidden bg-surface-container-low group">
+                                <img className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCu2CehKqFLfE_kmoEYWT8Tl9bJnafsHfDMH7e8ugqhkH4WUdR0h-tavm1TBGv0OsMSYfo4MTQtn_r2BjGKhM8QBd9tL4oWonvwJfeKQSSvNAChckqyV8aTXainn9Pts1pZCHcmd2geO2KYZ2g7IZUDcp7IN_tf4YkH0W860apu6k67hRQwg7L7j2OrRuevKDb366OKNeBE9s_242wZLYDeH10N_rPl8RLOxgfUHyNwY7rPAeot26DSsXzGq9srnA9YhLbaoxQ19YuL" alt="Lookbook" />
+                                <div className="absolute bottom-8 left-8 right-8 p-6 bg-surface border border-outline-variant/10">
+                                    <p className="font-headline font-bold text-[10px] tracking-[0.3em] uppercase text-on-surface">Lookbook FW24</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </section>
             </main>
 
-            {/* Fixed bottom bar — LIGHT glass */}
-            <div className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] md:w-auto max-w-lg z-50">
-                <div className="rounded-full px-6 py-4 flex items-center justify-between gap-6
-                    bg-white/70
-                    backdrop-blur-xl [-webkit-backdrop-filter:blur(24px)]
-                    border border-white/50
-                    shadow-[0_8px_32px_rgba(0,0,0,0.08)]">
+            {/* Floating Action Bar (CRITICAL DIRECTIVE 4) */}
+            <div className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] md:w-auto min-w-[320px] max-w-lg z-50">
+                <div className="rounded-none px-6 py-4 flex items-center justify-between gap-6
+                    bg-surface/90
+                    backdrop-blur-xl border border-outline-variant/30
+                    shadow-xl">
 
                     {/* Total Price */}
                     <div className="hidden md:flex flex-col">
-                        <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Total Price</span>
-                        <span className="text-2xl font-bold text-[#111111] leading-tight">{formatPrice(displayPrice)}</span>
+                        <span className="font-headline text-[10px] tracking-[0.2em] font-bold text-on-surface-variant uppercase">Total</span>
+                        <span className="text-xl font-body italic text-on-surface">{formatPrice(displayPrice)}</span>
                     </div>
-
-                    {/* Share icon */}
-                    <button className="w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-full hover:bg-black/5 transition-colors">
-                        <Share size={20} className="text-gray-600 hover:text-black cursor-pointer transition-colors" />
-                    </button>
 
                     {/* Primary CTA */}
                     <button
                         onClick={handleAddToCart}
-                        disabled={isAddToCartDisabled}
-                        className={`px-8 py-3 text-sm font-bold tracking-wide uppercase
-                            rounded-full transition-colors shadow-lg
-                            ${isOutOfStock
-                                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                                : 'bg-[#800000] text-white hover:bg-black disabled:opacity-50 disabled:cursor-not-allowed'
-                            }`}
+                        className={`flex-1 px-8 py-4 font-headline font-bold text-[11px] tracking-[0.3em] uppercase transition-all
+                            ${isOutOfStock ? 'bg-surface-container-high text-on-surface-variant cursor-not-allowed' 
+                            : !selectedVariant && uniqueVariants.length > 0 ? 'bg-on-surface/50 text-surface cursor-not-allowed'
+                            : showSuccess ? 'bg-emerald-700 text-white' : 'bg-on-surface text-surface hover:bg-primary-dim'}`}
                     >
-                        {showSuccess
-                            ? 'Added!'
-                            : isOutOfStock
-                                ? 'Out of Stock'
-                                : isAddToCartDisabled
-                                    ? 'Select Size'
-                                    : 'Add To Cart'}
+                        {isOutOfStock ? 'Sold Out' : showSuccess ? 'Added!' : !selectedVariant && uniqueVariants.length > 0 ? 'Select Size' : 'Add To Cart'}
+                    </button>
+                    
+                    {/* Share icon */}
+                    <button className="w-12 h-12 flex-shrink-0 flex items-center justify-center border border-outline-variant/30 hover:bg-on-surface hover:text-surface transition-colors text-on-surface">
+                        <Share size={18} className="transition-colors" />
                     </button>
                 </div>
             </div>
 
-            {/* Fullscreen AR Try On Modal */}
             {showAR && product.arModelUrl && (
                 <ARTryOn
                     modelUrl={product.arModelUrl}
