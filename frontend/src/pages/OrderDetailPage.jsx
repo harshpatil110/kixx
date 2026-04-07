@@ -41,10 +41,11 @@ export default function OrderDetailPage() {
         hour: '2-digit', minute: '2-digit'
     });
 
+    const pStatus = order.paymentStatus || order.status || 'pending';
     const statusColor =
-        order.status === 'completed' || order.status === 'paid' ? 'bg-green-100 text-green-800 border-green-200' :
-            order.status === 'pending' ? 'bg-yellow-100 text-yellow-800 border-yellow-200' :
-                order.status === 'cancelled' ? 'bg-red-100 text-red-800 border-red-200' :
+        pStatus === 'SUCCESS' || pStatus === 'completed' || pStatus === 'paid' ? 'bg-green-100 text-green-800 border-green-200' :
+            pStatus === 'pending' ? 'bg-yellow-100 text-yellow-800 border-yellow-200' :
+                pStatus === 'FAILED' || pStatus === 'cancelled' ? 'bg-red-100 text-red-800 border-red-200' :
                     'bg-gray-100 text-gray-800 border-gray-200';
 
     return (
@@ -72,10 +73,10 @@ export default function OrderDetailPage() {
                         </div>
                         <div className="flex flex-col md:items-end gap-3">
                             <span className={`px-4 py-2 rounded-lg text-sm font-bold uppercase border ${statusColor} self-start md:self-auto`}>
-                                {order.status || 'pending'}
+                                {pStatus}
                             </span>
                             <div className="text-3xl font-black text-[#800000]">
-                                {formatPrice(order.totalPrice || 0)}
+                                {formatPrice(order.totalAmount || order.totalPrice || 0)}
                             </div>
                         </div>
                     </div>
@@ -85,11 +86,11 @@ export default function OrderDetailPage() {
                         <h3 className="text-xl font-bold text-gray-900 mb-6 uppercase tracking-wider">Ordered Items</h3>
                         <div className="space-y-6">
                             {order.items?.map((item, idx) => {
-                                // Safeguard nested data expecting Drizzle structure: item -> variant -> product
-                                const productName = item.variant?.product?.name || 'Unknown Product';
-                                const productImageUrl = item.variant?.product?.imageUrl;
-                                const size = item.variant?.size || 'N/A';
-                                const color = item.variant?.color || 'N/A';
+                                // past_orders stores items as flat JSONB
+                                const productName = item.name || item.variant?.product?.name || 'Curated Item';
+                                const productImageUrl = item.imageUrl || item.variant?.product?.imageUrl;
+                                const size = item.size || item.variant?.size || 'OS';
+                                const color = item.color || item.variant?.color || '—';
 
                                 return (
                                     <div key={idx} className="flex flex-col sm:flex-row items-start sm:items-center py-4 border-b border-gray-100 last:border-0 last:pb-0">
