@@ -12,7 +12,7 @@ const router = express.Router();
  * This stub exists solely to prevent server.js from crashing on
  * `require('./src/routes/payment')`.
  */
-router.all('*', (req, res) => {
+router.use((req, res) => {
     return res.status(410).json({
         error: true,
         message: 'Payment gateway routes have been deprecated. Use POST /api/orders/save.'
