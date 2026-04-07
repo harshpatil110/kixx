@@ -46,6 +46,7 @@ const AdminLayout = lazy(() => import('./layouts/AdminLayout'));
 const DashboardPage = lazy(() => import('./pages/admin/DashboardPage'));
 const InventoryPage = lazy(() => import('./pages/admin/InventoryPage'));
 const SalesPage = lazy(() => import('./pages/admin/SalesPage'));
+const CustomersPage = lazy(() => import('./pages/admin/CustomersPage'));
 
 // ── Features ──
 const OutfitCheckerPage = lazy(() => import('./pages/OutfitCheckerPage'));
@@ -156,6 +157,11 @@ export default function App() {
             <Route path="sales" element={
               <Suspense fallback={<GenericPageSkeleton />}>
                 <SalesPage />
+              </Suspense>
+            } />
+            <Route path="customers" element={
+              <Suspense fallback={<GenericPageSkeleton />}>
+                <CustomersPage />
               </Suspense>
             } />
           </Route>

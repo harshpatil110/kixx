@@ -11,6 +11,7 @@ const {
     getInventory,
     updateInventory,
     getOrders,
+    getCustomers,
 } = require('../controllers/adminController');
 
 // ---------------------------------------------------------------------------
@@ -55,5 +56,8 @@ router.put('/inventory/:id', updateInventory);
 
 // Sales ledger
 router.get('/orders', getOrders);
+
+// Customer directory
+router.get('/customers', getCustomers);
 
 module.exports = router;

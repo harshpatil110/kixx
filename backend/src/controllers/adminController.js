@@ -218,4 +218,32 @@ const getOrders = async (req, res) => {
     }
 };
 
-module.exports = { getDashboardStats, getSalesByBrand, getLowStockAlerts, getInventory, updateInventory, getOrders };
+/**
+ * GET /api/admin/customers
+ * Aggregates user lifetime value and total orders by joining users with past_orders.
+ */
+const getCustomers = async (req, res) => {
+    try {
+        const rows = await db
+            .select({
+                id: users.id,
+                email: users.email,
+                name: users.name,
+                joinDate: users.createdAt,
+                totalOrders: sql`COUNT(${pastOrders.id})`.mapWith(Number),
+                lifetimeValue: sql`COALESCE(SUM(${pastOrders.totalAmount}), 0)`.mapWith(Number),
+            })
+            .from(users)
+            .leftJoin(pastOrders, eq(users.email, pastOrders.email))
+            .where(eq(users.role, 'customer'))
+            .groupBy(users.id, users.email, users.name, users.createdAt)
+            .orderBy(desc(sql`COALESCE(SUM(${pastOrders.totalAmount}), 0)`));
+
+        return res.status(200).json({ success: true, data: rows });
+    } catch (error) {
+        console.error('[Admin] ❌ Get Customers Error:', error.message);
+        return res.status(500).json({ success: false, message: 'Failed to fetch customer directory.' });
+    }
+};
+
+module.exports = { getDashboardStats, getSalesByBrand, getLowStockAlerts, getInventory, updateInventory, getOrders, getCustomers };
