@@ -293,9 +293,9 @@ export default function AccountPage() {
                                                     backdrop-blur-[20px]
                                                     border border-[rgba(255,255,255,0.4)]
                                                     shadow-[0_8px_32px_0_rgba(31,38,135,0.07)]
-                                                    ${statusColor(order.status)}`}>
-                                                    <span className={`w-2 h-2 rounded-full ${statusDot(order.status)}`} />
-                                                    {order.status || 'Processing'}
+                                                    ${statusColor(order.paymentStatus || order.status)}`}>
+                                                    <span className={`w-2 h-2 rounded-full ${statusDot(order.paymentStatus || order.status)}`} />
+                                                    {order.paymentStatus || order.status || 'Processing'}
                                                 </span>
                                                 <div className="flex items-center gap-3">
                                                     <button onClick={() => generateInvoice(order)} className="text-gray-500 hover:text-black transition-colors flex items-center gap-2 text-sm uppercase">

@@ -78,5 +78,7 @@ export const getOrderById = async (orderId) => {
         throw new Error(errorData.message || "Failed to fetch order.");
     }
     
-    return response.json();
+    const data = await response.json();
+    // Backend returns { error: false, order: {...} } — unwrap it
+    return data.order || data;
 };
