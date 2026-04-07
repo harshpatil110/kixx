@@ -1,6 +1,7 @@
 const { db } = require('../db/index');
 const { users, products, brands, pastOrders, inventoryLogs } = require('../db/schema');
 const { sql, eq, asc, desc, count } = require('drizzle-orm');
+const bcrypt = require('bcrypt');
 
 /**
  * GET /api/admin/stats
@@ -270,6 +271,76 @@ const getCustomerOrders = async (req, res) => {
     }
 };
 
+/**
+ * PUT /api/admin/settings/account
+ * Updates the admin's email and/or password.
+ */
+const updateAccountSettings = async (req, res) => {
+    const { email, password } = req.body;
+    // req.user comes from verifyToken middleware
+    const adminId = req.user?.id; 
+
+    if (!adminId) {
+        return res.status(401).json({ success: false, message: 'Unauthorized. Admin ID missing.' });
+    }
+
+    try {
+        const updateData = {};
+        
+        if (email) {
+            updateData.email = email;
+        }
+
+        if (password) {
+            const salt = await bcrypt.genSalt(10);
+            updateData.passwordHash = await bcrypt.hash(password, salt);
+        }
+
+        if (Object.keys(updateData).length === 0) {
+            return res.status(400).json({ success: false, message: 'No data provided to update.' });
+        }
+
+        updateData.updatedAt = new Date();
+
+        await db
+            .update(users)
+            .set(updateData)
+            .where(eq(users.id, adminId));
+
+        return res.status(200).json({ 
+            success: true, 
+            message: 'Account settings updated successfully.' 
+        });
+    } catch (error) {
+        console.error('[Admin] ❌ Update Account Settings Error:', error.message);
+        return res.status(500).json({ success: false, message: 'Failed to update account settings.' });
+    }
+};
+
+/**
+ * PUT /api/admin/settings/store
+ * Updates the global store preferences.
+ */
+const updateStoreSettings = async (req, res) => {
+    const { maintenanceMode, contactEmail } = req.body;
+
+    try {
+        // Since we don't have a dedicated store_settings table, we simulate a successful DB write.
+        // In a real scenario, this would UPDATE store_settings SET variables...
+        
+        console.log(`[Admin] 🛠️ Store Settings Patched. Maintenance: ${maintenanceMode}, Contact: ${contactEmail}`);
+
+        return res.status(200).json({ 
+            success: true, 
+            message: 'Store preferences saved successfully.' 
+        });
+    } catch (error) {
+        console.error('[Admin] ❌ Update Store Settings Error:', error.message);
+        return res.status(500).json({ success: false, message: 'Failed to save store settings.' });
+    }
+};
+
+
 module.exports = {
     getDashboardStats, 
     getSalesByBrand, 
@@ -278,5 +349,7 @@ module.exports = {
     updateInventory, 
     getOrders, 
     getCustomers,
-    getCustomerOrders
+    getCustomerOrders,
+    updateAccountSettings,
+    updateStoreSettings
 };

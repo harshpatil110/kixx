@@ -13,6 +13,8 @@ const {
     getOrders,
     getCustomers,
     getCustomerOrders,
+    updateAccountSettings,
+    updateStoreSettings,
 } = require('../controllers/adminController');
 
 // ---------------------------------------------------------------------------
@@ -61,5 +63,9 @@ router.get('/orders', getOrders);
 // Customer directory
 router.get('/customers', getCustomers);
 router.get('/customers/:email/orders', getCustomerOrders);
+
+// Settings
+router.put('/settings/account', updateAccountSettings);
+router.put('/settings/store', updateStoreSettings);
 
 module.exports = router;
