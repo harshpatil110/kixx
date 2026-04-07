@@ -15,6 +15,7 @@ const SHOES = [
     material: 'Technical Leather',
     price: '₹24,999',
     modelPath: '/3d-models/model1.glb',
+    imageUrl: '/products/Air%20Max%2090%20Essentials.jpg',
     tag: 'ARCHIVE SERIES',
   },
   {
@@ -25,6 +26,7 @@ const SHOES = [
     material: 'Woven Nylon',
     price: '₹19,499',
     modelPath: '/3d-models/model2.glb',
+    imageUrl: '/products/Fresh%20Foam%201080v13.png',
     tag: 'LIMITED RUN',
   },
   {
@@ -35,6 +37,7 @@ const SHOES = [
     material: 'Suede + Mesh',
     price: '₹17,999',
     modelPath: '/3d-models/model3.glb',
+    imageUrl: '/products/NMD_R1%20V2.png',
     tag: 'EDITORIAL',
   },
   {
@@ -45,6 +48,7 @@ const SHOES = [
     material: 'Canvas',
     price: '₹12,999',
     modelPath: '/3d-models/model4.glb',
+    imageUrl: '/products/ZoomX%20Vaporfly%20Next2.png',
     tag: 'VAULT',
   },
 ];
@@ -65,28 +69,22 @@ function ShoeCard({ shoe, onClick }) {
           {shoe.tag}
         </span>
 
-        {/* Placeholder silhouette — replaced by model preview thumbnail if available */}
-        <div className="flex flex-col items-center gap-2 opacity-30 group-hover:opacity-50 transition-opacity duration-300">
-          {/* SVG shoe silhouette */}
-          <svg
-            viewBox="0 0 200 120"
-            className="w-48 h-auto"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M10 90 C10 90 30 50 80 45 C110 42 140 55 160 60 C175 63 190 68 192 78 C194 88 180 95 160 95 L30 95 C18 95 10 94 10 90Z"
-              fill="#1c1c1a"
-            />
-            <path
-              d="M60 45 C62 38 68 25 80 20 C90 16 98 22 98 30 C98 38 88 43 80 45Z"
-              fill="#1c1c1a"
-            />
-          </svg>
-          <span className="font-label text-[0.55rem] uppercase tracking-widest text-stone-400">
-            Click to View in 3D
-          </span>
-        </div>
+        {/* Product Image */}
+        <img 
+          src={shoe.imageUrl} 
+          alt={shoe.name}
+          className="w-full h-48 object-contain mix-blend-multiply p-4 relative z-10 transition-transform duration-500 group-hover:scale-105"
+          onError={(e) => {
+            console.error("Failed to load image at:", shoe.imageUrl);
+            e.target.style.display = 'none';
+            e.target.parentNode.classList.add('bg-stone-100', 'animate-pulse');
+            // Add a small 'Image Not Found' text only during dev
+            const span = document.createElement('span');
+            span.innerText = 'Photo Missing';
+            span.className = 'absolute inset-0 flex items-center justify-center text-stone-400 text-xs uppercase tracking-widest';
+            e.target.parentNode.appendChild(span);
+          }}
+        />
 
         {/* Hover CTA */}
         <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
