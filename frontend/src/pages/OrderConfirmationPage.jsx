@@ -58,7 +58,7 @@ export default function OrderConfirmationPage() {
                     </div>
                     <div className="flex justify-between items-center pt-3 border-t border-gray-200">
                         <span className="text-gray-500 font-medium">Total Paid</span>
-                        <span className="text-xl text-[#800000] font-black">{formatPrice(order.totalPrice || 0)}</span>
+                        <span className="text-xl text-[#800000] font-black">{formatPrice(order.totalAmount || order.totalPrice || 0)}</span>
                     </div>
                 </div>
 
