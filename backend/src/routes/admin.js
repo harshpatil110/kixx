@@ -10,6 +10,7 @@ const {
     getLowStockAlerts,
     getInventory,
     updateInventory,
+    getOrders,
 } = require('../controllers/adminController');
 
 // ---------------------------------------------------------------------------
@@ -51,5 +52,8 @@ router.get('/inventory-alerts', getLowStockAlerts);
 // Inventory management endpoints
 router.get('/inventory', getInventory);
 router.put('/inventory/:id', updateInventory);
+
+// Sales ledger
+router.get('/orders', getOrders);
 
 module.exports = router;

@@ -1,6 +1,6 @@
 const { db } = require('../db/index');
 const { users, products, brands, pastOrders, inventoryLogs } = require('../db/schema');
-const { sql, eq, asc, count } = require('drizzle-orm');
+const { sql, eq, asc, desc, count } = require('drizzle-orm');
 
 /**
  * GET /api/admin/stats
@@ -194,4 +194,28 @@ const updateInventory = async (req, res) => {
     }
 };
 
-module.exports = { getDashboardStats, getSalesByBrand, getLowStockAlerts, getInventory, updateInventory };
+/**
+ * GET /api/admin/orders
+ * Fetches all orders from the past_orders table.
+ */
+const getOrders = async (req, res) => {
+    try {
+        const rows = await db
+            .select({
+                id: pastOrders.id,
+                email: pastOrders.email,
+                totalAmount: pastOrders.totalAmount,
+                paymentStatus: pastOrders.paymentStatus,
+                createdAt: pastOrders.createdAt,
+            })
+            .from(pastOrders)
+            .orderBy(desc(pastOrders.createdAt));
+
+        return res.status(200).json({ success: true, data: rows });
+    } catch (error) {
+        console.error('[Admin] ❌ Get Orders Error:', error.message);
+        return res.status(500).json({ success: false, message: 'Failed to fetch orders.' });
+    }
+};
+
+module.exports = { getDashboardStats, getSalesByBrand, getLowStockAlerts, getInventory, updateInventory, getOrders };
