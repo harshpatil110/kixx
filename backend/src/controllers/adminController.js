@@ -1,5 +1,5 @@
 const { db } = require('../db/index');
-const { users, products, brands, pastOrders } = require('../db/schema');
+const { users, products, brands, pastOrders, inventoryLogs } = require('../db/schema');
 const { sql, eq, asc, count } = require('drizzle-orm');
 
 /**
@@ -98,4 +98,100 @@ const getLowStockAlerts = async (req, res) => {
     }
 };
 
-module.exports = { getDashboardStats, getSalesByBrand, getLowStockAlerts };
+/**
+ * GET /api/admin/inventory
+ * Fetches ALL products (joined with brand name) for the full inventory table.
+ */
+const getInventory = async (req, res) => {
+    try {
+        const rows = await db
+            .select({
+                id: products.id,
+                name: products.name,
+                category: products.category,
+                basePrice: products.basePrice,
+                stock: products.stock,
+                imageUrl: products.imageUrl,
+                brandName: brands.name,
+                isNew: products.isNew,
+                isOnSale: products.isOnSale,
+            })
+            .from(products)
+            .leftJoin(brands, eq(products.brandId, brands.id))
+            .orderBy(asc(products.name));
+
+        return res.status(200).json({ success: true, data: rows });
+    } catch (error) {
+        console.error('[Admin] ❌ Get Inventory Error:', error.message);
+        return res.status(500).json({ success: false, message: 'Failed to fetch inventory.' });
+    }
+};
+
+/**
+ * PUT /api/admin/inventory/:id
+ * Updates the stock integer for a single product and writes an audit log.
+ * Body: { stock: number }
+ */
+const updateInventory = async (req, res) => {
+    const { id } = req.params;
+    const { stock } = req.body;
+
+    if (stock === undefined || stock === null || isNaN(parseInt(stock, 10))) {
+        return res.status(400).json({ success: false, message: 'Invalid stock value. Must be a number.' });
+    }
+
+    const newStock = parseInt(stock, 10);
+    if (newStock < 0) {
+        return res.status(400).json({ success: false, message: 'Stock cannot be negative.' });
+    }
+
+    try {
+        // 1. Fetch current stock for the audit delta
+        const [current] = await db
+            .select({ stock: products.stock, name: products.name })
+            .from(products)
+            .where(eq(products.id, id))
+            .limit(1);
+
+        if (!current) {
+            return res.status(404).json({ success: false, message: 'Product not found.' });
+        }
+
+        const delta = newStock - (parseInt(current.stock, 10) || 0);
+
+        // 2. Update the stock column in-place
+        const [updated] = await db
+            .update(products)
+            .set({ stock: newStock, updatedAt: new Date() })
+            .where(eq(products.id, id))
+            .returning({
+                id: products.id,
+                name: products.name,
+                stock: products.stock,
+            });
+
+        // 3. Write audit log (non-fatal — don't fail the request if this errors)
+        try {
+            await db.insert(inventoryLogs).values({
+                productId: id,
+                changeType: delta >= 0 ? 'manual_restock' : 'manual_reduction',
+                quantityChanged: delta,
+            });
+        } catch (logErr) {
+            console.warn('[Admin] ⚠️  Inventory log write failed (non-fatal):', logErr.message);
+        }
+
+        console.log(`[Admin] ✅ Stock updated: "${current.name}" ${current.stock} → ${newStock} (Δ${delta})`);
+
+        return res.status(200).json({
+            success: true,
+            message: `Stock updated to ${newStock} for "${updated.name}"`,
+            data: updated,
+        });
+    } catch (error) {
+        console.error('[Admin] ❌ Update Inventory Error:', error.message);
+        return res.status(500).json({ success: false, message: 'Failed to update stock.' });
+    }
+};
+
+module.exports = { getDashboardStats, getSalesByBrand, getLowStockAlerts, getInventory, updateInventory };
