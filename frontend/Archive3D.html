@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>KIXX | ARCHIVE ARTIFACT: KX-8802</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@700;900&amp;family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,700;1,6..72,400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface-container-high": "#e8e9e0",
+                      "on-tertiary-fixed-variant": "#001454",
+                      "on-primary-fixed-variant": "#5f5b58",
+                      "error-dim": "#5c1202",
+                      "primary-dim": "#56514f",
+                      "inverse-on-surface": "#9e9d99",
+                      "surface-variant": "#e2e3d9",
+                      "on-tertiary-fixed": "#000000",
+                      "on-error": "#fff7f6",
+                      "error-container": "#fe8b70",
+                      "surface-bright": "#fbf9f4",
+                      "on-secondary-container": "#57514c",
+                      "tertiary": "#3856c4",
+                      "on-error-container": "#742410",
+                      "on-tertiary": "#faf8ff",
+                      "surface-container-low": "#f5f4ed",
+                      "on-secondary": "#fff7f4",
+                      "outline-variant": "#b1b3a9",
+                      "background": "#fbf9f4",
+                      "inverse-surface": "#0e0e0c",
+                      "on-tertiary-container": "#000a36",
+                      "surface-container-highest": "#e2e3d9",
+                      "surface-tint": "#625d5b",
+                      "outline": "#797c73",
+                      "on-secondary-fixed": "#443e3a",
+                      "tertiary-container": "#6d89fa",
+                      "tertiary-fixed": "#6d89fa",
+                      "primary": "#625d5b",
+                      "on-primary": "#fef6f2",
+                      "primary-fixed": "#e9e1dd",
+                      "primary-container": "#e9e1dd",
+                      "tertiary-dim": "#2949b7",
+                      "secondary-fixed-dim": "#dcd3cd",
+                      "surface-container-lowest": "#ffffff",
+                      "secondary-fixed": "#eae1da",
+                      "on-primary-fixed": "#433e3c",
+                      "secondary": "#645e59",
+                      "on-secondary-fixed-variant": "#615a56",
+                      "on-primary-container": "#55514e",
+                      "tertiary-fixed-dim": "#607cec",
+                      "surface": "#fbf9f4",
+                      "on-surface-variant": "#5e6058",
+                      "primary-fixed-dim": "#dad3cf",
+                      "surface-dim": "#d9dbcf",
+                      "on-surface": "#31332c",
+                      "secondary-dim": "#58524d",
+                      "on-background": "#31332c",
+                      "surface-container": "#efeee6",
+                      "secondary-container": "#eae1da",
+                      "error": "#9e422c",
+                      "inverse-primary": "#ffffff"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "fontFamily": {
+                      "headline": ["Inter"],
+                      "body": ["Newsreader"],
+                      "label": ["Inter"]
+              }
+            },
+          },
+        }
+      </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+            font-size: 20px;
+        }
+        body { font-family: 'Newsreader', serif; }
+      </style>
+</head>
+<body class="bg-surface text-on-surface selection:bg-tertiary/20">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 bg-[#fbf9f4]/80 dark:bg-stone-950/80 backdrop-blur-xl flex justify-between items-center px-8 py-6 max-w-[1920px] mx-auto">
+<div class="text-2xl font-black tracking-tighter text-[#31332c] dark:text-stone-100 font-headline">KIXX</div>
+<div class="hidden md:flex items-center space-x-12">
+<a class="text-[#3856c4] dark:text-blue-400 font-bold border-b-2 border-[#3856c4] pb-1 font-label text-[0.6875rem] uppercase tracking-widest" href="#">Archive</a>
+<a class="text-[#5e6058] dark:text-stone-500 hover:text-[#31332c] transition-colors font-label text-[0.6875rem] uppercase tracking-widest hover:opacity-70" href="#">Editorial</a>
+<a class="text-[#5e6058] dark:text-stone-500 hover:text-[#31332c] transition-colors font-label text-[0.6875rem] uppercase tracking-widest hover:opacity-70" href="#">Curated</a>
+<a class="text-[#5e6058] dark:text-stone-500 hover:text-[#31332c] transition-colors font-label text-[0.6875rem] uppercase tracking-widest hover:opacity-70" href="#">About</a>
+</div>
+<div class="flex items-center space-x-6">
+<button class="hover:opacity-70 transition-opacity duration-300">
+<span class="material-symbols-outlined" data-icon="shopping_bag">shopping_bag</span>
+</button>
+<button class="hover:opacity-70 transition-opacity duration-300">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+</button>
+</div>
+</nav>
+<main class="pt-32 pb-24 px-8 max-w-[1440px] mx-auto">
+<!-- Editorial Heading -->
+<header class="mb-16 md:mb-24 flex flex-col md:flex-row items-start md:items-end gap-6">
+<h1 class="text-5xl md:text-8xl font-black font-headline tracking-tighter leading-none -ml-1">
+                ARCHIVE ARTIFACT: <br/>KX-8802
+            </h1>
+<div class="flex h-16 md:h-24 items-center">
+<div class="w-[1.5px] h-full bg-tertiary mx-6 hidden md:block"></div>
+<p class="text-xl md:text-2xl font-body italic text-on-surface-variant max-w-xs leading-tight">
+                    3D Visualizer and Configuration
+                </p>
+</div>
+</header>
+<!-- Main 3D Visualizer Canvas -->
+<section class="relative mb-24 flex justify-center">
+<div class="w-full max-w-5xl bg-surface-container-lowest rounded-sm border border-outline-variant/15 shadow-sm overflow-hidden aspect-video flex items-center justify-center relative">
+<!-- Background decorative glow -->
+<div class="absolute inset-0 bg-gradient-to-tr from-surface-container-low to-white pointer-events-none"></div>
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-tertiary-container/10 rounded-full blur-[120px]"></div>
+<img alt="Hyper-realistic 3D render of a minimal white designer sneaker on a neutral gray studio background with soft directional lighting" class="relative z-10 w-4/5 h-auto object-contain mix-blend-multiply" data-alt="Hyper-realistic 3D render of a minimal white designer sneaker on a neutral gray studio background with soft directional lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDqI05E4x6T_5GdCmT5_xkjpI1-2Fz4DwL1Q5JCpOymDQ4ieoaSv36aPFWMHi69mkLwvG9J3j_5EhJpO7Q2a3CrMcTc3cceR5fjc5LxM9yM31Hwj8AO7lrEQ5x8MiGbtGRJaEYgl6PMGMqwgbhRXoS_FjtIf3sJw48UCedr4CuFt8uHKyvIWLX7Kz2MNFCe7FmAzDVDZHeHwWbhfR0PvY_sq1POeJBtMco7uV_LvIBDiUvlXYND0lFM7x13W9a4xjzmLPIHk8Uz380B"/>
+<!-- Control Overlay -->
+<div class="absolute bottom-6 right-6 flex items-center gap-3 z-20">
+<button class="w-10 h-10 flex items-center justify-center bg-surface/90 backdrop-blur-md rounded-sm border border-outline-variant/20 hover:text-tertiary transition-colors">
+<span class="material-symbols-outlined" data-icon="fullscreen">fullscreen</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center bg-surface/90 backdrop-blur-md rounded-sm border border-outline-variant/20 hover:text-tertiary transition-colors">
+<span class="material-symbols-outlined" data-icon="refresh">refresh</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center bg-surface/90 backdrop-blur-md rounded-sm border border-outline-variant/20 hover:text-tertiary transition-colors">
+<span class="material-symbols-outlined" data-icon="layers">layers</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center bg-surface/90 backdrop-blur-md rounded-sm border border-outline-variant/20 hover:text-tertiary transition-colors">
+<span class="material-symbols-outlined" data-icon="photo_camera">photo_camera</span>
+</button>
+</div>
+<!-- Canvas Label -->
+<div class="absolute top-6 left-6 z-20">
+<span class="font-label text-[0.625rem] uppercase tracking-[0.2em] text-on-surface-variant bg-surface-container-low px-2 py-1">
+                        Live Artifact Stream // 8802-A
+                    </span>
+</div>
+</div>
+</section>
+<!-- Details Grid -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-12 md:gap-24 mb-24">
+<div class="md:col-span-4 flex flex-col justify-between">
+<div>
+<span class="font-label text-[0.6875rem] uppercase tracking-widest text-tertiary mb-6 block">
+                        COMPONENT 02: HIGH-FIDELITY 3D VISUALIZER
+                    </span>
+<p class="text-lg leading-relaxed text-on-surface-variant font-body">
+                        The KX-8802 architecture is rendered in a real-time environment, allowing for precise volumetric inspection of leather grain and structural seams. This digital twin serves as the definitive reference for the 2024 archive collection.
+                    </p>
+</div>
+</div>
+<div class="md:col-span-8">
+<blockquote class="text-3xl md:text-5xl font-body italic leading-tight text-on-surface border-l-4 border-tertiary pl-8 py-2">
+                    "A detailed visual fidelity that defines the sneaker as a sculptural technical artifact through interactive exploration."
+                </blockquote>
+</div>
+</div>
+<!-- Technical Specs -->
+<section class="bg-surface-container-low py-12 px-8 md:px-16 rounded-sm">
+<div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+<div class="flex flex-col gap-1">
+<span class="font-label text-[0.6875rem] uppercase tracking-widest text-on-surface-variant">Model Number</span>
+<span class="font-headline font-bold text-sm">KX-8802</span>
+</div>
+<div class="flex flex-col gap-1">
+<span class="font-label text-[0.6875rem] uppercase tracking-widest text-on-surface-variant">Primary Material</span>
+<span class="font-headline font-bold text-sm">Technical Leather</span>
+</div>
+<div class="flex flex-col gap-1">
+<span class="font-label text-[0.6875rem] uppercase tracking-widest text-on-surface-variant">Archive Year</span>
+<span class="font-headline font-bold text-sm">2024</span>
+</div>
+<div class="flex flex-col gap-1">
+<span class="font-label text-[0.6875rem] uppercase tracking-widest text-on-surface-variant">Configuration Status</span>
+<div class="flex items-center gap-2">
+<div class="w-1.5 h-1.5 bg-tertiary rounded-full"></div>
+<span class="font-headline font-bold text-sm">Verified</span>
+</div>
+</div>
+</div>
+</section>
+<!-- CTA Section -->
+<section class="mt-24 text-center">
+<button class="bg-on-surface text-surface py-5 px-12 rounded-sm font-label text-[0.75rem] font-bold uppercase tracking-[0.2em] inline-flex items-center gap-3 hover:opacity-90 transition-opacity">
+                [EXPLORE IN AR]
+                <span class="material-symbols-outlined !text-[14px]" data-icon="lock">lock</span>
+</button>
+</section>
+</main>
+<!-- Footer -->
+<footer class="w-full py-12 px-8 bg-[#f5f4ed] dark:bg-stone-900">
+<div class="flex flex-col md:flex-row justify-between items-center w-full max-w-[1920px] mx-auto space-y-4 md:space-y-0">
+<div class="text-sm font-bold text-[#31332c] dark:text-stone-200 font-headline">KIXX ARCHIVE</div>
+<div class="flex items-center space-x-8">
+<a class="font-label text-[0.6875rem] uppercase tracking-widest text-[#5e6058] dark:text-stone-500 hover:text-[#3856c4] transition-colors duration-200" href="#">Privacy</a>
+<a class="font-label text-[0.6875rem] uppercase tracking-widest text-[#5e6058] dark:text-stone-500 hover:text-[#3856c4] transition-colors duration-200" href="#">Terms</a>
+<a class="font-label text-[0.6875rem] uppercase tracking-widest text-[#5e6058] dark:text-stone-500 hover:text-[#3856c4] transition-colors duration-200" href="#">Shipping</a>
+<a class="font-label text-[0.6875rem] uppercase tracking-widest text-[#5e6058] dark:text-stone-500 hover:text-[#3856c4] transition-colors duration-200" href="#">Contact</a>
+</div>
+<p class="font-label text-[0.6875rem] uppercase tracking-widest text-[#5e6058] dark:text-stone-400">
+                © 2024 KIXX ARCHIVE. ALL RIGHTS RESERVED.
+            </p>
+</div>
+</footer>
+</body></html>

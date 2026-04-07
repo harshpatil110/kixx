@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 import useCartStore from '../store/cartStore';
 import useAuthStore from '../store/authStore';
 import { auth } from '../config/firebase';
@@ -46,6 +46,7 @@ export default function Navbar() {
                             <Link to="/catalog" className="text-[#5e6058] hover:text-tertiary transition-colors duration-300 font-headline font-bold tracking-tight text-sm uppercase">Brands</Link>
                             <Link to="/catalog?category=sale" className="text-[#5e6058] hover:text-tertiary transition-colors duration-300 font-headline font-bold tracking-tight text-sm uppercase">Sale</Link>
                             <Link to="/outfit-checker" className="text-[#5e6058] hover:text-tertiary transition-colors duration-300 font-headline font-bold tracking-tight text-sm uppercase flex items-center gap-1">Outfit Check</Link>
+                            <NavLink to="/3d-archive" className={({ isActive }) => isActive ? "text-[#31332c] border-b-2 border-tertiary pb-1 font-headline font-bold tracking-tight text-sm uppercase" : "text-[#5e6058] hover:text-tertiary transition-colors duration-300 font-headline font-bold tracking-tight text-sm uppercase"}>3D ARCHIVE</NavLink>
                         </div>
                     </div>
                     

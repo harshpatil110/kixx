@@ -47,6 +47,7 @@ const DashboardPage = lazy(() => import('./pages/admin/DashboardPage'));
 
 // ── Features ──
 const OutfitCheckerPage = lazy(() => import('./pages/OutfitCheckerPage'));
+const Archive3DPage = lazy(() => import('./pages/Archive3DPage'));
 // ---------------------------------------------------------------------------
 // Layout component — wraps all routes that need the Navbar
 // ---------------------------------------------------------------------------
@@ -209,6 +210,14 @@ export default function App() {
             element={
               <Suspense fallback={<GenericPageSkeleton />}>
                 <OutfitCheckerPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/3d-archive"
+            element={
+              <Suspense fallback={<GenericPageSkeleton />}>
+                <Archive3DPage />
               </Suspense>
             }
           />

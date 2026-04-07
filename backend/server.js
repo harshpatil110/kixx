@@ -46,6 +46,16 @@ app.use((err, req, res, next) => {
     });
 });
 
+process.on('uncaughtException', (err) => {
+    console.error('🔥 UNCAUGHT EXCEPTION:', err);
+    // Prevent the node process from crashing immediately
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('🔥 UNHANDLED REJECTION at:', promise, 'reason:', reason);
+    // Prevent the node process from crashing immediately
+});
+
 const PORT = process.env.PORT || 5000;
 const ENV = process.env.NODE_ENV || 'development';
 
