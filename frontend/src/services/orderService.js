@@ -1,57 +1,82 @@
-import api from './api';
-
-/**
- * Submits a new order to the backend.
- *
- * @param {Array<Object>} items - Array of order items.
- * @returns {Promise<Object>} The created order response.
- */
-export const createOrder = async (items) => {
-    const response = await api.post('/api/orders', { items });
-    return response.data;
-};
-
-/**
- * Processes a mock payment for a specific order.
- *
- * @param {string|number} orderId - The Order ID.
- * @param {Object} paymentDetails - Object containing details for payment simulation.
- * @returns {Promise<Object>} Payment completion response.
- */
-export const processPayment = async (orderId, paymentDetails) => {
-    const response = await api.post(`/api/orders/${orderId}/payment`, paymentDetails);
-    return response.data;
-};
-
-/**
- * Fetches all orders belonging to a specific user.
- *
- * @param {string|number} userId - The internal User ID or Firebase UID safely handled by backend.
- * @returns {Promise<Array>} List of orders for the user.
- */
-export const getUserOrders = async (userId) => {
-    const response = await api.get(`/api/orders/user/${userId}`);
-    return response.data;
-};
-
-/**
- * Fetches a single order by its ID.
- *
- * @param {string|number} orderId - The precise order ID.
- * @returns {Promise<Object>} The order details inclusive of items.
- */
-export const getOrderById = async (orderId) => {
-    const response = await api.get(`/api/orders/${orderId}`);
-    return response.data;
-};
+import { auth } from '../config/firebase';
 
 /**
  * Saves a completed transaction snapshot to the database (post-payment).
+ * 
+ * This is the ONLY order API call. All other legacy routes (POST /, 
+ * POST /:id/payment, GET /user/:userId) have been removed from the backend.
  *
- * @param {{ email: string, shippingAddress: object, items: Array, totalAmount: number }} payload
- * @returns {Promise<Object>} The saved order response with orderId.
+ * @param {{ email: string, shippingAddress: object, items: Array, promoCode?: string, totalAmount: number }} payload
+ * @returns {Promise<Object>} The saved order response with { success, order }.
  */
 export const saveCompletedOrder = async (payload) => {
-    const response = await api.post('/api/orders/save', payload);
-    return response.data;
+    const token = auth.currentUser ? await auth.currentUser.getIdToken() : '';
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+    
+    const response = await fetch(`${apiUrl}/api/orders/save`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || errorData.error || "Backend rejected the order payload.");
+    }
+    
+    return response.json();
+};
+
+/**
+ * Fetches all past orders for the authenticated user.
+ * Calls GET /api/orders/history which filters by the JWT email.
+ *
+ * @returns {Promise<Array>} List of past orders.
+ */
+export const getUserOrders = async () => {
+    const token = auth.currentUser ? await auth.currentUser.getIdToken() : '';
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+    
+    const response = await fetch(`${apiUrl}/api/orders/history`, {
+        method: 'GET',
+        headers: {
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to fetch order history.");
+    }
+    
+    return response.json();
+};
+
+/**
+ * Fetches a single order by its ID from past_orders.
+ * Used by OrderConfirmationPage and OrderDetailPage.
+ *
+ * @param {string} orderId - The order UUID.
+ * @returns {Promise<Object>} The order details.
+ */
+export const getOrderById = async (orderId) => {
+    const token = auth.currentUser ? await auth.currentUser.getIdToken() : '';
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+    
+    const response = await fetch(`${apiUrl}/api/orders/${orderId}`, {
+        method: 'GET',
+        headers: {
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to fetch order.");
+    }
+    
+    return response.json();
 };

@@ -10,8 +10,19 @@ const { verifyToken } = require('../middleware/auth');
  */
 router.post('/sync', verifyToken, async (req, res) => {
     try {
-        // req.user contains the decoded Firebase token attached by verifyToken middleware
+        console.log('[Auth Sync] Incoming sync request for:', req.user?.email);
+
+        if (!req.user || !req.user.email) {
+            console.error('[Auth Sync] ❌ req.user or req.user.email is missing after verifyToken.');
+            return res.status(400).json({
+                error: true,
+                message: 'Bad Request: Firebase token did not contain a valid email.'
+            });
+        }
+
         const dbUser = await AuthService.syncUserWithDb(req.user);
+
+        console.log('[Auth Sync] ✅ User synced successfully:', dbUser.id, dbUser.email);
 
         return res.status(200).json({
             error: false,
@@ -19,10 +30,12 @@ router.post('/sync', verifyToken, async (req, res) => {
             user: dbUser
         });
     } catch (error) {
-        console.error('Error synchronizing user:', error);
+        console.error('[Auth Sync] ❌ Sync Error:', error.message);
+        console.error('[Auth Sync] Full error object:', error);
+
         return res.status(500).json({
             error: true,
-            message: 'Internal server error during user synchronization'
+            message: `User synchronization failed: ${error.message}`
         });
     }
 });

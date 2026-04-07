@@ -78,7 +78,7 @@ export default function AccountPage() {
 
     const { data: orders, isLoading: ordersLoading } = useQuery({
         queryKey: ['userOrders', userId],
-        queryFn: () => getUserOrders(userId),
+        queryFn: () => getUserOrders(),
         enabled: !!userId,
     });
 

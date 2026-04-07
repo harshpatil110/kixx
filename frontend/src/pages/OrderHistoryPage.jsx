@@ -11,18 +11,12 @@ export default function OrderHistoryPage() {
     const { user } = useAuthStore();
 
     const handleDownloadInvoice = (order) => {
-        const formattedItems = order.items?.map(item => ({
-            name: item.variant?.product?.name || 'Unknown Item',
-            quantity: item.quantity,
-            price: item.price
-        })) || [];
-
         generateInvoice({
             id: order.id,
-            email: user?.email,
-            shippingAddress: null,
-            items: formattedItems,
-            totalAmount: order.totalPrice,
+            email: order.email || user?.email,
+            shippingAddress: order.shippingAddress || null,
+            items: order.items || [],
+            totalAmount: order.totalAmount || 0,
             createdAt: order.createdAt
         });
     };
@@ -30,7 +24,7 @@ export default function OrderHistoryPage() {
     // user object from neon DB should have .id
     const { data: orders, isLoading, isError } = useQuery({
         queryKey: ['userOrders', user?.id],
-        queryFn: () => getUserOrders(user?.id),
+        queryFn: () => getUserOrders(),
         enabled: !!user?.id,
     });
 
@@ -80,10 +74,11 @@ export default function OrderHistoryPage() {
                 ) : (
                     <div className="space-y-6">
                         {orders.map((order) => {
+                            const pStatus = order.paymentStatus || order.status || 'pending';
                             const statusColor =
-                                order.status === 'completed' || order.status === 'paid' ? 'bg-green-100 text-green-800 border-green-200' :
-                                    order.status === 'pending' ? 'bg-yellow-100 text-yellow-800 border-yellow-200' :
-                                        order.status === 'cancelled' ? 'bg-red-100 text-red-800 border-red-200' :
+                                pStatus === 'SUCCESS' || pStatus === 'completed' || pStatus === 'paid' ? 'bg-green-100 text-green-800 border-green-200' :
+                                    pStatus === 'pending' ? 'bg-yellow-100 text-yellow-800 border-yellow-200' :
+                                        pStatus === 'FAILED' || pStatus === 'cancelled' ? 'bg-red-100 text-red-800 border-red-200' :
                                             'bg-gray-100 text-gray-800 border-gray-200';
 
                             return (
@@ -95,7 +90,7 @@ export default function OrderHistoryPage() {
                                                     Order #{String(order.id).slice(-8)}
                                                 </span>
                                                 <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase border ${statusColor}`}>
-                                                    {order.status || 'pending'}
+                                                    {pStatus}
                                                 </span>
                                             </div>
                                             <div className="text-gray-900 font-medium">
@@ -109,7 +104,7 @@ export default function OrderHistoryPage() {
 
                                         <div className="flex flex-col sm:flex-row items-center justify-between sm:justify-end w-full sm:w-auto mt-4 sm:mt-0 gap-4">
                                             <div className="text-2xl font-black text-[#800000] sm:mr-4 self-start sm:self-center">
-                                                {formatPrice(order.totalPrice || 0)}
+                                                {formatPrice(order.totalAmount || 0)}
                                             </div>
                                             <div className="flex gap-2 w-full sm:w-auto">
                                                 <button

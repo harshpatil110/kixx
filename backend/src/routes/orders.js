@@ -1,100 +1,108 @@
 const express = require('express');
 const router = express.Router();
-const OrderService = require('../services/OrderService');
 const { verifyToken } = require('../middleware/auth');
 const { db } = require('../db/index');
 const { users, pastOrders, products, inventoryLogs } = require('../db/schema');
 const { eq, sql } = require('drizzle-orm');
-
-// Internal helper for mapping Firebase email payload to the pure DB UUID
-async function getDbUserId(email) {
-    const userList = await db.select({ id: users.id }).from(users).where(eq(users.email, email)).limit(1);
-    return userList.length > 0 ? userList[0].id : null;
-}
 
 // Ensure all routes require Firebase Authentication
 router.use(verifyToken);
 
 /**
  * POST /api/orders/save
- * Saves a completed transaction snapshot (post-payment) into the past_orders table.
- * Payload: { email, shippingAddress, items, totalAmount }
+ * Phase 3: Full Inventory Transaction Engine.
+ * 
+ * Uses a Drizzle `db.transaction()` to atomically:
+ *   1. Validate user exists
+ *   2. Loop items → check stock → deduct stock → log inventory
+ *   3. Apply promo code
+ *   4. Insert into past_orders
+ *   5. Commit or rollback
+ * 
+ * Payload: { email, shippingAddress, items: [{ id, quantity, size, price }], promoCode? }
  */
 router.post('/save', async (req, res) => {
     try {
         const { email, shippingAddress, items, promoCode } = req.body;
 
-        // Basic validation
+        // ── Stage 0: Payload Validation ──────────────────────────────────
         if (!email || !shippingAddress || !items || !Array.isArray(items) || items.length === 0) {
             console.error("🔥 ORDER SAVE FAILED: Missing or malformed required payload fields.");
-            console.error("➡️ Received email:", email);
-            console.error("➡️ Received shippingAddress:", shippingAddress);
-            console.error("➡️ Received items array length:", items ? items.length : "undefined/null");
-            return res.status(400).json({ success: false, message: 'Bad Request: email, shippingAddress, and items are required.' });
+            console.error("➡️ Received body:", JSON.stringify(req.body, null, 2));
+            return res.status(400).json({
+                success: false,
+                message: 'Bad Request: email, shippingAddress, and items[] are required.'
+            });
         }
 
-        console.log("RECEIVED ORDER ITEMS:", req.body.items);
-        console.log("PROMO CODE APPLIED:", promoCode);
+        console.log(`[Orders] 📦 Processing order for ${email} — ${items.length} item(s), promo: ${promoCode || 'none'}`);
 
+        // ── Stage 1: Drizzle Transaction ─────────────────────────────────
         const result = await db.transaction(async (tx) => {
+
+            // 1a. Validate user exists in DB
             const [user] = await tx.select().from(users).where(eq(users.email, email)).limit(1);
             if (!user) {
-                throw new Error("User not found");
+                throw new Error(`User not found for email: ${email}. Has auth/sync completed?`);
             }
+            console.log(`[Orders] ✅ User resolved: ${user.id} (${user.email})`);
 
             let calculatedTotal = 0;
 
+            // 1b. Loop items — validate stock + deduct
             for (const item of items) {
-                if (!item.id) { throw new Error("Invalid item payload: Missing product ID"); }
-                
-                const [product] = await tx.select().from(products).where(eq(products.id, item.id));
-
-                // DIAGNOSTIC LOGGING — exposes exact types at runtime
-                console.log("📊 STOCK CHECK:", {
-                    product: product?.name,
-                    dbStock: product?.stock,
-                    dbStockType: typeof product?.stock,
-                    cartQty: item.quantity,
-                    cartQtyType: typeof item.quantity
-                });
-
-                // STRICT NUMERIC CASTING — eliminates string comparison bug
-                const currentStock = parseInt(product?.stock, 10);
-                const requestedQty = parseInt(item.quantity, 10);
-
-                if (!product || isNaN(currentStock) || isNaN(requestedQty) || currentStock < requestedQty) {
-                    throw new Error(`Insufficient stock for ${product ? product.name : 'Unknown Item'}. Only ${currentStock} left.`);
+                const itemId = item.id || item.productId;
+                if (!itemId) {
+                    throw new Error(`Invalid item payload: Missing product ID. Received: ${JSON.stringify(item)}`);
                 }
 
-                calculatedTotal += parseFloat(product.basePrice) * requestedQty;
+                // SELECT stock FROM products WHERE id = item.id
+                const [product] = await tx.select().from(products).where(eq(products.id, itemId));
 
-                // ATOMIC DEDUCTION — uses parsed integer to prevent PostgreSQL type rejection
+                if (!product) {
+                    throw new Error(`Product not found in database: ${itemId}`);
+                }
+
+                const currentStock = parseInt(product.stock, 10);
+                const requestedQty = parseInt(item.quantity, 10);
+
+                console.log(`[Orders] 📊 Stock check: "${product.name}" — DB stock: ${currentStock}, requested: ${requestedQty}`);
+
+                // VALIDATION: insufficient stock → rollback
+                if (isNaN(currentStock) || isNaN(requestedQty) || currentStock < requestedQty) {
+                    throw new Error(`Insufficient stock for "${product.name}". Available: ${currentStock}, requested: ${requestedQty}.`);
+                }
+
+                // DEDUCTION: UPDATE SET stock = stock - qty
                 await tx.update(products)
                     .set({ stock: sql`${products.stock} - ${requestedQty}` })
-                    .where(eq(products.id, item.id));
+                    .where(eq(products.id, itemId));
 
+                // INVENTORY LOG
                 await tx.insert(inventoryLogs).values({
-                    productId: item.id,
+                    productId: itemId,
                     changeType: 'SALE',
                     quantityChanged: -requestedQty
                 });
+
+                calculatedTotal += parseFloat(product.basePrice) * requestedQty;
             }
 
-            // Apply 'FIRSTDROP' Promo Code
+            // 1c. Apply FIRSTDROP promo if applicable
             if (promoCode === 'FIRSTDROP') {
                 if (user.firstPurchaseDiscountUsed) {
-                    throw new Error('You have already used the first purchase discount.');
+                    throw new Error('Promo code FIRSTDROP has already been used on this account.');
                 }
-                
-                // 10% discount
-                calculatedTotal = calculatedTotal * 0.90;
 
-                // Flip the bit immediately to prevent multiple uses
+                calculatedTotal = calculatedTotal * 0.90; // 10% off
+                console.log(`[Orders] 🏷️ FIRSTDROP applied. New total: ${calculatedTotal}`);
+
                 await tx.update(users)
                     .set({ firstPurchaseDiscountUsed: true })
                     .where(eq(users.id, user.id));
             }
 
+            // 1d. INSERT into past_orders + COMMIT
             const [inserted] = await tx.insert(pastOrders).values({
                 email,
                 shippingAddress,
@@ -106,114 +114,64 @@ router.post('/save', async (req, res) => {
             return inserted;
         });
 
-        console.log(`[Orders] ✅ Past order saved transactionally: ${result.id}`);
+        console.log(`[Orders] ✅ Order committed: ${result.id} for ${email}`);
         return res.status(200).json({ success: true, order: result });
+
     } catch (error) {
         console.error('[Orders] ❌ Transaction Error:', error.message);
-        return res.status(400).json({ success: false, message: error.message || "Transaction failed" });
+        console.error("➡️ Payload that caused failure:", JSON.stringify(req.body, null, 2));
+
+        return res.status(400).json({
+            success: false,
+            message: error.message || "Order transaction failed."
+        });
     }
 });
 
 /**
- * POST /api/orders
- * Creates a new Cart Order checking atomic stock via Drizzle Transactions.
+ * GET /api/orders/history
+ * Fetches all past orders for the authenticated user (by email from JWT).
  */
-router.post('/', async (req, res) => {
+router.get('/history', async (req, res) => {
     try {
-        const { items } = req.body;
-
-        // Explicit array checking avoids server dumps on malformed posts
-        if (!items || !Array.isArray(items) || items.length === 0) {
-            return res.status(400).json({ error: true, message: 'Bad Request: "items" must be a non-empty array' });
+        const userEmail = req.user?.email;
+        if (!userEmail) {
+            return res.status(401).json({ error: true, message: 'Unauthorized' });
         }
 
-        // Determine target Drizzle UUID
-        const userId = await getDbUserId(req.user.email);
-        if (!userId) {
-            return res.status(404).json({ error: true, message: 'User DB mapping not found' });
-        }
+        const userOrders = await db.select()
+            .from(pastOrders)
+            .where(eq(pastOrders.email, userEmail))
+            .orderBy(sql`${pastOrders.createdAt} DESC`);
 
-        const order = await OrderService.createOrder(userId, items);
-        return res.status(201).json({ error: false, message: 'Order created successfully', order });
+        return res.status(200).json(userOrders);
     } catch (error) {
-        console.error('Order Creation Context Error:', error.message);
-
-        // Distinguish expected errors defined internally vs unexpected Node.js stack errors
-        if (error.message.includes('Variant not found') || error.message.includes('Insufficient stock')) {
-            return res.status(400).json({ error: true, message: error.message });
-        }
-        return res.status(500).json({ error: true, message: 'Internal Server Error' });
-    }
-});
-
-/**
- * POST /api/orders/:id/payment
- * Processes raw payment, changes status, and subtracts explicit raw SQL quantity increments.
- */
-router.post('/:id/payment', async (req, res) => {
-    try {
-        const orderId = req.params.id;
-        const paymentDetails = req.body;
-
-        const userId = await getDbUserId(req.user.email);
-
-        // Initial boundary check restricting unauthorized tampering 
-        const isOwner = await OrderService.getOrderById(orderId, userId);
-        if (!isOwner) {
-            return res.status(404).json({ error: true, message: 'Target order not found or does not belong to user.' });
-        }
-
-        const paidOrder = await OrderService.processPayment(orderId, paymentDetails);
-        return res.status(200).json({ error: false, message: 'Payment processed successfully', order: paidOrder });
-    } catch (error) {
-        console.error(`Error processing payment on order ${req.params.id}:`, error.message);
-        return res.status(500).json({ error: true, message: 'Payment Processing Failed' });
-    }
-});
-
-/**
- * GET /api/orders/user/:userId
- * Retrieves ordered items historically mapping from the user Firebase token mapping.
- */
-router.get('/user/:userId', async (req, res) => {
-    try {
-        const dbUserId = await getDbUserId(req.user.email);
-
-        // Provide some authorization to make sure the token mapping logic handles scopes
-        if (!dbUserId) {
-            return res.status(403).json({ error: true, message: 'Forbidden' });
-        }
-
-        const ordersData = await OrderService.getUserOrders(dbUserId);
-        return res.status(200).json({ error: false, orders: ordersData });
-    } catch (error) {
-        console.error('Historic Orders Retrieval Error:', error.message);
-        return res.status(500).json({ error: true, message: 'Internal Server Error' });
+        console.error('[Orders] History Error:', error.message);
+        return res.status(500).json({ error: true, message: 'Failed to fetch order history.' });
     }
 });
 
 /**
  * GET /api/orders/:id
- * Retrieves unique isolated orders by target params matching DB User scopes.
+ * Retrieves a single order by its ID from past_orders.
  */
 router.get('/:id', async (req, res) => {
     try {
-        const dbUserId = await getDbUserId(req.user.email);
-        const orderData = await OrderService.getOrderById(req.params.id, dbUserId);
+        const [order] = await db.select().from(pastOrders).where(eq(pastOrders.id, req.params.id)).limit(1);
 
-        if (!orderData) {
-            return res.status(404).json({ error: true, message: 'Isolated Order Not Found.' });
+        if (!order) {
+            return res.status(404).json({ error: true, message: 'Order not found.' });
         }
 
-        return res.status(200).json({ error: false, order: orderData });
+        // Verify the requester owns this order
+        if (order.email !== req.user.email) {
+            return res.status(403).json({ error: true, message: 'Forbidden: You do not own this order.' });
+        }
+
+        return res.status(200).json({ error: false, order });
     } catch (error) {
-        console.error('Order ID Fetch Error:', error.message);
-
-        if (error.message.includes('Forbidden')) {
-            return res.status(403).json({ error: true, message: error.message });
-        }
-
-        return res.status(500).json({ error: true, message: 'Internal Server Error' });
+        console.error('[Orders] GET /:id Error:', error.message);
+        return res.status(500).json({ error: true, message: 'Failed to retrieve order.' });
     }
 });
 

@@ -1,6 +1,13 @@
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
+/**
+ * Generates and downloads a professional PDF invoice for a KIXX order.
+ * 
+ * Called ONLY after POST /api/orders/save returns 200.
+ * 
+ * @param {Object} orderData - { id, email, shippingAddress, items[], totalAmount, discount?, createdAt }
+ */
 export function generateInvoice(orderData) {
     if (!orderData) return;
 
@@ -10,7 +17,7 @@ export function generateInvoice(orderData) {
     const primaryColor = '#111111';
     const lightGray = '#F3F4F6';
     const darkGray = '#4B5563';
-    const maroonColor = '#800000';
+    const accentColor = '#31332c';
 
     // ── HEADER ──
     doc.setFont('helvetica', 'bold');
@@ -19,64 +26,74 @@ export function generateInvoice(orderData) {
     doc.text('KIXX', 14, 25);
 
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(10);
+    doc.setFontSize(9);
     doc.setTextColor(darkGray);
-    doc.text('PREMIUM SNEAKER COMMERCE', 14, 32);
+    doc.text('PREMIUM SNEAKER CURATION', 14, 32);
 
     // Invoice Meta (Top Right)
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(16);
-    doc.setTextColor(maroonColor);
+    doc.setTextColor(accentColor);
     doc.text('INVOICE', 196, 25, { align: 'right' });
 
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(10);
     doc.setTextColor(primaryColor);
-    doc.text(`Order ID: ${orderData.id || orderData.orderId || 'N/A'}`, 196, 32, { align: 'right' });
+    
+    const orderId = orderData.id || orderData.orderId || 'N/A';
+    const shortId = String(orderId).length > 12 ? orderId.substring(0, 12) + '...' : orderId;
+    doc.text(`Order: ${shortId}`, 196, 32, { align: 'right' });
     
     const orderDate = orderData.createdAt 
-        ? new Date(orderData.createdAt).toLocaleDateString() 
-        : new Date().toLocaleDateString();
+        ? new Date(orderData.createdAt).toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' })
+        : new Date().toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' });
     
     doc.text(`Date: ${orderDate}`, 196, 38, { align: 'right' });
+    doc.text('Payment: SUCCESS', 196, 44, { align: 'right' });
 
     // ── CUSTOMER INFO ──
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(12);
-    doc.text('Billed To:', 14, 50);
+    doc.setFontSize(11);
+    doc.setTextColor(primaryColor);
+    doc.text('Billed To:', 14, 52);
 
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(10);
     doc.setTextColor(darkGray);
-    doc.text(orderData.email || 'Customer', 14, 56);
+    doc.text(orderData.email || 'Customer', 14, 58);
     
     if (orderData.shippingAddress) {
         const address = orderData.shippingAddress;
-        let yOffset = 62;
+        let yOffset = 64;
         if (address.firstName) {
             doc.text(`${address.firstName} ${address.lastName || ''}`, 14, yOffset);
-            yOffset += 6;
+            yOffset += 5;
         }
         if (address.address) {
             doc.text(address.address, 14, yOffset);
-            yOffset += 6;
+            yOffset += 5;
         }
         if (address.city) {
-            doc.text(`${address.city}, ${address.state || ''} ${address.pincode || ''}`, 14, yOffset);
+            doc.text(`${address.city} ${address.pinCode || address.pincode || ''}`, 14, yOffset);
         }
     }
 
     // ── TABLE DRAWING ──
     const items = orderData.items || [];
+    const fmtPrice = (val) => {
+        const num = Number(val || 0);
+        return '₹' + num.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+    };
+
     const tableBody = items.map(item => [
-        item.name || 'Unknown Item',
+        item.name || 'Curated Item',
         item.quantity || 1,
-        `$${Number(item.price || 0).toFixed(2)}`,
-        `$${(Number(item.price || 0) * Number(item.quantity || 1)).toFixed(2)}`
+        fmtPrice(item.price),
+        fmtPrice((Number(item.price || 0)) * Number(item.quantity || 1))
     ]);
 
     autoTable(doc, {
-        startY: 85,
+        startY: 88,
         head: [['Item Description', 'Qty', 'Unit Price', 'Line Total']],
         body: tableBody,
         theme: 'plain',
@@ -96,7 +113,7 @@ export function generateInvoice(orderData) {
             3: { cellWidth: 40, halign: 'right' }
         },
         alternateRowStyles: {
-            fillColor: '#FAFAFA' // very light grey for pure brutalist table clarity
+            fillColor: '#FAFAFA'
         },
         margin: { left: 14, right: 14 }
     });
@@ -106,9 +123,9 @@ export function generateInvoice(orderData) {
     
     const rawTotal = Number(orderData.totalAmount || 0);
     const discount = Number(orderData.discount || 0);
-    const taxRate = 0.18; // 18% GST calculation
+    const taxRate = 0.18; // 18% GST
     
-    // Subtotal = (rawTotal / 1.18) + discount
+    // Back-calculate: subtotal = (rawTotal / 1.18) + discount
     const subtotal = (rawTotal / (1 + taxRate)) + discount;
     const taxAmount = rawTotal - (rawTotal / (1 + taxRate));
 
@@ -117,34 +134,35 @@ export function generateInvoice(orderData) {
     doc.setTextColor(darkGray);
     doc.text('Subtotal:', 140, currentY);
     doc.setTextColor(primaryColor);
-    doc.text(`$${subtotal.toFixed(2)}`, 196, currentY, { align: 'right' });
+    doc.text(fmtPrice(subtotal), 196, currentY, { align: 'right' });
 
     if (discount > 0) {
         currentY += 8;
-        doc.setTextColor('#800000'); // Maroon color for discount
-        doc.text('Discount:', 140, currentY);
-        doc.text(`-$${discount.toFixed(2)}`, 196, currentY, { align: 'right' });
+        doc.setTextColor('#3856c4');
+        doc.text('FIRSTDROP Discount:', 140, currentY);
+        doc.text(`-${fmtPrice(discount)}`, 196, currentY, { align: 'right' });
     }
 
     currentY += 8;
     doc.setTextColor(darkGray);
     doc.text('Tax (18% GST):', 140, currentY);
     doc.setTextColor(primaryColor);
-    doc.text(`$${taxAmount.toFixed(2)}`, 196, currentY, { align: 'right' });
+    doc.text(fmtPrice(taxAmount), 196, currentY, { align: 'right' });
 
     currentY += 12;
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(14);
     doc.text('Total:', 140, currentY);
-    doc.text(`$${rawTotal.toFixed(2)}`, 196, currentY, { align: 'right' });
+    doc.text(fmtPrice(rawTotal), 196, currentY, { align: 'right' });
 
     // ── FOOTER ──
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8);
     doc.setTextColor(150, 150, 150);
-    doc.text('Thank you for choosing KIXX.', 14, 280);
-    doc.text('kixx.com | support@kixx.com', 196, 280, { align: 'right' });
+    doc.text('Thank you for choosing KIXX. This is a computer-generated invoice.', 14, 275);
+    doc.text('kixx.digital | support@kixx.digital', 196, 275, { align: 'right' });
+    doc.text(`Invoice generated: ${new Date().toLocaleString('en-IN')}`, 14, 280);
 
     // Automatically trigger download
-    doc.save(`KIXX_Invoice_${orderData.id || orderData.orderId || 'Download'}.pdf`);
+    doc.save(`KIXX_Invoice_${shortId}.pdf`);
 }

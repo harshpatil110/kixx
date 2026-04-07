@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { auth } from '../config/firebase';
-import { useMutation } from '@tanstack/react-query';
-import { saveCompletedOrder } from '../services/orderService';
 import useCartStore from '../store/cartStore';
 import { formatPrice } from '../utils/currency';
 import toast from 'react-hot-toast';
@@ -48,11 +46,19 @@ export default function CheckoutPage() {
     const taxes = Math.round(discountedSubtotal * 0.18);
     const total = discountedSubtotal + taxes;
 
-    const [isCheckingOut, setIsCheckingOut] = useState(false);
-
-    const handleCheckout = async (e) => {
+    // ─────────────────────────────────────────────────────────────────────
+    // Proceed to Mock Razorpay Gateway (PaymentPage)
+    // Saves checkout data → navigates. Does NOT call the order API here.
+    // ─────────────────────────────────────────────────────────────────────
+    const handleProceedToPayment = (e) => {
         e.preventDefault();
-        
+
+        // ── HARD STOP: Auth guard ────────────────────────────────────────
+        if (!auth.currentUser) {
+            toast.error("Please log in to checkout.");
+            return;
+        }
+
         if (!email || !shipping.firstName || !shipping.lastName || !shipping.address || !shipping.city || !shipping.pinCode) {
             toast.error("Please fill out all shipping details.");
             return;
@@ -62,55 +68,14 @@ export default function CheckoutPage() {
             return;
         }
 
-        setIsCheckingOut(true);
+        // Persist checkout data for the PaymentPage to consume
+        sessionStorage.setItem('kixx-checkout-data', JSON.stringify({
+            email,
+            shipping,
+            promoCode: appliedPromo,
+        }));
 
-        try {
-            const orderPayload = {
-                email,
-                shippingAddress: shipping,
-                items: items.map(item => ({
-                    id: item.productId || item.id || item._id || item.variantId,
-                    productId: item.productId || item.id || item._id || item.variantId,
-                    quantity: item.quantity,
-                    size: item.size,
-                    price: item.price
-                })),
-                promoCode: appliedPromo
-            };
-
-            const token = auth.currentUser ? await auth.currentUser.getIdToken() : '';
-            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-
-            const response = await fetch(`${apiUrl}/api/orders/save`, {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}` 
-                },
-                body: JSON.stringify(orderPayload)
-            });
-
-            // 1. IF IT FAILS: Parse the error, alert the user, and STOP execution.
-            if (!response.ok) {
-                const errorData = await response.json();
-                console.error("Checkout Validation Error:", errorData);
-                alert(`Checkout Failed: ${errorData.error || errorData.message || 'Unknown data error'}`);
-                setIsCheckingOut(false);
-                return; // <-- CRITICAL: This stops the navigation from happening
-            }
-
-            // 2. IF IT SUCCEEDS: Parse the successful data and navigate.
-            const successData = await response.json();
-            clearCart();
-            const orderId = successData.order?.id || successData.orderId || successData.id || 'new';
-            navigate(`/order-confirmation/${orderId}`);
-
-        } catch (err) {
-            console.error("Network/Server Crash:", err);
-            alert("A critical error occurred. Please try again.");
-            setIsCheckingOut(false);
-            return; // <-- CRITICAL
-        }
+        navigate('/payment');
     };
 
     return (
@@ -184,7 +149,7 @@ export default function CheckoutPage() {
                         </div>
                     </section>
 
-                    <form className="space-y-16" onSubmit={handleCheckout}>
+                    <form className="space-y-16" onSubmit={handleProceedToPayment}>
                         {/* Shipping Section */}
                         <section>
                             <div className="flex items-center gap-4 mb-8">
@@ -263,14 +228,10 @@ export default function CheckoutPage() {
                         <div className="pt-8">
                             <button 
                                 type="submit"
-                                disabled={isCheckingOut || items.length === 0}
+                                disabled={items.length === 0}
                                 className="w-full bg-[#31332c] text-white py-6 rounded-sm font-['Inter',sans-serif] font-bold uppercase text-xs tracking-[0.2em] hover:bg-black transition-all flex justify-center items-center gap-3 active:scale-[0.99] duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                {isCheckingOut ? 'Processing Payment...' : (
-                                    <>
-                                        Complete Payment <span className="material-symbols-outlined text-sm">arrow_forward</span>
-                                    </>
-                                )}
+                                Proceed to Payment <span className="material-symbols-outlined text-sm">arrow_forward</span>
                             </button>
                             <div className="mt-8 flex items-center justify-center gap-6 text-[#5e6058]/60">
                                 <div className="flex items-center gap-1.5">

@@ -53,14 +53,14 @@ export default function PaymentPage() {
         setIsProcessing(true);
         setErrorMsg(null);
 
-        const toastId = toast.loading('Processing Securely...');
+        const toastId = toast.loading('Processing with Razorpay...');
 
         try {
-            // Simulate network latency (2000ms as per directive)
+            // Simulate Razorpay gateway network latency (2s)
             await new Promise((resolve) => setTimeout(resolve, 2000));
 
-            // Save the order directly (no real payment gateway involved)
-            await saveCompletedOrder({
+            // Call POST /api/orders/save — the Phase 3 transaction engine
+            const apiResponse = await saveCompletedOrder({
                 email: checkoutData.email,
                 shippingAddress: checkoutData.shipping,
                 items: items.map((item) => ({
@@ -72,29 +72,34 @@ export default function PaymentPage() {
                 totalAmount: total,
             });
 
-            const orderData = {
-                id: `ORD-${Date.now()}`,
+            // ── HARD STOP: If we reach here, the API succeeded ──────────
+            const savedOrder = apiResponse.order;
+            const orderId = savedOrder?.id || apiResponse.orderId || apiResponse.id || 'N/A';
+
+            // Phase 4: Generate PDF Invoice with real order data
+            generateInvoice({
+                id: orderId,
                 email: checkoutData.email,
                 shippingAddress: checkoutData.shipping,
                 items: items,
-                totalAmount: total,
+                totalAmount: savedOrder?.totalAmount || total,
                 discount: discount,
-                createdAt: new Date().toISOString()
-            };
-
-            generateInvoice(orderData);
+                createdAt: savedOrder?.createdAt || new Date().toISOString()
+            });
 
             clearCart();
             sessionStorage.removeItem('kixx-checkout-data');
-            toast.success('Payment Successful!', { id: toastId });
+            toast.success('Payment Successful! Invoice downloaded.', { id: toastId });
             setShowMockModal(false);
-            navigate('/account');
+            navigate(`/order-confirmation/${orderId}`);
         } catch (err) {
-            console.error('Mock payment error:', err);
-            const backendMsg = err?.response?.data?.message || err.message || 'Transaction failed. Please try again.';
+            // ── HARD STOP: API returned 400/500 — DO NOT NAVIGATE ────────
+            console.error('Payment Gateway Error:', err);
+            const backendMsg = err.message || 'Transaction failed. Please try again.';
             toast.error(backendMsg, { id: toastId });
             setErrorMsg(backendMsg);
             setIsProcessing(false);
+            // Stay on page. Do NOT navigate. Do NOT clear cart.
         }
     };
 
