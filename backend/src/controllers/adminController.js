@@ -246,4 +246,37 @@ const getCustomers = async (req, res) => {
     }
 };
 
-module.exports = { getDashboardStats, getSalesByBrand, getLowStockAlerts, getInventory, updateInventory, getOrders, getCustomers };
+/**
+ * GET /api/admin/customers/:email/orders
+ * Fetches all detailed past orders for a specific customer email, used by the CRM Slide-Over.
+ */
+const getCustomerOrders = async (req, res) => {
+    const { email } = req.params;
+    if (!email) {
+        return res.status(400).json({ success: false, message: 'Email parameter is required.' });
+    }
+
+    try {
+        const rows = await db
+            .select()
+            .from(pastOrders)
+            .where(eq(pastOrders.email, email))
+            .orderBy(desc(pastOrders.createdAt));
+
+        return res.status(200).json({ success: true, data: rows });
+    } catch (error) {
+        console.error(`[Admin] ❌ Get Customer Orders Error (${email}):`, error.message);
+        return res.status(500).json({ success: false, message: 'Failed to fetch customer orders.' });
+    }
+};
+
+module.exports = {
+    getDashboardStats, 
+    getSalesByBrand, 
+    getLowStockAlerts, 
+    getInventory, 
+    updateInventory, 
+    getOrders, 
+    getCustomers,
+    getCustomerOrders
+};

@@ -12,6 +12,7 @@ const {
     updateInventory,
     getOrders,
     getCustomers,
+    getCustomerOrders,
 } = require('../controllers/adminController');
 
 // ---------------------------------------------------------------------------
@@ -59,5 +60,6 @@ router.get('/orders', getOrders);
 
 // Customer directory
 router.get('/customers', getCustomers);
+router.get('/customers/:email/orders', getCustomerOrders);
 
 module.exports = router;
