@@ -42,6 +42,7 @@ export default defineConfig({
         //  • query        — TanStack React Query + Devtools
         //  • firebase     — Largest dependency; isolated so app updates don't bust it
         //  • icons        — Lucide (large icon tree; users cache it across pages)
+        //  • three        — Three.js + @react-three/* (large WebGL stack; isolated)
         //  • ui-libs      — Zustand, react-hot-toast & other small UI utilities
         // -----------------------------------------------------------------------
         manualChunks(id) {
@@ -60,6 +61,16 @@ export default defineConfig({
           // TanStack React Query
           if (id.includes('node_modules/@tanstack/')) {
             return 'query';
+          }
+
+          // Three.js WebGL core — isolated chunk
+          if (id.includes('node_modules/three/')) {
+            return 'three';
+          }
+
+          // React Three Fiber ecosystem — separate chunk to avoid circular dep with vendor
+          if (id.includes('node_modules/@react-three/')) {
+            return 'r3f';
           }
 
           // Firebase SDK — largest dep; isolated so app updates don't bust its cache
