@@ -13,7 +13,7 @@ import toast from 'react-hot-toast';
 import {
     Search, ShoppingCart, User, Package, Heart,
     CreditCard, LogOut, Archive, ChevronDown,
-    Download, PlusCircle, X, Footprints
+    Download, PlusCircle, X, Footprints, Star
 } from 'lucide-react';
 
 /*
@@ -75,6 +75,49 @@ export default function AccountPage() {
     const [isSigningOut, setIsSigningOut] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
+    // ── Review Modal State ───────────────────────────────────────────────────
+    const [reviewTarget, setReviewTarget] = useState(null); // { orderId, productId, productName }
+    const [reviewRating, setReviewRating] = useState(0);
+    const [reviewComment, setReviewComment] = useState('');
+    const [isReviewing, setIsReviewing] = useState(false);
+    const [hoveredStar, setHoveredStar] = useState(0);
+
+    const openReviewModal = (order) => {
+        const firstItem = order.items?.[0];
+        setReviewTarget({
+            orderId: order.id,
+            productId: firstItem?.id || '',
+            productName: firstItem?.name || 'This Product',
+        });
+        setReviewRating(0);
+        setReviewComment('');
+    };
+
+    const closeReviewModal = () => { setReviewTarget(null); setHoveredStar(0); };
+
+    const handleReviewSubmit = async (e) => {
+        e.preventDefault();
+        if (reviewRating === 0) { toast.error('Please select a star rating.'); return; }
+        if (!reviewTarget?.productId) { toast.error('Product ID is missing.'); return; }
+        setIsReviewing(true);
+        try {
+            const res = await api.post('/api/products/review', {
+                productId: reviewTarget.productId,
+                orderId: reviewTarget.orderId,
+                rating: reviewRating,
+                comment: reviewComment,
+            });
+            if (res.data.success) {
+                toast.success(res.data.message || 'Review submitted!');
+                closeReviewModal();
+            }
+        } catch {
+            // global toast from api interceptor
+        } finally {
+            setIsReviewing(false);
+        }
+    };
+
     // ── Shoe Archive Form State ──────────────────────────────────────────────
     const [shoeForm, setShoeForm] = useState({ shoeName: '', brand: '', sku: '', purchaseDate: '' });
     const [isSaving, setIsSaving] = useState(false);
@@ -104,7 +147,12 @@ export default function AccountPage() {
 
     // Close on Escape key
     useEffect(() => {
-        const onKey = (e) => { if (e.key === 'Escape') setIsModalOpen(false); };
+        const onKey = (e) => {
+            if (e.key === 'Escape') {
+                setIsModalOpen(false);
+                closeReviewModal();
+            }
+        };
         window.addEventListener('keydown', onKey);
         return () => window.removeEventListener('keydown', onKey);
     }, []);
@@ -352,6 +400,15 @@ export default function AccountPage() {
                                                     <Link to={`/orders/${order.id}`} className="text-sm font-medium border-b border-black hover:text-[#800000] hover:border-[#800000] transition-colors uppercase text-gray-900 ml-4">
                                                         View Receipt
                                                     </Link>
+                                                    <button
+                                                        onClick={() => openReviewModal(order)}
+                                                        className="text-[10px] uppercase tracking-widest border-b border-stone-200
+                                                                   hover:border-stone-900 transition-all text-stone-500
+                                                                   hover:text-stone-900 ml-2 flex items-center gap-1"
+                                                    >
+                                                        <Star size={11} />
+                                                        Leave a Review
+                                                    </button>
                                                 </div>
                                             </div>
                                         </div>
@@ -368,8 +425,7 @@ export default function AccountPage() {
                                 </Link>
                             </div>
                         )}
-
-                        {/* Stitch: div.mt-8.flex.justify-center — Load More */}
+                {/* Stitch: div.mt-8.flex.justify-center — Load More */}
                         {orders && orders.length > 0 && (
                             <div className="mt-8 flex justify-center">
                                 {/* Stitch: button.px-8.py-3.bg-black.text-white.font-bold.uppercase.tracking-widest.rounded.hover:bg-primary.transition-colors */}
@@ -487,6 +543,125 @@ export default function AccountPage() {
                                 type="button"
                                 onClick={() => setIsModalOpen(false)}
                                 className="py-2.5 px-4 bg-white border border-stone-200 text-stone-600 rounded-sm hover:bg-stone-50 transition-colors text-xs font-bold uppercase tracking-widest"
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        )}
+
+        {/* ── Review Modal ─────────────────────────────────────────────────── */}
+        {reviewTarget && (
+            <div
+                className="fixed inset-0 z-[200] flex items-center justify-center px-4"
+                style={{ background: 'rgba(0,0,0,0.5)' }}
+                onClick={closeReviewModal}
+            >
+                <div
+                    className="relative w-full max-w-sm bg-[#F7F5F0] overflow-hidden"
+                    style={{ border: '1px solid rgba(0,0,0,0.10)' }}
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    {/* Header */}
+                    <div className="flex items-start justify-between px-6 pt-6 pb-4 border-b border-stone-200">
+                        <div>
+                            <p className="text-[9px] font-bold uppercase tracking-[0.25em] text-stone-400 mb-0.5">
+                                Verified Purchase
+                            </p>
+                            <p className="text-[15px] font-black tracking-[-0.03em] text-stone-900 uppercase leading-tight">
+                                Rate Your Buy
+                            </p>
+                            <p className="text-[11px] text-stone-500 mt-1 max-w-[200px] truncate">
+                                {reviewTarget.productName}
+                            </p>
+                        </div>
+                        <button
+                            onClick={closeReviewModal}
+                            className="text-stone-400 hover:text-stone-900 transition-colors"
+                            aria-label="Close"
+                        >
+                            <X size={15} />
+                        </button>
+                    </div>
+
+                    <form onSubmit={handleReviewSubmit} className="px-6 py-5 space-y-5">
+
+                        {/* Star Selector */}
+                        <div className="space-y-2">
+                            <p className="text-[9px] font-bold uppercase tracking-[0.25em] text-stone-400">
+                                Rating <span className="text-red-500">*</span>
+                            </p>
+                            <div className="flex items-center gap-1.5">
+                                {[1,2,3,4,5].map((star) => {
+                                    const filled = star <= (hoveredStar || reviewRating);
+                                    return (
+                                        <button
+                                            key={star}
+                                            type="button"
+                                            onClick={() => setReviewRating(star)}
+                                            onMouseEnter={() => setHoveredStar(star)}
+                                            onMouseLeave={() => setHoveredStar(0)}
+                                            className="transition-transform hover:scale-110"
+                                            aria-label={`${star} star${star > 1 ? 's' : ''}`}
+                                        >
+                                            <svg width="28" height="28" viewBox="0 0 24 24"
+                                                 fill={filled ? '#1c1917' : 'none'}
+                                                 stroke="#1c1917"
+                                                 strokeWidth="1.5"
+                                                 strokeLinecap="round"
+                                                 strokeLinejoin="round">
+                                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                                            </svg>
+                                        </button>
+                                    );
+                                })}
+                                {reviewRating > 0 && (
+                                    <span className="text-[11px] font-bold text-stone-500 ml-1">
+                                        {['','Poor','Fair','Good','Great','Perfect!'][reviewRating]}
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Comment */}
+                        <div className="space-y-1.5">
+                            <label className="text-[9px] font-bold uppercase tracking-[0.25em] text-stone-400">
+                                Written Review
+                            </label>
+                            <textarea
+                                value={reviewComment}
+                                onChange={(e) => setReviewComment(e.target.value)}
+                                placeholder="Share your thoughts on the fit, quality, delivery…"
+                                rows={4}
+                                maxLength={1000}
+                                className="w-full bg-transparent border border-stone-200 focus:border-stone-900
+                                           p-3 text-sm font-medium text-stone-900 placeholder:text-stone-300
+                                           focus:outline-none transition-colors resize-none"
+                            />
+                            <p className="text-[9px] text-stone-300 text-right">
+                                {reviewComment.length}/1000
+                            </p>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="flex items-center gap-3 pt-1">
+                            <button
+                                type="submit"
+                                disabled={isReviewing || reviewRating === 0}
+                                className="flex-1 py-2.5 bg-stone-900 text-white text-[10px] font-bold
+                                           uppercase tracking-[0.2em] hover:bg-[#800000] transition-colors
+                                           disabled:opacity-40 rounded-sm"
+                            >
+                                {isReviewing ? 'Submitting…' : 'Submit Review'}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={closeReviewModal}
+                                className="py-2.5 px-4 text-[10px] font-bold uppercase tracking-[0.2em]
+                                           text-stone-500 hover:text-stone-900 transition-colors border
+                                           border-stone-200 hover:border-stone-400 rounded-sm"
                             >
                                 Cancel
                             </button>

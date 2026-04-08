@@ -136,6 +136,17 @@ const userFeedback = pgTable('user_feedback', {
     createdAt: timestamp('created_at').defaultNow(),
 });
 
+// 3.11 Product Reviews — Verified Purchase Reviews
+const productReviews = pgTable('product_reviews', {
+    id: serial('id').primaryKey(),
+    userId: varchar('user_id', { length: 255 }).notNull(),    // Firebase UID
+    productId: varchar('product_id', { length: 255 }).notNull(), // UUID of reviewed product
+    orderId: varchar('order_id', { length: 255 }).notNull(),   // UUID of past_orders row (verified purchase)
+    rating: integer('rating').notNull(),                        // 1-5
+    comment: text('comment'),                                   // Optional written review
+    createdAt: timestamp('created_at').defaultNow(),
+});
+
 // ----------------------------------------------------
 // FUTURE PHASE MODELS
 // ----------------------------------------------------
@@ -247,6 +258,7 @@ module.exports = {
     pastOrders,
     userCollection,
     userFeedback,
+    productReviews,
     usersRelations,
     brandsRelations,
     productsRelations,

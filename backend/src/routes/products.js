@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const ProductService = require('../services/ProductService');
+const { verifyToken } = require('../middleware/auth');
+const { submitReview } = require('../controllers/reviewController');
 
 // Custom UUID validation regex to avoid extra dependencies for simple checks
 const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/i;
@@ -51,5 +53,8 @@ router.get('/:id', async (req, res) => {
         return res.status(500).json({ error: true, message: 'Internal Server Error while fetching product.' });
     }
 });
+
+// POST /api/products/review — authenticated users only
+router.post('/review', verifyToken, submitReview);
 
 module.exports = router;
