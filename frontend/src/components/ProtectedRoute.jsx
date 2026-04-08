@@ -14,17 +14,9 @@ export default function ProtectedRoute({ children }) {
     //       the auth state (i.e., isAuthLoading === false).
     if (isAuthLoading) {
         return (
-            <div className="min-h-screen flex flex-col items-center justify-center bg-[#F5F5DC] gap-4">
-                {/* Wordmark */}
-                <span
-                    className="font-black text-[#800000] tracking-tighter select-none"
-                    style={{ fontSize: '2.5rem', letterSpacing: '-0.04em' }}
-                >
-                    KIXX
-                </span>
-                <Loader2 className="animate-spin h-9 w-9 text-[#800000]" />
-                <p className="text-sm font-semibold text-gray-500 uppercase tracking-widest">
-                    Loading your profile…
+            <div className="min-h-screen flex items-center justify-center bg-[#F7F5F0]">
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-stone-900 animate-pulse">
+                    Re-authenticating...
                 </p>
             </div>
         );

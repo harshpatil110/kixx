@@ -8,8 +8,10 @@ export default function AdminRoute() {
 
     if (isAuthLoading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-[#F5F5DC]">
-                <Loader2 className="w-8 h-8 animate-spin text-[#800000]" />
+            <div className="min-h-screen flex items-center justify-center bg-[#F7F5F0]">
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-stone-900 animate-pulse">
+                    Re-authenticating...
+                </p>
             </div>
         );
     }
