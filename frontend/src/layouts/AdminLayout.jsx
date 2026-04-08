@@ -10,6 +10,7 @@ import {
   ChevronRight,
   Share2,
   MessageCircle,
+  Star,
 } from 'lucide-react';
 import { signOut } from 'firebase/auth';
 import { auth } from '../config/firebase';
@@ -23,6 +24,7 @@ const NAV_ITEMS = [
   { to: '/admin/customers',     label: 'Customers',     icon: Users },
   { to: '/admin/visualization', label: 'Visualization', icon: Share2 },
   { to: '/admin/feedback',      label: 'Feedback',      icon: MessageCircle },
+  { to: '/admin/reviews',       label: 'Reviews',       icon: Star },
   { to: '/admin/settings',      label: 'Settings',      icon: Settings },
 ];
 

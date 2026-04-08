@@ -1,5 +1,5 @@
 const { db } = require('../db/index');
-const { users, products, brands, pastOrders, inventoryLogs, userFeedback } = require('../db/schema');
+const { users, products, brands, pastOrders, inventoryLogs, userFeedback, productReviews } = require('../db/schema');
 const { sql, eq, asc, desc, count, gte } = require('drizzle-orm');
 const bcrypt = require('bcrypt');
 
@@ -449,6 +449,87 @@ const resolveFeedback = async (req, res) => {
 };
 
 
+/**
+ * GET /api/admin/reviews/summary
+ * Aggregates average rating and review count for each product that has at least one review.
+ * Joins products table to get product name + SKU-equivalent (category used as SKU proxy) + imageUrl.
+ */
+const getReviewsSummary = async (req, res) => {
+    try {
+        const result = await db.execute(sql`
+            SELECT
+                p.id                                            AS "productId",
+                p.name                                          AS "productName",
+                p.category                                      AS "category",
+                p.image_url                                     AS "imageUrl",
+                COUNT(pr.id)::integer                           AS "reviewCount",
+                ROUND(AVG(pr.rating)::numeric, 1)               AS "avgRating"
+            FROM products p
+            INNER JOIN product_reviews pr ON pr.product_id = p.id::text
+            GROUP BY p.id, p.name, p.category, p.image_url
+            HAVING COUNT(pr.id) > 0
+            ORDER BY "reviewCount" DESC
+        `);
+
+        const data = (result.rows ?? result).map((r) => ({
+            productId:   r.productId,
+            productName: r.productName,
+            category:    r.category,
+            imageUrl:    r.imageUrl,
+            reviewCount: parseInt(r.reviewCount, 10),
+            avgRating:   parseFloat(r.avgRating),
+        }));
+
+        console.log(`[Admin] ✅ Reviews summary fetched: ${data.length} products`);
+        return res.status(200).json({ success: true, data });
+    } catch (error) {
+        console.error('[Admin] ❌ Reviews Summary Error:', error.message);
+        return res.status(500).json({ success: false, message: 'Failed to fetch reviews summary.' });
+    }
+};
+
+/**
+ * GET /api/admin/reviews/product/:productId
+ * Returns every individual review for a specific product.
+ * Joins past_orders (on orderId) to retrieve the submitter's email.
+ */
+const getProductReviews = async (req, res) => {
+    const { productId } = req.params;
+    if (!productId) {
+        return res.status(400).json({ success: false, message: 'productId is required.' });
+    }
+
+    try {
+        const result = await db.execute(sql`
+            SELECT
+                pr.id                                           AS "reviewId",
+                pr.rating,
+                pr.comment,
+                pr.created_at                                   AS "createdAt",
+                pr.user_id                                      AS "userId",
+                COALESCE(po.email, pr.user_id)                  AS "userEmail"
+            FROM product_reviews pr
+            LEFT JOIN past_orders po ON po.id::text = pr.order_id
+            WHERE pr.product_id = ${productId}
+            ORDER BY pr.created_at DESC
+        `);
+
+        const data = (result.rows ?? result).map((r) => ({
+            reviewId:  parseInt(r.reviewId, 10),
+            rating:    parseInt(r.rating, 10),
+            comment:   r.comment,
+            createdAt: r.createdAt,
+            userEmail: r.userEmail,
+        }));
+
+        console.log(`[Admin] ✅ Product reviews fetched for ${productId}: ${data.length} reviews`);
+        return res.status(200).json({ success: true, data });
+    } catch (error) {
+        console.error('[Admin] ❌ Product Reviews Error:', error.message);
+        return res.status(500).json({ success: false, message: 'Failed to fetch product reviews.' });
+    }
+};
+
 module.exports = {
     getDashboardStats,
     getSalesByBrand,
@@ -463,4 +544,6 @@ module.exports = {
     getFeedbackStats,
     getAllFeedback,
     resolveFeedback,
+    getReviewsSummary,
+    getProductReviews,
 };

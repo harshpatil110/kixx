@@ -50,6 +50,7 @@ const CustomersPage = lazy(() => import('./pages/admin/CustomersPage'));
 const SettingsPage = lazy(() => import('./pages/admin/SettingsPage'));
 const VisualizationPage = lazy(() => import('./pages/admin/VisualizationPage'));
 const FeedbackManagement = lazy(() => import('./pages/admin/FeedbackManagement'));
+const ReviewsManagementPage = lazy(() => import('./pages/admin/ReviewsManagementPage'));
 
 // ── Features ──
 const OutfitCheckerPage = lazy(() => import('./pages/OutfitCheckerPage'));
@@ -180,6 +181,11 @@ export default function App() {
             <Route path="feedback" element={
               <Suspense fallback={<GenericPageSkeleton />}>
                 <FeedbackManagement />
+              </Suspense>
+            } />
+            <Route path="reviews" element={
+              <Suspense fallback={<GenericPageSkeleton />}>
+                <ReviewsManagementPage />
               </Suspense>
             } />
           </Route>
