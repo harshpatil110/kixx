@@ -11,14 +11,12 @@ const useAuthStore = create((set) => ({
         user: dbUser,
         userRole: dbUser?.role || null,
         firebaseUser: firebaseUser,
-        firebaseUser: firebaseUser,
         isAuthenticated: !!firebaseUser,
     }),
 
     clearAuth: () => set({
         user: null,
         userRole: null,
-        firebaseUser: null,
         firebaseUser: null,
         isAuthenticated: false,
     }),
