@@ -15,6 +15,7 @@ const {
     getCustomerOrders,
     updateAccountSettings,
     updateStoreSettings,
+    getFeedbackStats,
 } = require('../controllers/adminController');
 
 // ---------------------------------------------------------------------------
@@ -52,6 +53,7 @@ router.use(isAdmin);
 router.get('/stats', getDashboardStats);
 router.get('/sales-by-brand', getSalesByBrand);
 router.get('/inventory-alerts', getLowStockAlerts);
+router.get('/feedback-stats', getFeedbackStats);
 
 // Inventory management endpoints
 router.get('/inventory', getInventory);

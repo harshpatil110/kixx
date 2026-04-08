@@ -18,6 +18,7 @@ import {
 } from 'recharts';
 import api from '../../services/api';
 import CollectionAnalytics from '../../components/admin/CollectionAnalytics';
+import FeedbackAnalytics from '../../components/admin/FeedbackAnalytics';
 
 // ── Brand Donut Colors ──────────────────────────────────────────────────────
 const BRAND_COLORS = [
@@ -220,6 +221,9 @@ export default function DashboardPage() {
 
       {/* ── Community Archive Analytics ──────────────────────────────── */}
       <CollectionAnalytics />
+
+      {/* ── System Health & User Feedback ─────────────────────────── */}
+      <FeedbackAnalytics />
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         {/* Donut Chart */}

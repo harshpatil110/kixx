@@ -1,6 +1,6 @@
 const { db } = require('../db/index');
-const { users, products, brands, pastOrders, inventoryLogs } = require('../db/schema');
-const { sql, eq, asc, desc, count } = require('drizzle-orm');
+const { users, products, brands, pastOrders, inventoryLogs, userFeedback } = require('../db/schema');
+const { sql, eq, asc, desc, count, gte } = require('drizzle-orm');
 const bcrypt = require('bcrypt');
 
 /**
@@ -340,6 +340,68 @@ const updateStoreSettings = async (req, res) => {
     }
 };
 
+/**
+ * GET /api/admin/feedback-stats
+ * Two aggregations:
+ *   1. categoryBreakdown — count of feedback rows grouped by category.
+ *   2. dailyTrend       — daily submission count for the last 7 days.
+ */
+const getFeedbackStats = async (req, res) => {
+    try {
+        // ── 1. Category breakdown ──────────────────────────────────────────────────────
+        const categoryResult = await db
+            .select({
+                category: userFeedback.category,
+                count: count(),
+            })
+            .from(userFeedback)
+            .groupBy(userFeedback.category)
+            .orderBy(desc(count()));
+
+        // ── 2. Daily trend (last 7 calendar days incl. today) ───────────────────────
+        // Generate a date series on the DB side so days with 0 reports still appear.
+        const trendResult = await db.execute(sql`
+            SELECT
+                TO_CHAR(day::date, 'Mon DD') AS label,
+                COUNT(uf.id)::integer        AS count
+            FROM
+                generate_series(
+                    NOW()::date - INTERVAL '6 days',
+                    NOW()::date,
+                    '1 day'::interval
+                ) AS day
+            LEFT JOIN user_feedback uf
+                ON uf.created_at::date = day::date
+            GROUP BY day
+            ORDER BY day ASC
+        `);
+
+        const categoryBreakdown = categoryResult.map((r) => ({
+            category: r.category,
+            count: parseInt(r.count, 10),
+        }));
+
+        const dailyTrend = (trendResult.rows ?? trendResult).map((r) => ({
+            label: r.label,
+            count: parseInt(r.count, 10),
+        }));
+
+        console.log('[Admin] ✅ Feedback stats fetched:', categoryBreakdown.length, 'categories,',
+                    dailyTrend.length, 'days of trend data');
+
+        return res.status(200).json({
+            success: true,
+            categoryBreakdown,
+            dailyTrend,
+            totalFeedback: categoryBreakdown.reduce((s, r) => s + r.count, 0),
+        });
+
+    } catch (error) {
+        console.error('[Admin] ❌ Feedback Stats Error:', error.message);
+        return res.status(500).json({ success: false, message: 'Failed to fetch feedback stats.' });
+    }
+};
+
 
 module.exports = {
     getDashboardStats, 
@@ -351,5 +413,6 @@ module.exports = {
     getCustomers,
     getCustomerOrders,
     updateAccountSettings,
-    updateStoreSettings
+    updateStoreSettings,
+    getFeedbackStats,
 };
