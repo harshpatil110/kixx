@@ -1,4 +1,4 @@
-const { pgTable, uuid, varchar, text, decimal, integer, timestamp, boolean, pgEnum, jsonb } = require('drizzle-orm/pg-core');
+const { pgTable, uuid, varchar, text, decimal, integer, timestamp, boolean, pgEnum, jsonb, date, serial } = require('drizzle-orm/pg-core');
 const { relations } = require('drizzle-orm');
 
 // ENUMS
@@ -114,6 +114,18 @@ const pastOrders = pgTable('past_orders', {
     createdAt: timestamp('created_at').defaultNow(),
 });
 
+// 3.9 User Collection — Personal Sneaker Archive
+const userCollection = pgTable('user_collection', {
+    id: serial('id').primaryKey(),
+    userId: varchar('user_id', { length: 255 }).notNull(),          // Firebase UID or DB UUID (email-keyed)
+    shoeName: varchar('shoe_name', { length: 255 }).notNull(),
+    brand: varchar('brand', { length: 255 }).notNull(),
+    releaseYear: integer('release_year'),                           // Optional: e.g. 1985
+    sku: varchar('sku', { length: 100 }),                           // Optional: e.g. 555088-101
+    purchaseDate: date('purchase_date'),                            // Optional
+    addedAt: timestamp('added_at').defaultNow(),
+});
+
 // ----------------------------------------------------
 // FUTURE PHASE MODELS
 // ----------------------------------------------------
@@ -223,6 +235,7 @@ module.exports = {
     recommendationsLogs,
     pricingRules,
     pastOrders,
+    userCollection,
     usersRelations,
     brandsRelations,
     productsRelations,
