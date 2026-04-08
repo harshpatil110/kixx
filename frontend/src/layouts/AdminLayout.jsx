@@ -8,6 +8,7 @@ import {
   Settings,
   LogOut,
   ChevronRight,
+  Share2,
 } from 'lucide-react';
 import { signOut } from 'firebase/auth';
 import { auth } from '../config/firebase';
@@ -19,6 +20,7 @@ const NAV_ITEMS = [
   { to: '/admin/inventory', label: 'Inventory', icon: Package },
   { to: '/admin/sales', label: 'Sales', icon: TrendingUp },
   { to: '/admin/customers', label: 'Customers', icon: Users },
+  { to: '/admin/visualization', label: 'Visualization', icon: Share2 },
   { to: '/admin/settings', label: 'Settings', icon: Settings },
 ];
 
