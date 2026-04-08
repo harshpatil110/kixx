@@ -6,7 +6,177 @@ import PromoToast from '../components/PromoToast';
 import ProductCard from '../components/ProductCard';
 import api from '../services/api';
 import toast from 'react-hot-toast';
-import { X } from 'lucide-react';
+import { X, MessageSquare } from 'lucide-react';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// FeedbackModal — Warm Editorial Minimalism, flat select + textarea
+// ─────────────────────────────────────────────────────────────────────────────
+const FEEDBACK_CATEGORIES = [
+    'UI/UX Bug',
+    'Payment/Checkout Issue',
+    'Account/Login Issue',
+    'General Suggestion',
+    'Other',
+];
+
+function FeedbackModal({ isOpen, onClose, userId }) {
+    const [form, setForm] = useState({ category: FEEDBACK_CATEGORIES[0], message: '' });
+    const [isSaving, setIsSaving] = useState(false);
+    const textareaRef = useRef(null);
+
+    useEffect(() => {
+        if (isOpen && textareaRef.current) {
+            setTimeout(() => textareaRef.current?.focus(), 60);
+        }
+    }, [isOpen]);
+
+    useEffect(() => {
+        const onKey = (e) => { if (e.key === 'Escape') onClose(); };
+        window.addEventListener('keydown', onKey);
+        return () => window.removeEventListener('keydown', onKey);
+    }, [onClose]);
+
+    const handleChange = (e) =>
+        setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (!form.message.trim()) { toast.error('Please write a message.'); return; }
+        setIsSaving(true);
+        try {
+            const res = await api.post('/api/feedback/submit', {
+                category: form.category,
+                message: form.message,
+            });
+            if (res.data.success) {
+                toast.success(res.data.message || 'Feedback received. Thank you!');
+                setForm({ category: FEEDBACK_CATEGORIES[0], message: '' });
+                onClose();
+            }
+        } catch {
+            // global toast from api interceptor
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    if (!isOpen) return null;
+
+    return (
+        <div
+            className="fixed inset-0 z-[300] flex items-end sm:items-center justify-center"
+            style={{ background: 'rgba(10,10,10,0.65)' }}
+            onClick={onClose}
+        >
+            <div
+                className="relative w-full sm:max-w-sm bg-[#F7F5F0] sm:mx-4 overflow-hidden"
+                style={{ border: '1px solid rgba(0,0,0,0.12)' }}
+                onClick={(e) => e.stopPropagation()}
+            >
+                {/* Header */}
+                <div className="flex items-start justify-between px-6 pt-6 pb-4 border-b border-stone-200">
+                    <div className="flex items-center gap-2.5">
+                        <div className="w-6 h-6 bg-stone-900 flex items-center justify-center flex-shrink-0">
+                            <MessageSquare className="w-3 h-3 text-white" />
+                        </div>
+                        <div>
+                            <p className="text-[9px] font-bold uppercase tracking-[0.25em] text-stone-400">
+                                User Feedback
+                            </p>
+                            <p className="text-[15px] font-black tracking-[-0.03em] text-stone-900 leading-none mt-0.5 uppercase">
+                                Report / Suggest
+                            </p>
+                        </div>
+                    </div>
+                    <button
+                        onClick={onClose}
+                        className="text-stone-400 hover:text-stone-900 transition-colors mt-0.5"
+                        aria-label="Close"
+                    >
+                        <X size={15} />
+                    </button>
+                </div>
+
+                {/* Form */}
+                <form onSubmit={handleSubmit} className="px-6 py-5 space-y-5">
+
+                    {/* Category — flat select */}
+                    <div className="space-y-1.5">
+                        <label className="text-[9px] font-bold uppercase tracking-[0.25em] text-stone-400">
+                            Category
+                        </label>
+                        <div className="relative">
+                            <select
+                                name="category"
+                                value={form.category}
+                                onChange={handleChange}
+                                className="w-full appearance-none bg-transparent border-b border-stone-300
+                                           focus:border-stone-900 py-2 text-sm font-medium text-stone-900
+                                           focus:outline-none transition-colors pr-6 cursor-pointer"
+                            >
+                                {FEEDBACK_CATEGORIES.map((c) => (
+                                    <option key={c} value={c}>{c}</option>
+                                ))}
+                            </select>
+                            {/* Custom chevron */}
+                            <div className="absolute right-0 bottom-2 pointer-events-none">
+                                <svg width="10" height="6" viewBox="0 0 10 6" fill="none">
+                                    <path d="M1 1l4 4 4-4" stroke="#a8a29e" strokeWidth="1.5"
+                                          strokeLinecap="round" strokeLinejoin="round"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Message — line textarea */}
+                    <div className="space-y-1.5">
+                        <label className="text-[9px] font-bold uppercase tracking-[0.25em] text-stone-400">
+                            Message <span className="text-red-500">*</span>
+                        </label>
+                        <textarea
+                            ref={textareaRef}
+                            name="message"
+                            value={form.message}
+                            onChange={handleChange}
+                            placeholder="Describe the issue or your suggestion…"
+                            required
+                            rows={4}
+                            maxLength={2000}
+                            className="w-full bg-transparent border border-stone-200 focus:border-stone-900
+                                       p-3 text-sm font-medium text-stone-900 placeholder:text-stone-300
+                                       focus:outline-none transition-colors resize-none"
+                        />
+                        <p className="text-[9px] text-stone-300 text-right">
+                            {form.message.length}/2000
+                        </p>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex items-center gap-3 pt-1">
+                        <button
+                            type="submit"
+                            disabled={isSaving}
+                            className="flex-1 py-2.5 bg-stone-900 text-white text-[10px] font-bold
+                                       uppercase tracking-[0.2em] hover:bg-[#800000] transition-colors
+                                       disabled:opacity-50 rounded-sm"
+                        >
+                            {isSaving ? 'Sending…' : 'Submit Feedback'}
+                        </button>
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className="py-2.5 px-4 text-[10px] font-bold uppercase tracking-[0.2em]
+                                       text-stone-500 hover:text-stone-900 transition-colors border
+                                       border-stone-200 hover:border-stone-400 rounded-sm"
+                        >
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ArchiveModal — Warm Editorial Minimalism, line-style inputs, no box shadows
@@ -216,6 +386,7 @@ export default function CatalogPage() {
     const { user } = useAuthStore();
     const [showPromo, setShowPromo] = useState(false);
     const [showArchiveModal, setShowArchiveModal] = useState(false);
+    const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
 
     React.useEffect(() => {
         const isDismissed = localStorage.getItem('kixx_promo_dismissed') === 'true';
@@ -402,15 +573,34 @@ export default function CatalogPage() {
                 <div className="mt-40 mb-32 max-w-3xl mx-auto text-center hidden md:block">
                     <h2 className="font-headline font-bold text-4xl mb-8 leading-tight tracking-tighter text-on-surface">"SNEAKERS ARE NO LONGER COMMODITIES; THEY ARE THE TEXTURES OF MODERN ARCHITECTURE FOR THE FEET."</h2>
                     <span className="font-label text-[10px] tracking-[0.4em] uppercase text-tertiary">— KIXX EDITORIAL TEAM</span>
+
+                    {/* Feedback trigger */}
+                    <div className="mt-10">
+                        <button
+                            onClick={() => setIsFeedbackModalOpen(true)}
+                            className="text-xs text-stone-400 hover:text-stone-900 transition-colors
+                                       cursor-pointer uppercase tracking-widest font-medium
+                                       border-b border-transparent hover:border-stone-400"
+                        >
+                            Report an Issue / Feedback
+                        </button>
+                    </div>
                 </div>
             </main>
 
             <PromoToast isOpen={showPromo} onClose={handleClosePromo} />
 
-            {/* Archive Modal — rendered outside main so it overlays everything */}
+            {/* Archive Modal */}
             <ArchiveModal
                 isOpen={showArchiveModal}
                 onClose={() => setShowArchiveModal(false)}
+            />
+
+            {/* Feedback Modal */}
+            <FeedbackModal
+                isOpen={isFeedbackModalOpen}
+                onClose={() => setIsFeedbackModalOpen(false)}
+                userId={user?.id || null}
             />
         </div>
     );

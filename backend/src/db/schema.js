@@ -126,6 +126,16 @@ const userCollection = pgTable('user_collection', {
     addedAt: timestamp('added_at').defaultNow(),
 });
 
+// 3.10 User Feedback — Bug reports and feature suggestions
+const userFeedback = pgTable('user_feedback', {
+    id: serial('id').primaryKey(),
+    userId: varchar('user_id', { length: 255 }),              // Nullable — guests can submit
+    category: varchar('category', { length: 100 }).notNull(), // e.g. 'UI/UX Bug'
+    message: text('message').notNull(),
+    status: varchar('status', { length: 50 }).default('Open').notNull(),
+    createdAt: timestamp('created_at').defaultNow(),
+});
+
 // ----------------------------------------------------
 // FUTURE PHASE MODELS
 // ----------------------------------------------------
@@ -236,6 +246,7 @@ module.exports = {
     pricingRules,
     pastOrders,
     userCollection,
+    userFeedback,
     usersRelations,
     brandsRelations,
     productsRelations,
