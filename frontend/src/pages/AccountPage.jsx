@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { signOut } from 'firebase/auth';
@@ -8,10 +8,12 @@ import useCartStore from '../store/cartStore';
 import { getUserOrders } from '../services/orderService';
 import { formatPrice } from '../utils/currency';
 import { generateInvoice } from '../utils/generateInvoice';
+import api from '../services/api';
+import toast from 'react-hot-toast';
 import {
     Search, ShoppingCart, User, Package, Heart,
     CreditCard, LogOut, Archive, ChevronDown,
-    Download
+    Download, PlusCircle, X, Footprints
 } from 'lucide-react';
 
 /*
@@ -71,6 +73,41 @@ export default function AccountPage() {
     const clearCart = useCartStore((state) => state.clearCart);
     const navigate = useNavigate();
     const [isSigningOut, setIsSigningOut] = useState(false);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
+    // ── Shoe Archive Form State ──────────────────────────────────────────────
+    const [shoeForm, setShoeForm] = useState({ shoeName: '', brand: '', sku: '', purchaseDate: '' });
+    const [isSaving, setIsSaving] = useState(false);
+
+    const handleShoeInput = (e) => setShoeForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+
+    const handleSaveShoe = async (e) => {
+        e.preventDefault();
+        if (!shoeForm.shoeName.trim() || !shoeForm.brand.trim()) {
+            toast.error('Shoe name and brand are required.');
+            return;
+        }
+        setIsSaving(true);
+        try {
+            const res = await api.post('/api/user/collection/save', shoeForm);
+            if (res.data.success) {
+                toast.success(res.data.message || 'Shoe saved to your archive!');
+                setShoeForm({ shoeName: '', brand: '', sku: '', purchaseDate: '' });
+                setIsModalOpen(false);
+            }
+        } catch (err) {
+            // toast already fired by api interceptor
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    // Close on Escape key
+    useEffect(() => {
+        const onKey = (e) => { if (e.key === 'Escape') setIsModalOpen(false); };
+        window.addEventListener('keydown', onKey);
+        return () => window.removeEventListener('keydown', onKey);
+    }, []);
 
     const displayName = user?.name || firebaseUser?.displayName || 'Sneakerhead';
     const email = user?.email || firebaseUser?.email || '—';
@@ -115,6 +152,7 @@ export default function AccountPage() {
           Stitch body: bg-[#f8f9fa] text-gray-900 font:Space Grotesk
           position:relative overflow-x:hidden min-h-screen
         */
+        <>
         <div className="bg-[#f8f9fa] text-gray-900 relative overflow-x-hidden min-h-screen font-['Space_Grotesk',sans-serif]">
 
             {/* Stitch .orb-1: absolute 400x400 bg rgba(128,0,0,0.15) top:-100px left:-100px blur:80px opacity:0.4 */}
@@ -224,15 +262,25 @@ export default function AccountPage() {
                       rounded-[32px] p-8 min-h-[600px]
                     */}
                     <div className="bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.04)] border border-gray-100 p-8 min-h-[600px]">
-                        <div className="flex justify-between items-end mb-8 border-b border-gray-200 pb-4">
+                        <div className="flex flex-wrap justify-between items-end mb-8 border-b border-gray-200 pb-4 gap-3">
                             <h1 className="text-4xl font-bold uppercase tracking-tight text-gray-900">Order History</h1>
-                            <div className="relative flex items-center gap-2">
-                                <select className="appearance-none bg-transparent py-1 pr-6 text-sm text-gray-500 focus:outline-none cursor-pointer">
-                                    <option>Last 30 Days</option>
-                                    <option>Last 6 Months</option>
-                                    <option>All Time</option>
-                                </select>
-                                <ChevronDown size={16} className="text-gray-400 pointer-events-none -ml-5" />
+                            <div className="flex items-center gap-3">
+                                {/* Add Past Shoes CTA */}
+                                <button
+                                    onClick={() => setIsModalOpen(true)}
+                                    className="flex items-center gap-2 px-4 py-2 bg-stone-900 text-white rounded-lg text-sm font-bold uppercase tracking-wider hover:bg-[#800000] transition-colors"
+                                >
+                                    <PlusCircle size={15} />
+                                    Add Your Past Shoes
+                                </button>
+                                <div className="relative flex items-center gap-2">
+                                    <select className="appearance-none bg-transparent py-1 pr-6 text-sm text-gray-500 focus:outline-none cursor-pointer">
+                                        <option>Last 30 Days</option>
+                                        <option>Last 6 Months</option>
+                                        <option>All Time</option>
+                                    </select>
+                                    <ChevronDown size={16} className="text-gray-400 pointer-events-none -ml-5" />
+                                </div>
                             </div>
                         </div>
 
@@ -334,5 +382,119 @@ export default function AccountPage() {
                 </section>
             </main>
         </div>
+
+        {/* ── Add Past Shoes Modal ──────────────────────────────────────────── */}
+        {isModalOpen && (
+            <div
+                className="fixed inset-0 z-[200] flex items-center justify-center px-4"
+                style={{ background: 'rgba(0,0,0,0.45)' }}
+                onClick={() => setIsModalOpen(false)}
+            >
+                <div
+                    className="relative w-full max-w-md bg-[#F7F5F0] rounded-sm p-0 overflow-hidden"
+                    style={{ border: '1px solid rgba(0,0,0,0.10)', boxShadow: '0 24px 64px rgba(0,0,0,0.18)' }}
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    {/* Modal Header */}
+                    <div className="flex items-center justify-between px-6 py-4 border-b border-stone-200 bg-white">
+                        <div className="flex items-center gap-2.5">
+                            <div className="w-7 h-7 rounded-md bg-stone-900 flex items-center justify-center">
+                                <Footprints className="w-3.5 h-3.5 text-white" />
+                            </div>
+                            <div>
+                                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-stone-400">Personal Archive</p>
+                                <p className="text-sm font-black text-stone-900 tracking-tight leading-none mt-0.5">Add Your Past Shoes</p>
+                            </div>
+                        </div>
+                        <button
+                            onClick={() => setIsModalOpen(false)}
+                            className="w-7 h-7 flex items-center justify-center rounded-md text-stone-400 hover:text-stone-900 hover:bg-stone-100 transition-colors"
+                        >
+                            <X size={16} />
+                        </button>
+                    </div>
+
+                    {/* Modal Form */}
+                    <form onSubmit={handleSaveShoe} className="p-6 space-y-5">
+
+                        {/* Shoe Name */}
+                        <div className="space-y-1.5">
+                            <label className="text-[10px] font-bold uppercase tracking-widest text-stone-500">
+                                Shoe Name <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                                type="text"
+                                name="shoeName"
+                                value={shoeForm.shoeName}
+                                onChange={handleShoeInput}
+                                placeholder={`Air Jordan 1 High 'Chicago'`}
+                                required
+                                className="block w-full px-3 py-2.5 text-sm bg-white border border-stone-200 rounded-sm focus:ring-1 focus:ring-stone-900 focus:border-stone-900 focus:outline-none placeholder:text-stone-300 font-medium text-stone-900 transition-all"
+                            />
+                        </div>
+
+                        {/* Brand */}
+                        <div className="space-y-1.5">
+                            <label className="text-[10px] font-bold uppercase tracking-widest text-stone-500">
+                                Brand <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                                type="text"
+                                name="brand"
+                                value={shoeForm.brand}
+                                onChange={handleShoeInput}
+                                placeholder="Nike, Adidas, New Balance…"
+                                required
+                                className="block w-full px-3 py-2.5 text-sm bg-white border border-stone-200 rounded-sm focus:ring-1 focus:ring-stone-900 focus:border-stone-900 focus:outline-none placeholder:text-stone-300 font-medium text-stone-900 transition-all"
+                            />
+                        </div>
+
+                        {/* SKU + Purchase Date — 2-col */}
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-1.5">
+                                <label className="text-[10px] font-bold uppercase tracking-widest text-stone-500">SKU</label>
+                                <input
+                                    type="text"
+                                    name="sku"
+                                    value={shoeForm.sku}
+                                    onChange={handleShoeInput}
+                                    placeholder="555088-101"
+                                    className="block w-full px-3 py-2.5 text-sm bg-white border border-stone-200 rounded-sm focus:ring-1 focus:ring-stone-900 focus:border-stone-900 focus:outline-none placeholder:text-stone-300 font-medium text-stone-900 transition-all"
+                                />
+                            </div>
+                            <div className="space-y-1.5">
+                                <label className="text-[10px] font-bold uppercase tracking-widest text-stone-500">Purchase Date</label>
+                                <input
+                                    type="date"
+                                    name="purchaseDate"
+                                    value={shoeForm.purchaseDate}
+                                    onChange={handleShoeInput}
+                                    className="block w-full px-3 py-2.5 text-sm bg-white border border-stone-200 rounded-sm focus:ring-1 focus:ring-stone-900 focus:border-stone-900 focus:outline-none text-stone-900 font-medium transition-all"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="flex items-center gap-3 pt-2">
+                            <button
+                                type="submit"
+                                disabled={isSaving}
+                                className="flex-1 flex items-center justify-center py-2.5 px-4 bg-stone-900 text-white rounded-sm hover:bg-[#800000] transition-colors text-xs font-bold uppercase tracking-widest disabled:opacity-60"
+                            >
+                                {isSaving ? 'Saving…' : 'Save to My Archive'}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setIsModalOpen(false)}
+                                className="py-2.5 px-4 bg-white border border-stone-200 text-stone-600 rounded-sm hover:bg-stone-50 transition-colors text-xs font-bold uppercase tracking-widest"
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        )}
+        </>
     );
 }
