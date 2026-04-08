@@ -20,6 +20,7 @@ const {
     resolveFeedback,
     getReviewsSummary,
     getProductReviews,
+    getReviewsStats,
 } = require('../controllers/adminController');
 
 // ---------------------------------------------------------------------------
@@ -81,5 +82,6 @@ router.put('/settings/store', updateStoreSettings);
 // Reviews analytics
 router.get('/reviews/summary', getReviewsSummary);
 router.get('/reviews/product/:productId', getProductReviews);
+router.get('/reviews-stats', getReviewsStats);
 
 module.exports = router;

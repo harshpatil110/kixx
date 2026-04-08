@@ -19,6 +19,7 @@ import {
 import api from '../../services/api';
 import CollectionAnalytics from '../../components/admin/CollectionAnalytics';
 import FeedbackAnalytics from '../../components/admin/FeedbackAnalytics';
+import ReviewAnalytics from '../../components/admin/ReviewAnalytics';
 
 // ── Brand Donut Colors ──────────────────────────────────────────────────────
 const BRAND_COLORS = [
@@ -224,6 +225,9 @@ export default function DashboardPage() {
 
       {/* ── System Health & User Feedback ─────────────────────────── */}
       <FeedbackAnalytics />
+
+      {/* ── Customer Sentiment & Review Analysis ─────────────────── */}
+      <ReviewAnalytics />
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         {/* Donut Chart */}

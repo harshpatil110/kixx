@@ -530,6 +530,74 @@ const getProductReviews = async (req, res) => {
     }
 };
 
+/**
+ * GET /api/admin/reviews-stats
+ * Three complementary aggregations powering the Customer Sentiment section:
+ *   1. ratingDistribution — count of reviews grouped by star (1–5)
+ *   2. globalAverage      — AVG rating across every product_review row
+ *   3. dailyVolume        — per-day review count for last 7 days (0-padded via generate_series)
+ */
+const getReviewsStats = async (req, res) => {
+    try {
+        // ── 1. Rating distribution ─────────────────────────────────────────────
+        const distResult = await db.execute(sql`
+            SELECT rating, COUNT(*)::integer AS count
+            FROM product_reviews
+            GROUP BY rating
+            ORDER BY rating DESC
+        `);
+
+        // ── 2. Global average ──────────────────────────────────────────────────
+        const [avgRow] = await db
+            .select({
+                avg: sql`ROUND(AVG(${productReviews.rating})::numeric, 2)`,
+                total: sql`COUNT(${productReviews.id})::integer`,
+            })
+            .from(productReviews);
+
+        // ── 3. Daily volume — last 7 days (including today) ────────────────────
+        const volumeResult = await db.execute(sql`
+            SELECT
+                TO_CHAR(day::date, 'Mon DD') AS label,
+                COUNT(pr.id)::integer        AS count
+            FROM
+                generate_series(
+                    NOW()::date - INTERVAL '6 days',
+                    NOW()::date,
+                    '1 day'::interval
+                ) AS day
+            LEFT JOIN product_reviews pr
+                ON pr.created_at::date = day::date
+            GROUP BY day
+            ORDER BY day ASC
+        `);
+
+        // ── Shape response ─────────────────────────────────────────────────────
+        const ratingDistribution = (distResult.rows ?? distResult).map((r) => ({
+            rating: parseInt(r.rating, 10),
+            count:  parseInt(r.count, 10),
+        }));
+
+        const dailyVolume = (volumeResult.rows ?? volumeResult).map((r) => ({
+            label: r.label,
+            count: parseInt(r.count, 10),
+        }));
+
+        console.log(`[Admin] ✅ Review stats: dist=${ratingDistribution.length} buckets, avg=${avgRow?.avg}, vol=${dailyVolume.length} days`);
+
+        return res.status(200).json({
+            success: true,
+            ratingDistribution,
+            globalAverage: avgRow?.avg ? parseFloat(avgRow.avg) : null,
+            totalReviews:  avgRow?.total ? parseInt(avgRow.total, 10) : 0,
+            dailyVolume,
+        });
+    } catch (error) {
+        console.error('[Admin] ❌ Review Stats Error:', error.message);
+        return res.status(500).json({ success: false, message: 'Failed to fetch review stats.' });
+    }
+};
+
 module.exports = {
     getDashboardStats,
     getSalesByBrand,
@@ -546,4 +614,5 @@ module.exports = {
     resolveFeedback,
     getReviewsSummary,
     getProductReviews,
+    getReviewsStats,
 };
