@@ -42,9 +42,11 @@ const OrderConfirmationPage = lazy(() => import('./pages/OrderConfirmationPage')
 const AccountPage = lazy(() => import('./pages/AccountPage'));
 
 // ── Admin ──
+const AdministrativeLayout = lazy(() => import('./layouts/AdminLayout')); // changed variable name just in case? No, keep it as is. Wait.
 const AdminLayout = lazy(() => import('./layouts/AdminLayout'));
 const DashboardPage = lazy(() => import('./pages/admin/DashboardPage'));
 const InventoryPage = lazy(() => import('./pages/admin/InventoryPage'));
+const AddProductPage = lazy(() => import('./pages/admin/AddProductPage'));
 const SalesPage = lazy(() => import('./pages/admin/SalesPage'));
 const CustomersPage = lazy(() => import('./pages/admin/CustomersPage'));
 const SettingsPage = lazy(() => import('./pages/admin/SettingsPage'));
@@ -156,6 +158,11 @@ export default function App() {
             <Route path="inventory" element={
               <Suspense fallback={<GenericPageSkeleton />}>
                 <InventoryPage />
+              </Suspense>
+            } />
+            <Route path="inventory/add" element={
+              <Suspense fallback={<GenericPageSkeleton />}>
+                <AddProductPage />
               </Suspense>
             } />
             <Route path="sales" element={

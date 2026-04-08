@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import {
   Package,
   Loader2,
@@ -242,15 +243,25 @@ export default function InventoryPage() {
             Real-time stock levels — edits write directly to the database
           </p>
         </div>
-        <button
-          onClick={fetchInventory}
-          className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200
-                     rounded-xl text-sm font-bold text-gray-600 hover:bg-gray-50
-                     hover:border-gray-300 transition-all shadow-sm"
-        >
-          <RefreshCw className="w-4 h-4" />
-          Refresh
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={fetchInventory}
+            className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200
+                       rounded-xl text-sm font-bold text-gray-600 hover:bg-gray-50
+                       hover:border-gray-300 transition-all shadow-sm"
+          >
+            <RefreshCw className="w-4 h-4" />
+            Refresh
+          </button>
+          <Link
+            to="/admin/inventory/add"
+            className="flex items-center gap-2 px-4 py-2 bg-stone-900 border border-stone-800
+                       rounded-xl text-sm font-bold text-white hover:bg-stone-800
+                       transition-all shadow-sm"
+          >
+            Add New Product
+          </Link>
+        </div>
       </div>
 
       {/* ── KPI mini-strip ────────────────────────────────────────────────── */}

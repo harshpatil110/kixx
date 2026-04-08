@@ -4,6 +4,8 @@ const { verifyToken } = require('../middleware/auth');
 const { db } = require('../db/index');
 const { users } = require('../db/schema');
 const { eq } = require('drizzle-orm');
+const multer = require('multer');
+const upload = multer({ dest: 'uploads/' });
 const {
     getDashboardStats,
     getSalesByBrand,
@@ -21,6 +23,7 @@ const {
     getReviewsSummary,
     getProductReviews,
     getReviewsStats,
+    addProduct,
 } = require('../controllers/adminController');
 
 // ---------------------------------------------------------------------------
@@ -67,6 +70,7 @@ router.patch('/feedback/:id/resolve', resolveFeedback);
 // Inventory management endpoints
 router.get('/inventory', getInventory);
 router.put('/inventory/:id', updateInventory);
+router.post('/products/add', upload.single('image'), addProduct);
 
 // Sales ledger
 router.get('/orders', getOrders);

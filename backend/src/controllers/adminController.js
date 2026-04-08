@@ -2,6 +2,14 @@ const { db } = require('../db/index');
 const { users, products, brands, pastOrders, inventoryLogs, userFeedback, productReviews } = require('../db/schema');
 const { sql, eq, asc, desc, count, gte } = require('drizzle-orm');
 const bcrypt = require('bcrypt');
+const cloudinary = require('cloudinary').v2;
+
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
 
 /**
  * GET /api/admin/stats
@@ -598,6 +606,57 @@ const getReviewsStats = async (req, res) => {
     }
 };
 
+/**
+ * POST /api/admin/products/add
+ * Validates text fields, uploads the incoming image to Cloudinary,
+ * resolves (or creates) the brand, and inserts the new product via Drizzle.
+ */
+const addProduct = async (req, res) => {
+    try {
+        const { name, brand, category, description, basePrice, stock } = req.body;
+
+        if (!name || !brand || !basePrice) {
+            return res.status(400).json({ success: false, message: 'Name, brand, and base price are required.' });
+        }
+
+        let imageUrl = null;
+        if (req.file) {
+            const uploadRes = await cloudinary.uploader.upload(req.file.path, {
+                folder: 'kixx_inventory'
+            });
+            imageUrl = uploadRes.secure_url;
+        }
+
+        // 1. Resolve Brand
+        let brandId;
+        const [existingBrand] = await db.select().from(brands).where(eq(brands.name, brand)).limit(1);
+        if (existingBrand) {
+            brandId = existingBrand.id;
+        } else {
+            const [newBrand] = await db.insert(brands).values({ name: brand }).returning();
+            brandId = newBrand.id;
+        }
+
+        // 2. Insert Product
+        const [newProduct] = await db.insert(products).values({
+            brandId,
+            name,
+            category: category || null,
+            description: description || null,
+            basePrice: parseFloat(basePrice),
+            stock: parseInt(stock || 0, 10),
+            imageUrl,
+            isNew: true, // Defaulting manual intake to "New"
+        }).returning();
+
+        console.log(`[Admin] ✅ Created product: ${newProduct.name} (Stock: ${newProduct.stock})`);
+        return res.status(201).json({ success: true, data: newProduct, message: 'Product added successfully!' });
+    } catch (error) {
+        console.error('[Admin] ❌ Add Product Error:', error.message);
+        return res.status(500).json({ success: false, message: 'Failed to add product. Check server logs.' });
+    }
+};
+
 module.exports = {
     getDashboardStats,
     getSalesByBrand,
@@ -615,4 +674,5 @@ module.exports = {
     getReviewsSummary,
     getProductReviews,
     getReviewsStats,
+    addProduct,
 };
