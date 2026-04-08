@@ -1,10 +1,213 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import useAuthStore from '../store/authStore';
 import PromoToast from '../components/PromoToast';
 import ProductCard from '../components/ProductCard';
+import api from '../services/api';
+import toast from 'react-hot-toast';
+import { X } from 'lucide-react';
 
+// ─────────────────────────────────────────────────────────────────────────────
+// ArchiveModal — Warm Editorial Minimalism, line-style inputs, no box shadows
+// ─────────────────────────────────────────────────────────────────────────────
+function ArchiveModal({ isOpen, onClose }) {
+    const [form, setForm] = useState({ shoeName: '', brand: '', year: '', sku: '' });
+    const [isSaving, setIsSaving] = useState(false);
+    const firstInputRef = useRef(null);
+
+    // Auto-focus first field on open
+    useEffect(() => {
+        if (isOpen && firstInputRef.current) {
+            setTimeout(() => firstInputRef.current?.focus(), 60);
+        }
+    }, [isOpen]);
+
+    // Close on Escape
+    useEffect(() => {
+        const onKey = (e) => { if (e.key === 'Escape') onClose(); };
+        window.addEventListener('keydown', onKey);
+        return () => window.removeEventListener('keydown', onKey);
+    }, [onClose]);
+
+    const handleChange = (e) =>
+        setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (!form.shoeName.trim() || !form.brand.trim()) {
+            toast.error('Shoe name and brand are required.');
+            return;
+        }
+        setIsSaving(true);
+        try {
+            const res = await api.post('/api/user/collection/save', {
+                shoeName: form.shoeName,
+                brand: form.brand,
+                releaseYear: form.year || undefined,
+                sku: form.sku || undefined,
+            });
+            if (res.data.success) {
+                toast.success(res.data.message || 'Added to your archive.');
+                setForm({ shoeName: '', brand: '', year: '', sku: '' });
+                onClose();
+            }
+        } catch {
+            // global toast already fired by api interceptor
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    if (!isOpen) return null;
+
+    return (
+        // Backdrop — solid dark overlay, no blur
+        <div
+            className="fixed inset-0 z-[300] flex items-center justify-center px-4"
+            style={{ background: 'rgba(10,10,10,0.72)' }}
+            onClick={onClose}
+        >
+            {/* Modal card */}
+            <div
+                className="relative w-full max-w-sm bg-[#F7F5F0] overflow-hidden"
+                style={{ border: '1px solid rgba(0,0,0,0.12)' }}
+                onClick={(e) => e.stopPropagation()}
+            >
+                {/* Header */}
+                <div className="flex items-start justify-between px-7 pt-7 pb-5 border-b border-stone-200">
+                    <div>
+                        <p className="text-[9px] font-bold uppercase tracking-[0.3em] text-stone-400 mb-1">
+                            Personal Sneaker Archive
+                        </p>
+                        <h2 className="text-[22px] font-black tracking-[-0.04em] text-stone-900 leading-none uppercase">
+                            Log a Past Shoe
+                        </h2>
+                    </div>
+                    <button
+                        onClick={onClose}
+                        className="mt-0.5 text-stone-400 hover:text-stone-900 transition-colors"
+                        aria-label="Close"
+                    >
+                        <X size={16} />
+                    </button>
+                </div>
+
+                {/* Form — line inputs only, no boxes */}
+                <form onSubmit={handleSubmit} className="px-7 py-6 space-y-6">
+
+                    {/* Shoe Name */}
+                    <div className="space-y-1">
+                        <label className="text-[9px] font-bold uppercase tracking-[0.25em] text-stone-400">
+                            Shoe Name <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                            ref={firstInputRef}
+                            type="text"
+                            name="shoeName"
+                            value={form.shoeName}
+                            onChange={handleChange}
+                            placeholder="Air Jordan 1 High OG"
+                            required
+                            className="w-full bg-transparent border-b border-stone-300 focus:border-stone-900
+                                       py-2 text-sm font-medium text-stone-900 placeholder:text-stone-300
+                                       focus:outline-none transition-colors"
+                        />
+                    </div>
+
+                    {/* Brand */}
+                    <div className="space-y-1">
+                        <label className="text-[9px] font-bold uppercase tracking-[0.25em] text-stone-400">
+                            Brand <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                            type="text"
+                            name="brand"
+                            value={form.brand}
+                            onChange={handleChange}
+                            placeholder="Nike, Adidas, New Balance…"
+                            required
+                            className="w-full bg-transparent border-b border-stone-300 focus:border-stone-900
+                                       py-2 text-sm font-medium text-stone-900 placeholder:text-stone-300
+                                       focus:outline-none transition-colors"
+                        />
+                    </div>
+
+                    {/* Year + SKU — side by side */}
+                    <div className="grid grid-cols-2 gap-6">
+                        <div className="space-y-1">
+                            <label className="text-[9px] font-bold uppercase tracking-[0.25em] text-stone-400">
+                                Year
+                            </label>
+                            <input
+                                type="number"
+                                name="year"
+                                value={form.year}
+                                onChange={handleChange}
+                                placeholder="1985"
+                                min="1900"
+                                max={new Date().getFullYear() + 1}
+                                className="w-full bg-transparent border-b border-stone-300 focus:border-stone-900
+                                           py-2 text-sm font-medium text-stone-900 placeholder:text-stone-300
+                                           focus:outline-none transition-colors [appearance:textfield]
+                                           [&::-webkit-outer-spin-button]:appearance-none
+                                           [&::-webkit-inner-spin-button]:appearance-none"
+                            />
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-[9px] font-bold uppercase tracking-[0.25em] text-stone-400">
+                                SKU
+                            </label>
+                            <input
+                                type="text"
+                                name="sku"
+                                value={form.sku}
+                                onChange={handleChange}
+                                placeholder="555088-101"
+                                className="w-full bg-transparent border-b border-stone-300 focus:border-stone-900
+                                           py-2 text-sm font-medium text-stone-900 placeholder:text-stone-300
+                                           focus:outline-none transition-colors"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex items-center gap-3 pt-2">
+                        <button
+                            type="submit"
+                            disabled={isSaving}
+                            className="flex-1 py-3 bg-stone-900 text-white text-[10px] font-bold
+                                       uppercase tracking-[0.2em] hover:bg-[#800000] transition-colors
+                                       disabled:opacity-50"
+                        >
+                            {isSaving ? 'Saving…' : 'Add to Archive'}
+                        </button>
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className="py-3 px-4 text-[10px] font-bold uppercase tracking-[0.2em]
+                                       text-stone-500 hover:text-stone-900 transition-colors border
+                                       border-stone-200 hover:border-stone-400"
+                        >
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+
+                {/* Decorative corner tag */}
+                <div className="absolute bottom-0 right-0 w-8 h-8 overflow-hidden pointer-events-none">
+                    <div className="absolute bottom-0 right-0 w-0 h-0
+                        border-l-[32px] border-l-transparent
+                        border-b-[32px] border-b-stone-200" />
+                </div>
+            </div>
+        </div>
+    );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CatalogPage
+// ─────────────────────────────────────────────────────────────────────────────
 export default function CatalogPage() {
     const [brandFilter, setBrandFilter] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
@@ -12,6 +215,7 @@ export default function CatalogPage() {
     const category = searchParams.get('category');
     const { user } = useAuthStore();
     const [showPromo, setShowPromo] = useState(false);
+    const [showArchiveModal, setShowArchiveModal] = useState(false);
 
     React.useEffect(() => {
         const isDismissed = localStorage.getItem('kixx_promo_dismissed') === 'true';
@@ -104,6 +308,7 @@ export default function CatalogPage() {
                     </div>
                 </section>
 
+                {/* ── Filter Bar ── */}
                 <div className="flex justify-between items-center mb-12 border-b border-outline-variant/10 pb-6">
                     <div className="flex gap-8 items-center font-label text-[10px] tracking-widest text-on-surface-variant overflow-x-auto whitespace-nowrap pb-2 scrollbar-none px-2 -mx-2">
                         <button
@@ -121,7 +326,21 @@ export default function CatalogPage() {
                                 {brand}
                             </button>
                         ))}
+
+                        {/* ── Archive CTA — separator then button ── */}
+                        <span className="text-on-surface-variant/30 select-none">|</span>
+                        <button
+                            onClick={() => setShowArchiveModal(true)}
+                            className="flex items-center gap-1.5 border border-stone-300 px-3 py-1
+                                       text-[9px] font-bold uppercase tracking-[0.2em] text-stone-500
+                                       hover:bg-stone-900 hover:text-white hover:border-stone-900
+                                       transition-all duration-200 flex-shrink-0"
+                        >
+                            <span className="text-base leading-none -mt-px">+</span>
+                            Add to My Archive
+                        </button>
                     </div>
+
                     <div className="flex items-center gap-4 flex-shrink-0">
                         <span className="font-label text-[10px] tracking-widest text-on-surface-variant">SORT BY: RECENT</span>
                         <span className="material-symbols-outlined text-sm">keyboard_arrow_down</span>
@@ -185,7 +404,14 @@ export default function CatalogPage() {
                     <span className="font-label text-[10px] tracking-[0.4em] uppercase text-tertiary">— KIXX EDITORIAL TEAM</span>
                 </div>
             </main>
+
             <PromoToast isOpen={showPromo} onClose={handleClosePromo} />
+
+            {/* Archive Modal — rendered outside main so it overlays everything */}
+            <ArchiveModal
+                isOpen={showArchiveModal}
+                onClose={() => setShowArchiveModal(false)}
+            />
         </div>
     );
 }
