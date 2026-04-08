@@ -402,17 +402,65 @@ const getFeedbackStats = async (req, res) => {
     }
 };
 
+/**
+ * GET /api/admin/feedback
+ * Returns ALL feedback rows ordered by newest first.
+ */
+const getAllFeedback = async (req, res) => {
+    try {
+        const rows = await db
+            .select()
+            .from(userFeedback)
+            .orderBy(desc(userFeedback.createdAt));
+
+        return res.status(200).json({ success: true, data: rows });
+    } catch (error) {
+        console.error('[Admin] ❌ Get Feedback Error:', error.message);
+        return res.status(500).json({ success: false, message: 'Failed to fetch feedback.' });
+    }
+};
+
+/**
+ * PATCH /api/admin/feedback/:id/resolve
+ * Sets status = 'Resolved' for the given feedback ID.
+ */
+const resolveFeedback = async (req, res) => {
+    const id = parseInt(req.params.id, 10);
+    if (isNaN(id)) {
+        return res.status(400).json({ success: false, message: 'Invalid feedback ID.' });
+    }
+    try {
+        const [updated] = await db
+            .update(userFeedback)
+            .set({ status: 'Resolved' })
+            .where(eq(userFeedback.id, id))
+            .returning({ id: userFeedback.id, status: userFeedback.status });
+
+        if (!updated) {
+            return res.status(404).json({ success: false, message: 'Feedback not found.' });
+        }
+
+        console.log(`[Admin] ✅ Feedback #${id} marked Resolved.`);
+        return res.status(200).json({ success: true, data: updated });
+    } catch (error) {
+        console.error('[Admin] ❌ Resolve Feedback Error:', error.message);
+        return res.status(500).json({ success: false, message: 'Failed to resolve feedback.' });
+    }
+};
+
 
 module.exports = {
-    getDashboardStats, 
-    getSalesByBrand, 
-    getLowStockAlerts, 
-    getInventory, 
-    updateInventory, 
-    getOrders, 
+    getDashboardStats,
+    getSalesByBrand,
+    getLowStockAlerts,
+    getInventory,
+    updateInventory,
+    getOrders,
     getCustomers,
     getCustomerOrders,
     updateAccountSettings,
     updateStoreSettings,
     getFeedbackStats,
+    getAllFeedback,
+    resolveFeedback,
 };

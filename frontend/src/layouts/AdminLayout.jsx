@@ -9,6 +9,7 @@ import {
   LogOut,
   ChevronRight,
   Share2,
+  MessageCircle,
 } from 'lucide-react';
 import { signOut } from 'firebase/auth';
 import { auth } from '../config/firebase';
@@ -16,12 +17,13 @@ import useAuthStore from '../store/authStore';
 import useCartStore from '../store/cartStore';
 
 const NAV_ITEMS = [
-  { to: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { to: '/admin/inventory', label: 'Inventory', icon: Package },
-  { to: '/admin/sales', label: 'Sales', icon: TrendingUp },
-  { to: '/admin/customers', label: 'Customers', icon: Users },
+  { to: '/admin/dashboard',     label: 'Dashboard',     icon: LayoutDashboard },
+  { to: '/admin/inventory',     label: 'Inventory',     icon: Package },
+  { to: '/admin/sales',         label: 'Sales',         icon: TrendingUp },
+  { to: '/admin/customers',     label: 'Customers',     icon: Users },
   { to: '/admin/visualization', label: 'Visualization', icon: Share2 },
-  { to: '/admin/settings', label: 'Settings', icon: Settings },
+  { to: '/admin/feedback',      label: 'Feedback',      icon: MessageCircle },
+  { to: '/admin/settings',      label: 'Settings',      icon: Settings },
 ];
 
 export default function AdminLayout() {
