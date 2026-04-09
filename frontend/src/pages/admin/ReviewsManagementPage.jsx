@@ -264,7 +264,76 @@ function SummaryView({ onSelect }) {
           </table>
         </div>
       )}
-    </div>
+      </div>
+
+      {/* Drawer Overlay */}
+      {isDrawerOpen && (
+        <div
+          className="fixed inset-0 bg-stone-900/50 z-40 transition-opacity"
+          onClick={() => setIsDrawerOpen(false)}
+        />
+      )}
+
+      {/* Sliding Panel */}
+      <div
+        className={`fixed top-0 right-0 h-full w-96 bg-[#F7F5F0] shadow-2xl z-50 transform transition-transform duration-300 flex flex-col ${
+          isDrawerOpen ? 'translate-x-0' : 'translate-x-full'
+        }`}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b border-stone-200">
+          <h2 className="text-xs font-black uppercase tracking-[0.2em] text-stone-900">
+            QUALITY CONTROL TRIAGE
+          </h2>
+          <button
+            onClick={() => setIsDrawerOpen(false)}
+            className="text-stone-400 hover:text-stone-900 transition-colors"
+          >
+            ✕
+          </button>
+        </div>
+
+        {/* List */}
+        <div className="flex-1 overflow-y-auto p-6 space-y-4">
+          {negativeProducts.length === 0 ? (
+            <p className="text-xs text-stone-400 italic">No low-rated products found.</p>
+          ) : (
+            negativeProducts.map((p) => (
+              <div key={p.productId} className="flex items-center gap-3 bg-white p-3 border border-stone-100 rounded-sm">
+                {p.imageUrl ? (
+                  <img src={p.imageUrl} className="w-10 h-10 object-cover rounded-sm border border-stone-100 flex-shrink-0" alt={p.productName} />
+                ) : (
+                  <div className="w-10 h-10 bg-stone-100 rounded-sm flex items-center justify-center flex-shrink-0">
+                    <BarChart2 size={14} className="text-stone-400" />
+                  </div>
+                )}
+                <div>
+                  <p className="text-xs font-bold text-stone-900 line-clamp-1">{p.productName}</p>
+                  <p className="text-red-700 text-[10px] font-black">{p.avgRating.toFixed(1)} ★</p>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Pinned Footer */}
+        <div className="p-6 border-t border-stone-200 bg-[#F7F5F0] mt-auto">
+          <button
+            onClick={handleVendorReport}
+            className="w-full bg-stone-900 text-white py-3 text-xs uppercase tracking-widest hover:bg-stone-800"
+          >
+            REPORT BATCH TO VENDOR
+          </button>
+        </div>
+      </div>
+
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="fixed bottom-8 right-8 bg-stone-900 text-white text-xs px-6 py-3 rounded-sm shadow-lg z-50 animate-fade-in">
+          {toastMessage}
+        </div>
+      )}
+    </>
   );
 }
 
