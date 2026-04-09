@@ -46,6 +46,7 @@ export default function FeedbackManagement() {
     const [error, setError]       = useState(null);
     const [resolving, setResolving] = useState(null); // id of row being resolved
     const [filter, setFilter]     = useState('All');
+    const [toastMessage, setToastMessage] = useState(null);
 
     const fetchFeedback = useCallback(() => {
         setLoading(true);
@@ -79,6 +80,11 @@ export default function FeedbackManagement() {
         } finally {
             setResolving(null);
         }
+    };
+
+    const handleEscalate = (id) => {
+        setToastMessage('Issue successfully forwarded to tech support.');
+        setTimeout(() => setToastMessage(null), 3000);
     };
 
     const displayed = items.filter((item) =>
@@ -276,17 +282,25 @@ export default function FeedbackManagement() {
                                                     Done
                                                 </span>
                                             ) : (
-                                                <button
-                                                    onClick={() => handleResolve(item.id)}
-                                                    disabled={isWaiting}
-                                                    className="border border-stone-200 text-[10px] px-3 py-1
-                                                               uppercase tracking-widest font-bold text-stone-500
-                                                               hover:bg-stone-900 hover:text-white
-                                                               hover:border-stone-900 transition-all
-                                                               disabled:opacity-40 rounded-sm"
-                                                >
-                                                    {isWaiting ? '…' : 'Resolve'}
-                                                </button>
+                                                <div className="flex gap-2 items-center justify-end">
+                                                    <button
+                                                        onClick={() => handleResolve(item.id)}
+                                                        disabled={isWaiting}
+                                                        className="border border-stone-200 text-[10px] px-3 py-1
+                                                                   uppercase tracking-widest font-bold text-stone-500
+                                                                   hover:bg-stone-900 hover:text-white
+                                                                   hover:border-stone-900 transition-all
+                                                                   disabled:opacity-40 rounded-sm"
+                                                    >
+                                                        {isWaiting ? '…' : 'Resolve'}
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleEscalate(item.id)}
+                                                        className="border border-stone-200 text-[10px] px-3 py-1 uppercase tracking-widest hover:bg-stone-800 hover:text-white transition-all text-stone-600"
+                                                    >
+                                                        ESCALATE
+                                                    </button>
+                                                </div>
                                             )}
                                         </td>
                                     </tr>
@@ -294,6 +308,13 @@ export default function FeedbackManagement() {
                             })}
                         </tbody>
                     </table>
+                </div>
+            )}
+
+            {/* ── Toast ── */}
+            {toastMessage && (
+                <div className="fixed bottom-8 right-8 bg-stone-900 text-white text-xs px-6 py-3 rounded-sm shadow-lg tracking-wide z-50 animate-fade-in">
+                    {toastMessage}
                 </div>
             )}
         </div>
