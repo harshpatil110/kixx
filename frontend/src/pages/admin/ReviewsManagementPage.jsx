@@ -80,6 +80,8 @@ function SummaryView({ onSelect }) {
   const [rows, setRows]       = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState(null);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [toastMessage, setToastMessage] = useState(null);
 
   const fetchSummary = useCallback(() => {
     setLoading(true);
@@ -95,35 +97,52 @@ function SummaryView({ onSelect }) {
 
   useEffect(() => { fetchSummary(); }, [fetchSummary]);
 
+  const handleVendorReport = () => {
+    setIsDrawerOpen(false);
+    setToastMessage('Quality report successfully forwarded to vendor portals.');
+    setTimeout(() => setToastMessage(null), 3000);
+  };
+
+  const negativeProducts = rows.filter((row) => row.avgRating <= 2.0);
+
   const totalReviews  = rows.reduce((s, r) => s + r.reviewCount, 0);
   const overallAvg    = rows.length
     ? (rows.reduce((s, r) => s + r.avgRating * r.reviewCount, 0) / totalReviews).toFixed(1)
     : '—';
 
   return (
-    <div className="space-y-6">
+    <>
+      <div className="space-y-6">
 
-      {/* Header */}
-      <div className="flex items-end justify-between">
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400 mb-1">
-            Admin / Reviews Hub
-          </p>
-          <h1 className="text-3xl font-black tracking-[-0.04em] text-stone-900">
-            Review Analytics
-          </h1>
+        {/* Header */}
+        <div className="flex items-end justify-between">
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400 mb-1">
+              Admin / Reviews Hub
+            </p>
+            <h1 className="text-3xl font-black tracking-[-0.04em] text-stone-900">
+              Review Analytics
+            </h1>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setIsDrawerOpen(true)}
+              className="text-[10px] uppercase tracking-widest border border-red-900 text-red-900 px-4 py-2 hover:bg-red-900 hover:text-white transition-all rounded-sm"
+            >
+              NEGATIVE REVIEWS
+            </button>
+            <button
+              onClick={fetchSummary}
+              className="flex items-center gap-2 px-3 py-1.5 border border-stone-200
+                         text-[10px] font-bold uppercase tracking-widest text-stone-500
+                         hover:bg-stone-900 hover:text-white hover:border-stone-900
+                         transition-all rounded-sm"
+            >
+              <RefreshCw size={11} />
+              Refresh
+            </button>
+          </div>
         </div>
-        <button
-          onClick={fetchSummary}
-          className="flex items-center gap-2 px-3 py-1.5 border border-stone-200
-                     text-[10px] font-bold uppercase tracking-widest text-stone-500
-                     hover:bg-stone-900 hover:text-white hover:border-stone-900
-                     transition-all rounded-sm"
-        >
-          <RefreshCw size={11} />
-          Refresh
-        </button>
-      </div>
 
       {/* KPI strip */}
       <div className="grid grid-cols-3 gap-4">
