@@ -1,5 +1,5 @@
 import React, { useEffect, lazy, Suspense } from 'react';
-import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Outlet, useLocation } from 'react-router-dom';
 import { onAuthStateChanged } from 'firebase/auth';
 
 import { auth } from './config/firebase';
@@ -61,9 +61,13 @@ const Archive3DPage = lazy(() => import('./pages/Archive3DPage'));
 // Layout component — wraps all routes that need the Navbar
 // ---------------------------------------------------------------------------
 function NavbarLayout() {
+  const location = useLocation();
+  const noNavRoutes = ['/login', '/signup', '/register', '/forgot-password'];
+  const hideNav = noNavRoutes.includes(location.pathname);
+
   return (
     <div className="flex flex-col min-h-screen bg-[#F5F5DC]">
-      <Navbar />
+      {!hideNav && <Navbar />}
       <main className="flex-grow">
         <Outlet />
       </main>
