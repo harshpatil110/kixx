@@ -11,6 +11,7 @@ import {
   Share2,
   MessageCircle,
   Star,
+  PlusSquare,
 } from 'lucide-react';
 import { signOut } from 'firebase/auth';
 import { auth } from '../config/firebase';
@@ -20,6 +21,7 @@ import useCartStore from '../store/cartStore';
 const NAV_ITEMS = [
   { to: '/admin/dashboard',     label: 'Dashboard',     icon: LayoutDashboard },
   { to: '/admin/inventory',     label: 'Inventory',     icon: Package },
+  { to: '/admin/inventory/add', label: 'Add Product',   icon: PlusSquare },
   { to: '/admin/sales',         label: 'Sales',         icon: TrendingUp },
   { to: '/admin/customers',     label: 'Customers',     icon: Users },
   { to: '/admin/visualization', label: 'Visualization', icon: Share2 },
