@@ -242,8 +242,17 @@ export default function LandingPage() {
                             </h1>
                         </div>
 
-                        {/* Scroll cue */}
-                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
+                        {/* CTA + Scroll cue */}
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
+                            {/* SHOP NOW — direct to catalog, no auth required */}
+                            <Link
+                                to="/catalog"
+                                className="bg-white text-black px-8 sm:px-10 py-3.5 sm:py-4 uppercase text-[11px] sm:text-[12px] tracking-[0.2em] font-medium transition-all duration-300 hover:bg-black hover:text-white border border-white scale-90 sm:scale-100"
+                                style={{ pointerEvents: 'auto', display: 'inline-block', textDecoration: 'none' }}
+                            >
+                                Shop Now
+                            </Link>
+
                             <span style={{
                                 color: 'rgba(255,255,255,0.45)',
                                 fontSize: 'clamp(0.5rem, 0.9vw, 0.65rem)',

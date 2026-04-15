@@ -25,6 +25,7 @@ import { Toaster } from 'react-hot-toast';
 const LandingPage = lazy(() => import('./pages/LandingPage'));
 const LoginPage = lazy(() => import('./pages/LoginPage'));
 const RegisterPage = lazy(() => import('./pages/RegisterPage'));
+const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
 
 // ── Shopping ──
 const CatalogPage = lazy(() => import('./pages/CatalogPage'));
@@ -251,6 +252,22 @@ export default function App() {
             }
           />
           <Route
+            path="/privacy"
+            element={
+              <Suspense fallback={<GenericPageSkeleton />}>
+                <PrivacyPolicy />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/catalog"
+            element={
+              <Suspense fallback={<HomePageSkeleton />}>
+                <CatalogPage />
+              </Suspense>
+            }
+          />
+          <Route
             path="/product/:id"
             element={
               <Suspense fallback={<ProductDetailSkeleton />}>
@@ -285,14 +302,7 @@ export default function App() {
 
           {/* Protected — must be authenticated */}
           <Route element={<ProtectedRoute />}>
-            <Route
-              path="/catalog"
-              element={
-                <Suspense fallback={<HomePageSkeleton />}>
-                  <CatalogPage />
-                </Suspense>
-              }
-            />
+
             <Route
               path="/orders"
               element={

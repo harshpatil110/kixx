@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import useAuthStore from '../store/authStore';
 import PromoToast from '../components/PromoToast';
@@ -574,16 +574,25 @@ export default function CatalogPage() {
                     <h2 className="font-headline font-bold text-4xl mb-8 leading-tight tracking-tighter text-on-surface">"SNEAKERS ARE NO LONGER COMMODITIES; THEY ARE THE TEXTURES OF MODERN ARCHITECTURE FOR THE FEET."</h2>
                     <span className="font-label text-[10px] tracking-[0.4em] uppercase text-tertiary">— KIXX EDITORIAL TEAM</span>
 
-                    {/* Feedback trigger */}
-                    <div className="mt-10">
+                    {/* Feedback & Legal links */}
+                    <div className="mt-10 flex items-center justify-center gap-3">
                         <button
                             onClick={() => setIsFeedbackModalOpen(true)}
-                            className="text-xs text-stone-400 hover:text-stone-900 transition-colors
+                            className="text-[10px] text-stone-400 hover:text-stone-900 transition-colors
                                        cursor-pointer uppercase tracking-widest font-medium
                                        border-b border-transparent hover:border-stone-400"
                         >
                             Report an Issue / Feedback
                         </button>
+                        <span className="text-stone-300 text-[10px] select-none">|</span>
+                        <Link
+                            to="/privacy"
+                            className="text-[10px] text-stone-400 hover:text-stone-900 transition-colors
+                                       uppercase tracking-widest font-medium
+                                       border-b border-transparent hover:border-stone-400"
+                        >
+                            Privacy Policy
+                        </Link>
                     </div>
                 </div>
             </main>
