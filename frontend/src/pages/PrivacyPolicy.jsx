@@ -1,181 +1,373 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React from "react";
+import { Link } from "react-router-dom";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Section component — keeps each policy block consistent
-// ─────────────────────────────────────────────────────────────────────────────
-function Section({ number, title, children }) {
-    return (
-        <section className="mb-14">
-            <div className="flex items-baseline gap-3 mb-5">
-                <span className="text-[11px] font-black tracking-[0.25em] text-stone-400 uppercase">
-                    {number}
-                </span>
-                <h2 className="text-xl sm:text-2xl font-black tracking-tight text-stone-900 uppercase leading-none">
-                    {title}
-                </h2>
-            </div>
-            <div className="text-stone-600 leading-relaxed text-[15px] space-y-4 pl-0 sm:pl-10">
-                {children}
-            </div>
-        </section>
-    );
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// PrivacyPolicy Page
+// PrivacyPolicy — KIXX Editorial Legal Page
 // ─────────────────────────────────────────────────────────────────────────────
 export default function PrivacyPolicy() {
     return (
         <div className="min-h-screen bg-[#F7F5F0]">
 
-            {/* ── Header band ─────────────────────────────────────────────── */}
-            <header className="pt-32 pb-16 px-6 text-center border-b border-stone-200">
-                <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-stone-400 mb-4">
-                    Legal — Last Updated April 2026
+            {/* ═══════════════════════════════════════════════════════════════
+                HEADER
+            ═══════════════════════════════════════════════════════════════ */}
+            <header className="pt-36 pb-14 px-6 text-center">
+                <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-stone-400 mb-5">
+                    Legal Document &mdash; Effective April 2026
                 </p>
-                <h1
-                    className="font-black uppercase tracking-tighter text-stone-900 leading-none"
-                    style={{ fontSize: 'clamp(2.5rem, 7vw, 5rem)' }}
-                >
+                <h1 className="text-5xl font-bold tracking-tighter text-stone-900 mb-6 uppercase">
                     Privacy Policy
                 </h1>
-                <div className="mx-auto mt-6 h-px w-14 bg-stone-300" />
+                <div className="mx-auto h-px w-16 bg-stone-300" />
             </header>
 
-            {/* ── Body ────────────────────────────────────────────────────── */}
-            <main className="max-w-3xl mx-auto px-6 sm:px-8 py-16 sm:py-24">
+            {/* ═══════════════════════════════════════════════════════════════
+                BODY
+            ═══════════════════════════════════════════════════════════════ */}
+            <main className="max-w-3xl mx-auto py-20 px-6">
 
-                {/* Preamble */}
-                <div className="mb-16 text-stone-500 leading-relaxed text-[15px] border-l-2 border-stone-300 pl-6">
+                {/* ── Preamble ──────────────────────────────────────────── */}
+                <div className="mb-16 text-stone-500 leading-relaxed text-sm border-l-2 border-stone-300 pl-6">
                     <p>
-                        At <strong className="text-stone-900">KIXX</strong>, your privacy is foundational
-                        to the trust we build with every customer. This document outlines what
-                        information we collect, how we use it, who we share it with, and your
-                        rights as a user of our platform.
+                        KIXX is committed to safeguarding your personal information.
+                        This Privacy Policy explains how we collect, use, disclose, and
+                        protect the data you entrust to us when using our e-commerce
+                        platform, mobile experiences, and related services. By accessing
+                        or using KIXX, you acknowledge that you have read and understood
+                        this policy.
                     </p>
                 </div>
 
-                {/* 1.0 Information Collection */}
-                <Section number="1.0" title="Information Collection">
-                    <p>
-                        When you create an account, place an order, or interact with our
-                        platform, we may collect the following categories of information:
-                    </p>
-                    <ul className="list-none space-y-2.5 mt-3">
-                        {[
-                            ['Identity Data', 'Full name, email address, and account credentials managed via Firebase Authentication.'],
-                            ['Contact Data', 'Shipping address, billing address, and phone number provided during checkout.'],
-                            ['Transaction Data', 'Order history, payment confirmations, and purchase amounts.'],
-                            ['Technical Data', 'IP address, browser type, device identifiers, and session cookies to maintain platform security.'],
-                            ['Usage Data', 'Pages visited, products viewed, search queries, and interaction patterns to improve our catalog experience.'],
-                        ].map(([label, desc]) => (
-                            <li key={label} className="flex gap-3">
-                                <span className="text-stone-300 font-black text-xs mt-0.5 flex-shrink-0">—</span>
-                                <span><strong className="text-stone-800">{label}.</strong> {desc}</span>
-                            </li>
-                        ))}
-                    </ul>
-                </Section>
+                {/* ── 1.0 INFORMATION COLLECTION ────────────────────────── */}
+                <h2 className="text-xs font-bold tracking-[0.2em] text-stone-400 mb-4 mt-12 uppercase border-b border-stone-200 pb-2">
+                    1.0 &mdash; Information Collection
+                </h2>
+                <p className="text-stone-600 leading-relaxed text-sm mb-6">
+                    We collect information that you provide directly, as well as data
+                    generated automatically through your use of the platform. The categories
+                    of data we process include:
+                </p>
+                <ul className="space-y-3 mb-6">
+                    <li className="flex gap-3 text-stone-600 text-sm leading-relaxed">
+                        <span className="text-stone-300 font-bold flex-shrink-0">&mdash;</span>
+                        <span>
+                            <strong className="text-stone-800">Account Information.</strong>{" "}
+                            When you register, we collect your full name, email address, and
+                            authentication credentials. Account sign-in is managed securely
+                            through Firebase Authentication by Google.
+                        </span>
+                    </li>
+                    <li className="flex gap-3 text-stone-600 text-sm leading-relaxed">
+                        <span className="text-stone-300 font-bold flex-shrink-0">&mdash;</span>
+                        <span>
+                            <strong className="text-stone-800">Transaction Data.</strong>{" "}
+                            Order history, shipping addresses, billing details, payment
+                            confirmation tokens, and purchase amounts are stored to process
+                            and fulfil your orders.
+                        </span>
+                    </li>
+                    <li className="flex gap-3 text-stone-600 text-sm leading-relaxed">
+                        <span className="text-stone-300 font-bold flex-shrink-0">&mdash;</span>
+                        <span>
+                            <strong className="text-stone-800">Personal Collections.</strong>{" "}
+                            When you use the &quot;Add to My Archive&quot; feature to log past
+                            sneakers you have owned, we store the shoe name, brand, release year,
+                            and SKU you provide. This collection data is linked to your
+                            account and is visible only to you and platform administrators
+                            for quality-control purposes.
+                        </span>
+                    </li>
+                    <li className="flex gap-3 text-stone-600 text-sm leading-relaxed">
+                        <span className="text-stone-300 font-bold flex-shrink-0">&mdash;</span>
+                        <span>
+                            <strong className="text-stone-800">Technical Data.</strong>{" "}
+                            IP address, browser type and version, device identifiers,
+                            operating system, time zone, and session cookies are collected
+                            automatically to maintain platform security and performance.
+                        </span>
+                    </li>
+                    <li className="flex gap-3 text-stone-600 text-sm leading-relaxed">
+                        <span className="text-stone-300 font-bold flex-shrink-0">&mdash;</span>
+                        <span>
+                            <strong className="text-stone-800">Usage Analytics.</strong>{" "}
+                            Pages visited, products viewed, search queries, filter selections,
+                            and navigation patterns help us refine our catalog experience and
+                            improve product discovery.
+                        </span>
+                    </li>
+                </ul>
 
-                {/* 2.0 Data Utilization */}
-                <Section number="2.0" title="Data Utilization">
-                    <p>
-                        We process your personal data strictly for legitimate business purposes,
-                        including but not limited to:
-                    </p>
-                    <ul className="list-none space-y-2.5 mt-3">
-                        {[
-                            'Fulfilling and delivering your orders with accurate shipping information.',
-                            'Processing payments securely through our authorized payment gateway partners.',
-                            'Sending order confirmations, shipment tracking updates, and transactional emails.',
-                            'Personalizing your browsing experience with relevant product recommendations.',
-                            'Detecting and preventing fraudulent transactions and unauthorized account access.',
-                            'Improving platform performance, reliability, and user interface through aggregated analytics.',
-                        ].map((item, i) => (
-                            <li key={i} className="flex gap-3">
-                                <span className="text-stone-300 font-black text-xs mt-0.5 flex-shrink-0">—</span>
-                                <span>{item}</span>
-                            </li>
-                        ))}
-                    </ul>
-                    <p className="mt-4 text-stone-400 text-[13px]">
-                        We do not sell, rent, or trade your personal data to third parties for marketing purposes.
-                    </p>
-                </Section>
+                {/* ── 2.0 DATA UTILIZATION ──────────────────────────────── */}
+                <h2 className="text-xs font-bold tracking-[0.2em] text-stone-400 mb-4 mt-12 uppercase border-b border-stone-200 pb-2">
+                    2.0 &mdash; Data Utilization
+                </h2>
+                <p className="text-stone-600 leading-relaxed text-sm mb-6">
+                    Your data is processed exclusively for legitimate, clearly defined
+                    business purposes. We never sell, rent, or trade personal data to
+                    third-party advertisers.
+                </p>
+                <ul className="space-y-3 mb-6">
+                    <li className="flex gap-3 text-stone-600 text-sm leading-relaxed">
+                        <span className="text-stone-300 font-bold flex-shrink-0">&mdash;</span>
+                        <span>
+                            <strong className="text-stone-800">Order Fulfillment.</strong>{" "}
+                            Processing, shipping, and delivering your purchases with accurate
+                            logistics information.
+                        </span>
+                    </li>
+                    <li className="flex gap-3 text-stone-600 text-sm leading-relaxed">
+                        <span className="text-stone-300 font-bold flex-shrink-0">&mdash;</span>
+                        <span>
+                            <strong className="text-stone-800">Secure Payments.</strong>{" "}
+                            Routing transactions through PCI-DSS-compliant payment gateways.
+                            KIXX does not store raw credit or debit card numbers on our servers.
+                        </span>
+                    </li>
+                    <li className="flex gap-3 text-stone-600 text-sm leading-relaxed">
+                        <span className="text-stone-300 font-bold flex-shrink-0">&mdash;</span>
+                        <span>
+                            <strong className="text-stone-800">Product Reviews.</strong>{" "}
+                            When you submit a review or rating on a sneaker, your display name,
+                            star rating, and comment text are stored and displayed publicly on
+                            the corresponding product page. Reviews help the community make
+                            informed purchase decisions and are visible to all visitors.
+                        </span>
+                    </li>
+                    <li className="flex gap-3 text-stone-600 text-sm leading-relaxed">
+                        <span className="text-stone-300 font-bold flex-shrink-0">&mdash;</span>
+                        <span>
+                            <strong className="text-stone-800">Feedback &amp; Issue Reports.</strong>{" "}
+                            When you use the &quot;Report an Issue / Feedback&quot; feature,
+                            your selected category and message text are recorded alongside
+                            your user ID. This data is escalated to our internal engineering
+                            and product teams for triage, bug resolution, and platform
+                            improvement. Feedback submissions are not made public.
+                        </span>
+                    </li>
+                    <li className="flex gap-3 text-stone-600 text-sm leading-relaxed">
+                        <span className="text-stone-300 font-bold flex-shrink-0">&mdash;</span>
+                        <span>
+                            <strong className="text-stone-800">Personalization.</strong>{" "}
+                            Tailoring product recommendations, promotional offers (such as
+                            first-purchase discounts), and browsing experiences based on
+                            aggregated behavioral patterns.
+                        </span>
+                    </li>
+                    <li className="flex gap-3 text-stone-600 text-sm leading-relaxed">
+                        <span className="text-stone-300 font-bold flex-shrink-0">&mdash;</span>
+                        <span>
+                            <strong className="text-stone-800">Fraud Prevention.</strong>{" "}
+                            Detecting and blocking unauthorized access attempts, suspicious
+                            transactions, and account abuse through automated security
+                            monitoring.
+                        </span>
+                    </li>
+                </ul>
 
-                {/* 3.0 Third-Party Sharing */}
-                <Section number="3.0" title="Third-Party Sharing">
-                    <p>
-                        To operate the platform effectively, we partner with carefully vetted
-                        third-party service providers. Your data may be shared with:
-                    </p>
-                    <ul className="list-none space-y-2.5 mt-3">
-                        {[
-                            ['Firebase (Google)', 'Authentication services, user session management, and secure identity verification.'],
-                            ['Cloudinary', 'Product image hosting and optimized media delivery. No personal data is stored by Cloudinary.'],
-                            ['Payment Gateways', 'Payment processing partners (e.g., Razorpay) handle transactions under PCI-DSS compliance. KIXX does not store raw card details.'],
-                            ['Analytics Providers', 'Aggregated, anonymized usage metrics to understand platform performance. No personally identifiable information is shared for analytics.'],
-                        ].map(([label, desc]) => (
-                            <li key={label} className="flex gap-3">
-                                <span className="text-stone-300 font-black text-xs mt-0.5 flex-shrink-0">—</span>
-                                <span><strong className="text-stone-800">{label}.</strong> {desc}</span>
-                            </li>
-                        ))}
-                    </ul>
-                    <p className="mt-4">
-                        All third-party partners are contractually obligated to handle your data in
-                        accordance with applicable privacy regulations and solely for the purposes
-                        outlined in this policy.
-                    </p>
-                </Section>
+                {/* ── 3.0 THIRD-PARTY SHARING ──────────────────────────── */}
+                <h2 className="text-xs font-bold tracking-[0.2em] text-stone-400 mb-4 mt-12 uppercase border-b border-stone-200 pb-2">
+                    3.0 &mdash; Third-Party Services &amp; Data Sharing
+                </h2>
+                <p className="text-stone-600 leading-relaxed text-sm mb-6">
+                    To operate and deliver the KIXX experience, we integrate with
+                    carefully vetted service providers. Data shared with these partners
+                    is limited to what is strictly necessary:
+                </p>
+                <ul className="space-y-3 mb-6">
+                    <li className="flex gap-3 text-stone-600 text-sm leading-relaxed">
+                        <span className="text-stone-300 font-bold flex-shrink-0">&mdash;</span>
+                        <span>
+                            <strong className="text-stone-800">Firebase (Google).</strong>{" "}
+                            Handles user authentication, session management, and identity
+                            verification. Firebase processes credentials under Google Cloud
+                            security standards.
+                        </span>
+                    </li>
+                    <li className="flex gap-3 text-stone-600 text-sm leading-relaxed">
+                        <span className="text-stone-300 font-bold flex-shrink-0">&mdash;</span>
+                        <span>
+                            <strong className="text-stone-800">Cloudinary.</strong>{" "}
+                            All product images uploaded by administrators are processed,
+                            transformed, and served through Cloudinary&apos;s CDN for
+                            optimized delivery. Cloudinary receives image files only; no
+                            personally identifiable user data is transmitted to or stored
+                            by Cloudinary.
+                        </span>
+                    </li>
+                    <li className="flex gap-3 text-stone-600 text-sm leading-relaxed">
+                        <span className="text-stone-300 font-bold flex-shrink-0">&mdash;</span>
+                        <span>
+                            <strong className="text-stone-800">Payment Gateways.</strong>{" "}
+                            Payment processing partners (e.g., Razorpay) handle all
+                            financial transactions under PCI-DSS Level 1 compliance. KIXX
+                            does not have access to or store your full card number, CVV, or
+                            banking PIN at any point.
+                        </span>
+                    </li>
+                    <li className="flex gap-3 text-stone-600 text-sm leading-relaxed">
+                        <span className="text-stone-300 font-bold flex-shrink-0">&mdash;</span>
+                        <span>
+                            <strong className="text-stone-800">Analytics.</strong>{" "}
+                            Aggregated, anonymized usage metrics are collected to measure
+                            platform performance and identify areas for improvement. No
+                            personally identifiable information is shared with analytics
+                            providers.
+                        </span>
+                    </li>
+                </ul>
+                <p className="text-stone-600 leading-relaxed text-sm mb-6">
+                    All third-party partners are contractually bound to process your data
+                    solely for the purposes described in this policy and in accordance
+                    with applicable data protection regulations.
+                </p>
 
-                {/* 4.0 User Rights */}
-                <Section number="4.0" title="User Rights">
-                    <p>
-                        You retain full control over your personal data. As a KIXX user, you have
-                        the right to:
-                    </p>
-                    <ul className="list-none space-y-2.5 mt-3">
-                        {[
-                            ['Access', 'Request a copy of the personal data we hold about you at any time via your Account settings.'],
-                            ['Rectification', 'Update or correct inaccurate personal information through your profile dashboard.'],
-                            ['Deletion', 'Request permanent deletion of your account and associated data by contacting our support team.'],
-                            ['Portability', 'Request your data in a structured, machine-readable format for transfer to another service.'],
-                            ['Withdrawal of Consent', 'Revoke consent for optional data processing (e.g., marketing emails) at any time without affecting prior lawful processing.'],
-                        ].map(([label, desc]) => (
-                            <li key={label} className="flex gap-3">
-                                <span className="text-stone-300 font-black text-xs mt-0.5 flex-shrink-0">—</span>
-                                <span><strong className="text-stone-800">{label}.</strong> {desc}</span>
-                            </li>
-                        ))}
-                    </ul>
-                    <p className="mt-4">
-                        To exercise any of these rights, please reach out to us at{' '}
-                        <strong className="text-stone-800">privacy@kixx.store</strong>. We will respond to all
-                        legitimate requests within 30 calendar days.
-                    </p>
-                </Section>
+                {/* ── 4.0 ADMIN ACCESS & TRANSPARENCY ──────────────────── */}
+                <h2 className="text-xs font-bold tracking-[0.2em] text-stone-400 mb-4 mt-12 uppercase border-b border-stone-200 pb-2">
+                    4.0 &mdash; Administrative Access &amp; Transparency
+                </h2>
+                <p className="text-stone-600 leading-relaxed text-sm mb-6">
+                    KIXX platform administrators have access to certain user-generated
+                    content strictly for operational and quality-control purposes:
+                </p>
+                <ul className="space-y-3 mb-6">
+                    <li className="flex gap-3 text-stone-600 text-sm leading-relaxed">
+                        <span className="text-stone-300 font-bold flex-shrink-0">&mdash;</span>
+                        <span>
+                            <strong className="text-stone-800">Feedback &amp; Reports.</strong>{" "}
+                            Administrators can view, categorize, and respond to user-submitted
+                            feedback and bug reports through the internal admin dashboard. This
+                            enables timely issue resolution and product roadmap prioritization.
+                        </span>
+                    </li>
+                    <li className="flex gap-3 text-stone-600 text-sm leading-relaxed">
+                        <span className="text-stone-300 font-bold flex-shrink-0">&mdash;</span>
+                        <span>
+                            <strong className="text-stone-800">Product Reviews.</strong>{" "}
+                            Administrators can view, moderate, and remove reviews that violate
+                            community guidelines, contain offensive language, or are identified
+                            as spam. Moderation actions are logged for accountability.
+                        </span>
+                    </li>
+                    <li className="flex gap-3 text-stone-600 text-sm leading-relaxed">
+                        <span className="text-stone-300 font-bold flex-shrink-0">&mdash;</span>
+                        <span>
+                            <strong className="text-stone-800">Personal Archives.</strong>{" "}
+                            Aggregated archive data (shoe names, brands, years) may be viewed
+                            by administrators to understand sneaker trends and improve catalog
+                            curation. Individual archive entries are never shared publicly or
+                            with other users.
+                        </span>
+                    </li>
+                    <li className="flex gap-3 text-stone-600 text-sm leading-relaxed">
+                        <span className="text-stone-300 font-bold flex-shrink-0">&mdash;</span>
+                        <span>
+                            <strong className="text-stone-800">Order &amp; Customer Data.</strong>{" "}
+                            Admin users have visibility into order histories, customer profiles,
+                            and sales analytics to manage inventory, resolve disputes, and
+                            provide customer support.
+                        </span>
+                    </li>
+                </ul>
+                <p className="text-stone-600 leading-relaxed text-sm mb-6">
+                    Administrative access is role-gated. Only verified admin accounts can
+                    access the admin dashboard. All admin activity is subject to internal
+                    audit logging.
+                </p>
 
-                {/* ── Divider ─────────────────────────────────────────────── */}
+                {/* ── 5.0 USER RIGHTS ──────────────────────────────────── */}
+                <h2 className="text-xs font-bold tracking-[0.2em] text-stone-400 mb-4 mt-12 uppercase border-b border-stone-200 pb-2">
+                    5.0 &mdash; User Rights
+                </h2>
+                <p className="text-stone-600 leading-relaxed text-sm mb-6">
+                    You retain full ownership and control over your personal data. As a
+                    KIXX user, you are entitled to the following rights:
+                </p>
+                <ul className="space-y-3 mb-6">
+                    <li className="flex gap-3 text-stone-600 text-sm leading-relaxed">
+                        <span className="text-stone-300 font-bold flex-shrink-0">&mdash;</span>
+                        <span>
+                            <strong className="text-stone-800">Right of Access.</strong>{" "}
+                            Request a complete copy of the personal data we hold about you
+                            at any time through your Account settings or by contacting us
+                            directly.
+                        </span>
+                    </li>
+                    <li className="flex gap-3 text-stone-600 text-sm leading-relaxed">
+                        <span className="text-stone-300 font-bold flex-shrink-0">&mdash;</span>
+                        <span>
+                            <strong className="text-stone-800">Right to Rectification.</strong>{" "}
+                            Update or correct inaccurate information through your profile
+                            dashboard at any time.
+                        </span>
+                    </li>
+                    <li className="flex gap-3 text-stone-600 text-sm leading-relaxed">
+                        <span className="text-stone-300 font-bold flex-shrink-0">&mdash;</span>
+                        <span>
+                            <strong className="text-stone-800">Right to Deletion.</strong>{" "}
+                            Request permanent deletion of your account, order history,
+                            personal archives, reviews, and all associated data. Deletion
+                            requests are processed within 30 calendar days.
+                        </span>
+                    </li>
+                    <li className="flex gap-3 text-stone-600 text-sm leading-relaxed">
+                        <span className="text-stone-300 font-bold flex-shrink-0">&mdash;</span>
+                        <span>
+                            <strong className="text-stone-800">Right to Data Portability.</strong>{" "}
+                            Request an export of your data in a structured, machine-readable
+                            format (JSON) for transfer to another service.
+                        </span>
+                    </li>
+                    <li className="flex gap-3 text-stone-600 text-sm leading-relaxed">
+                        <span className="text-stone-300 font-bold flex-shrink-0">&mdash;</span>
+                        <span>
+                            <strong className="text-stone-800">Withdrawal of Consent.</strong>{" "}
+                            Revoke consent for optional data processing (e.g., promotional
+                            emails) at any time. Withdrawal does not affect the lawfulness
+                            of processing conducted prior to revocation.
+                        </span>
+                    </li>
+                </ul>
+                <p className="text-stone-600 leading-relaxed text-sm mb-6">
+                    To exercise any of these rights, contact us at{" "}
+                    <strong className="text-stone-800">privacy@kixx.store</strong>.
+                    We will acknowledge your request within 48 hours and complete
+                    processing within 30 calendar days.
+                </p>
+
+                {/* ── 6.0 DATA RETENTION ───────────────────────────────── */}
+                <h2 className="text-xs font-bold tracking-[0.2em] text-stone-400 mb-4 mt-12 uppercase border-b border-stone-200 pb-2">
+                    6.0 &mdash; Data Retention
+                </h2>
+                <p className="text-stone-600 leading-relaxed text-sm mb-6">
+                    We retain personal data only for as long as necessary to fulfil the
+                    purposes outlined in this policy. Order and transaction records are
+                    retained for a minimum of 5 years to comply with financial reporting
+                    obligations. Account data, personal archives, and reviews are retained
+                    until you request deletion or deactivate your account. Feedback and
+                    issue reports are anonymized after resolution and retained in aggregate
+                    form for product improvement analytics.
+                </p>
+
+                {/* ── DIVIDER ──────────────────────────────────────────── */}
                 <div className="my-16 h-px w-full bg-stone-200" />
 
-                {/* ── Signature ───────────────────────────────────────────── */}
+                {/* ── SIGNATURE ────────────────────────────────────────── */}
                 <div className="text-center">
                     <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-stone-400 mb-3">
-                        — KIXX Editorial Team
+                        &mdash; KIXX Legal Dept
                     </p>
-                    <p className="text-stone-400 text-[13px] leading-relaxed max-w-md mx-auto">
-                        This policy is subject to periodic updates. Material changes will be
-                        communicated via email or an in-platform notification.
+                    <p className="text-stone-400 text-[13px] leading-relaxed max-w-md mx-auto mb-8">
+                        This policy is reviewed quarterly and updated as necessary.
+                        Material changes will be communicated via email or through an
+                        in-platform notification banner.
                     </p>
                     <Link
                         to="/catalog"
-                        className="inline-block mt-8 text-[10px] font-bold uppercase tracking-[0.2em]
+                        className="inline-block text-[10px] font-bold uppercase tracking-[0.2em]
                                    text-stone-500 hover:text-stone-900 transition-colors
                                    border-b border-stone-300 hover:border-stone-900 pb-0.5"
                     >
-                        ← Back to Catalog
+                        &larr; Back to Catalog
                     </Link>
                 </div>
             </main>

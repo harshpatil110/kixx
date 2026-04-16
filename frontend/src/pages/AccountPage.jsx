@@ -13,7 +13,7 @@ import toast from 'react-hot-toast';
 import {
     Search, ShoppingCart, User, Package, Heart,
     CreditCard, LogOut, Archive, ChevronDown,
-    Download, PlusCircle, X, Footprints, Star
+    Download, PlusCircle, X, Footprints, Star, MapPin
 } from 'lucide-react';
 
 /*
@@ -74,6 +74,53 @@ export default function AccountPage() {
     const navigate = useNavigate();
     const [isSigningOut, setIsSigningOut] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
+
+    // ── Tracking Modal State ─────────────────────────────────────────────────
+    const [isTrackingModalOpen, setIsTrackingModalOpen] = useState(false);
+    const [trackingOrder, setTrackingOrder] = useState(null);
+
+    const TRACKING_STEPS = ['Order Placed', 'Processing', 'Shipped', 'Out for Delivery', 'Delivered'];
+
+    const getActiveStepIndex = (status) => {
+        if (!status) return 1;
+        const s = status.toUpperCase().replace(/\s+/g, '_');
+        if (s === 'DELIVERED') return 4;
+        if (s === 'OUT_FOR_DELIVERY') return 3;
+        if (s === 'SHIPPED') return 2;
+        if (s === 'PROCESSING') return 1;
+        return 1;
+    };
+
+    const getStepSubtext = (stepIndex, activeIndex) => {
+        if (stepIndex !== activeIndex) return null;
+        const subtexts = [
+            'Your order has been confirmed and is being prepared.',
+            'Items are being picked and packed at our warehouse.',
+            'Package arrived at transit facility in Mumbai, MH.',
+            'Your package is on its way with the delivery partner.',
+            'Successfully delivered. Enjoy your kicks!',
+        ];
+        return subtexts[stepIndex] || null;
+    };
+
+    const getStepTimestamp = (stepIndex, activeIndex, orderDate) => {
+        if (stepIndex > activeIndex) return null;
+        const base = orderDate ? new Date(orderDate) : new Date();
+        const offsets = [0, 1, 2, 3, 5];
+        const d = new Date(base);
+        d.setDate(d.getDate() + offsets[stepIndex]);
+        return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+    };
+
+    const openTrackingModal = (order) => {
+        setTrackingOrder(order);
+        setIsTrackingModalOpen(true);
+    };
+
+    const closeTrackingModal = () => {
+        setIsTrackingModalOpen(false);
+        setTrackingOrder(null);
+    };
 
     // ── Review Modal State ───────────────────────────────────────────────────
     const [reviewTarget, setReviewTarget] = useState(null); // { orderId, productId, productName }
@@ -151,6 +198,7 @@ export default function AccountPage() {
             if (e.key === 'Escape') {
                 setIsModalOpen(false);
                 closeReviewModal();
+                closeTrackingModal();
             }
         };
         window.addEventListener('keydown', onKey);
@@ -178,21 +226,39 @@ export default function AccountPage() {
         catch (err) { console.error('Sign-out error:', err); setIsSigningOut(false); }
     };
 
-    const statusColor = (s) => {
-        if (!s) return 'text-yellow-600';
-        const v = s.toLowerCase();
-        if (v === 'delivered') return 'text-green-600';
-        if (v === 'shipped') return 'text-blue-600';
-        if (v === 'returned') return 'text-gray-600';
-        return 'text-yellow-600';
+    // ── Status Config ────────────────────────────────────────────────────────
+    const STATUS_SEQUENCE = ['SHIPPED', 'OUT_FOR_DELIVERY', 'DELIVERED'];
+
+    const getStatusConfig = (status) => {
+        if (!status) return { label: 'Processing', dotColor: 'bg-stone-300' };
+        const s = status.toUpperCase().replace(/\s+/g, '_');
+        switch (s) {
+            case 'SHIPPED':           return { label: 'Shipped',          dotColor: 'bg-yellow-500' };
+            case 'OUT_FOR_DELIVERY':  return { label: 'Out for Delivery', dotColor: 'bg-blue-500' };
+            case 'DELIVERED':         return { label: 'Delivered',        dotColor: 'bg-green-500' };
+            case 'RETURNED':          return { label: 'Returned',         dotColor: 'bg-gray-500' };
+            case 'CANCELLED':         return { label: 'Cancelled',        dotColor: 'bg-red-500' };
+            default:                  return { label: 'Processing',       dotColor: 'bg-stone-300' };
+        }
     };
-    const statusDot = (s) => {
-        if (!s) return 'bg-yellow-500';
-        const v = s.toLowerCase();
-        if (v === 'delivered') return 'bg-green-500';
-        if (v === 'shipped') return 'bg-blue-500';
-        if (v === 'returned') return 'bg-gray-500';
-        return 'bg-yellow-500';
+
+    /**
+     * Derive a shipping-level status from an order.
+     * The API stores paymentStatus (e.g. "SUCCESS") — we need a logistics status.
+     * If order.status already contains a shipping value we use it;
+     * otherwise we simulate one based on order index for demo diversity.
+     */
+    const deriveShippingStatus = (order, index) => {
+        // If the backend provides a real shipping status, prefer it
+        const raw = order.status;
+        if (raw) {
+            const norm = raw.toUpperCase().replace(/\s+/g, '_');
+            if (['SHIPPED', 'OUT_FOR_DELIVERY', 'DELIVERED', 'RETURNED', 'CANCELLED'].includes(norm)) {
+                return norm;
+            }
+        }
+        // Simulate diverse statuses for demo (cycle through sequence)
+        return STATUS_SEQUENCE[index % STATUS_SEQUENCE.length];
     };
 
     return (
@@ -347,7 +413,7 @@ export default function AccountPage() {
                             </div>
                         ) : orders && orders.length > 0 ? (
                             <div className="space-y-6">
-                                {orders.map((order) => (
+                                {orders.map((order, orderIndex) => (
                                     /* Stitch: div.flex.flex-col.sm:flex-row.gap-6.p-6
                                        .border.border-gray-200.rounded-2xl.hover:bg-gray-50.transition-colors */
                                     <div key={order.id} className="flex flex-col sm:flex-row gap-6 p-6 border border-gray-200 rounded-2xl hover:bg-gray-50 transition-colors">
@@ -379,20 +445,18 @@ export default function AccountPage() {
                                             </div>
                                             {/* Stitch: div.mt-4.flex.justify-between.items-center */}
                                             <div className="mt-4 flex justify-between items-center">
-                                                {/*
-                                                  Status badge — glass-panel LIGHT:
-                                                  bg rgba(255,255,255,0.7) blur:20px border rgba(255,255,255,0.4)
-                                                  px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1
-                                                */}
-                                                <span className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1
-                                                    bg-[rgba(255,255,255,0.7)]
-                                                    backdrop-blur-[20px]
-                                                    border border-[rgba(255,255,255,0.4)]
-                                                    shadow-[0_8px_32px_0_rgba(31,38,135,0.07)]
-                                                    ${statusColor(order.paymentStatus || order.status)}`}>
-                                                    <span className={`w-2 h-2 rounded-full ${statusDot(order.paymentStatus || order.status)}`} />
-                                                    {order.paymentStatus || order.status || 'Processing'}
-                                                </span>
+                                                {(() => {
+                                                    const shippingStatus = deriveShippingStatus(order, orderIndex);
+                                                    const cfg = getStatusConfig(shippingStatus);
+                                                    return (
+                                                        <span className="flex items-center gap-2">
+                                                            <span className={`w-2 h-2 rounded-full ${cfg.dotColor}`} />
+                                                            <span className="text-[10px] uppercase tracking-widest text-stone-600 font-medium">
+                                                                {cfg.label}
+                                                            </span>
+                                                        </span>
+                                                    );
+                                                })()}
                                                 <div className="flex items-center gap-3">
                                                     <button onClick={() => generateInvoice(order)} className="text-gray-500 hover:text-black transition-colors flex items-center gap-2 text-sm uppercase">
                                                         <Download size={16} /> Invoice
@@ -408,6 +472,16 @@ export default function AccountPage() {
                                                     >
                                                         <Star size={11} />
                                                         Leave a Review
+                                                    </button>
+                                                    <button
+                                                        onClick={() => openTrackingModal(order)}
+                                                        className="text-[10px] uppercase tracking-widest text-stone-600
+                                                                   hover:text-stone-900 border-b border-transparent
+                                                                   hover:border-stone-900 transition-all ml-2
+                                                                   flex items-center gap-1"
+                                                    >
+                                                        <MapPin size={11} />
+                                                        Track Order
                                                     </button>
                                                 </div>
                                             </div>
@@ -667,6 +741,170 @@ export default function AccountPage() {
                             </button>
                         </div>
                     </form>
+                </div>
+            </div>
+        )}
+
+        {/* ── Tracking Timeline Modal ────────────────────────────────────────── */}
+        {isTrackingModalOpen && trackingOrder && (
+            <div
+                className="fixed inset-0 z-[200] flex items-center justify-center px-4"
+                style={{ background: 'rgba(0,0,0,0.40)' }}
+                onClick={closeTrackingModal}
+            >
+                <div
+                    className="relative w-full max-w-md bg-[#F7F5F0] overflow-hidden"
+                    style={{ border: '1px solid rgba(0,0,0,0.12)' }}
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    {/* Header */}
+                    <div className="flex items-start justify-between px-6 pt-6 pb-4 border-b border-stone-200 bg-white">
+                        <div className="flex items-center gap-2.5">
+                            <div className="w-7 h-7 bg-stone-900 flex items-center justify-center flex-shrink-0">
+                                <MapPin className="w-3.5 h-3.5 text-white" />
+                            </div>
+                            <div>
+                                <p className="text-[9px] font-bold uppercase tracking-[0.25em] text-stone-400">
+                                    Tracking Details
+                                </p>
+                                <p className="text-[15px] font-black tracking-[-0.03em] text-stone-900 leading-none mt-0.5 uppercase">
+                                    Order #{trackingOrder.id}
+                                </p>
+                            </div>
+                        </div>
+                        <button
+                            onClick={closeTrackingModal}
+                            className="text-stone-400 hover:text-stone-900 transition-colors mt-0.5"
+                            aria-label="Close tracking modal"
+                        >
+                            <X size={15} />
+                        </button>
+                    </div>
+
+                    {/* Product peek */}
+                    <div className="px-6 py-3 border-b border-stone-100 flex items-center gap-3 bg-white/50">
+                        {trackingOrder.items?.[0]?.imageUrl ? (
+                            <img
+                                src={trackingOrder.items[0].imageUrl}
+                                alt=""
+                                className="w-10 h-10 object-contain bg-stone-50 rounded"
+                            />
+                        ) : (
+                            <div className="w-10 h-10 bg-stone-100 rounded flex items-center justify-center">
+                                <Package size={16} className="text-stone-300" />
+                            </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                            <p className="text-sm font-bold text-stone-900 truncate">
+                                {trackingOrder.items?.[0]?.name || 'Order'}
+                                {trackingOrder.items?.length > 1 && (
+                                    <span className="text-stone-400 font-normal">{` +${trackingOrder.items.length - 1} more`}</span>
+                                )}
+                            </p>
+                            <p className="text-[10px] text-stone-400 uppercase tracking-widest">
+                                {formatPrice(trackingOrder.totalAmount || 0)}
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Timeline */}
+                    <div className="px-6 py-6">
+                        {(() => {
+                            const activeIdx = getActiveStepIndex(
+                                trackingOrder.paymentStatus || trackingOrder.status
+                            );
+                            return (
+                                <div className="relative">
+                                    {TRACKING_STEPS.map((step, idx) => {
+                                        const isCompleted = idx < activeIdx;
+                                        const isActive = idx === activeIdx;
+                                        const isFuture = idx > activeIdx;
+                                        const isLast = idx === TRACKING_STEPS.length - 1;
+                                        const subtext = getStepSubtext(idx, activeIdx);
+                                        const timestamp = getStepTimestamp(idx, activeIdx, trackingOrder.createdAt);
+
+                                        return (
+                                            <div key={step} className="relative flex gap-4" style={{ minHeight: isLast ? 'auto' : '72px' }}>
+                                                {/* Vertical line + dot column */}
+                                                <div className="flex flex-col items-center flex-shrink-0" style={{ width: '20px' }}>
+                                                    {/* Dot */}
+                                                    <div
+                                                        className={`relative z-10 rounded-full flex-shrink-0 flex items-center justify-center transition-all duration-300 ${
+                                                            isActive
+                                                                ? 'w-5 h-5 bg-stone-900 ring-4 ring-stone-200'
+                                                                : isCompleted
+                                                                    ? 'w-3.5 h-3.5 bg-stone-900'
+                                                                    : 'w-3.5 h-3.5 bg-stone-300'
+                                                        }`}
+                                                    >
+                                                        {isCompleted && (
+                                                            <svg width="8" height="8" viewBox="0 0 12 12" fill="none">
+                                                                <path d="M2 6l3 3 5-5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                                            </svg>
+                                                        )}
+                                                        {isActive && (
+                                                            <div className="w-1.5 h-1.5 bg-white rounded-full" />
+                                                        )}
+                                                    </div>
+                                                    {/* Connecting line */}
+                                                    {!isLast && (
+                                                        <div
+                                                            className={`flex-1 w-0.5 transition-colors duration-300 ${
+                                                                idx < activeIdx ? 'bg-stone-900' : 'bg-stone-200'
+                                                            }`}
+                                                        />
+                                                    )}
+                                                </div>
+
+                                                {/* Step content */}
+                                                <div className={`pb-6 ${isLast ? 'pb-0' : ''}`}>
+                                                    <p
+                                                        className={`text-sm font-bold uppercase tracking-wide leading-tight ${
+                                                            isFuture ? 'text-stone-400' : 'text-stone-900'
+                                                        }`}
+                                                    >
+                                                        {step}
+                                                    </p>
+                                                    {timestamp && (
+                                                        <p className="text-[10px] text-stone-400 tracking-wider mt-0.5">
+                                                            {timestamp}
+                                                        </p>
+                                                    )}
+                                                    {subtext && (
+                                                        <p className={`text-xs mt-1.5 leading-relaxed max-w-[260px] ${
+                                                            isActive ? 'text-stone-600 font-medium' : 'text-stone-400'
+                                                        }`}>
+                                                            {subtext}
+                                                        </p>
+                                                    )}
+                                                    {isActive && !isLast && (
+                                                        <div className="mt-2 inline-flex items-center gap-1 px-2 py-1 bg-stone-100 rounded text-[9px] font-bold uppercase tracking-[0.15em] text-stone-500">
+                                                            <MapPin size={9} />
+                                                            Live Tracking
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            );
+                        })()}
+                    </div>
+
+                    {/* Footer */}
+                    <div className="px-6 py-4 border-t border-stone-200 bg-white flex items-center justify-between">
+                        <p className="text-[9px] text-stone-400 uppercase tracking-[0.2em]">
+                            Estimated delivery data is approximate
+                        </p>
+                        <button
+                            onClick={closeTrackingModal}
+                            className="py-2 px-5 bg-stone-900 text-white text-[10px] font-bold
+                                       uppercase tracking-[0.2em] hover:bg-[#800000] transition-colors"
+                        >
+                            Close
+                        </button>
+                    </div>
                 </div>
             </div>
         )}
