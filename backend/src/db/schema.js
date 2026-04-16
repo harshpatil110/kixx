@@ -24,6 +24,12 @@ const users = pgTable('users', {
         preferredColors: [], styles: [], occasions: []
     }),
     firstPurchaseDiscountUsed: boolean('first_purchase_discount_used').default(false).notNull(),
+    dateOfBirth: date('date_of_birth'),
+    lastActiveAt: timestamp('last_active_at').defaultNow(),
+    isEarlyAdopter: boolean('is_early_adopter').default(false).notNull(),
+    wantsNewsletter: boolean('wants_newsletter').default(false).notNull(),
+    assignedGoodie: varchar('assigned_goodie', { length: 100 }), // Keychain, Lace Locks, Cleaning Kit, None
+    persona: varchar('persona', { length: 50 }).default('Casual').notNull(),
     createdAt: timestamp('created_at').defaultNow(),
     updatedAt: timestamp('updated_at').defaultNow()
 });
@@ -49,6 +55,7 @@ const products = pgTable('products', {
     stock: integer('stock').default(0).notNull(),
     isNew: boolean('is_new').default(false).notNull(),
     isOnSale: boolean('is_on_sale').default(false).notNull(),
+    isFeatured: boolean('is_featured').default(false).notNull(),
     arModelUrl: varchar('ar_model_url', { length: 255 }),
     arPlacement: varchar('ar_placement', { length: 50 }).default('world'),
     arScale: varchar('ar_scale', { length: 50 }).default('1 1 1'),
@@ -111,6 +118,8 @@ const pastOrders = pgTable('past_orders', {
     items: jsonb('items').notNull(),
     totalAmount: integer('total_amount').notNull(),
     paymentStatus: varchar('payment_status', { length: 50 }).default('SUCCESS').notNull(),
+    status: varchar('status', { length: 50 }).default('PENDING').notNull(),
+    promoCodeUsed: varchar('promo_code_used', { length: 50 }),
     createdAt: timestamp('created_at').defaultNow(),
 });
 

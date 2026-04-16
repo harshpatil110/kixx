@@ -7,7 +7,7 @@ import api from './api';
  * 
  * @returns {Promise<Object>} The synchronized user object from the backend.
  */
-export const syncUserWithBackend = async () => {
-    const response = await api.post('/api/auth/sync');
+export const syncUserWithBackend = async (extraData = {}) => {
+    const response = await api.post('/api/auth/sync', extraData);
     return response.data;
 };

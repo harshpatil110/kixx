@@ -20,7 +20,8 @@ router.post('/sync', verifyToken, async (req, res) => {
             });
         }
 
-        const dbUser = await AuthService.syncUserWithDb(req.user);
+        const { wantsNewsletter } = req.body;
+        const dbUser = await AuthService.syncUserWithDb(req.user, { wantsNewsletter });
 
         console.log('[Auth Sync] ✅ User synced successfully:', dbUser.id, dbUser.email);
 

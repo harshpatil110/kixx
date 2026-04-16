@@ -94,4 +94,54 @@ const getCollection = async (req, res) => {
     }
 };
 
-module.exports = { saveToCollection, getCollection };
+// ---------------------------------------------------------------------------
+// PUT /api/user/profile
+// Updates user profile fields (e.g., dateOfBirth).
+// ---------------------------------------------------------------------------
+const updateProfile = async (req, res) => {
+    try {
+        const userEmail = req.user?.email;
+        if (!userEmail) {
+            return res.status(401).json({ success: false, message: 'Unauthorized.' });
+        }
+
+        const { dateOfBirth, persona } = req.body;
+        const validPersonas = ['Sneakerhead', 'Casual', 'Athlete', 'Gifter'];
+
+        // Simple validation: if dateOfBirth is provided, it must be a valid date
+        if (dateOfBirth && isNaN(Date.parse(dateOfBirth))) {
+            return res.status(400).json({ success: false, message: 'Invalid date of birth format.' });
+        }
+
+        if (persona && !validPersonas.includes(persona)) {
+            return res.status(400).json({ success: false, message: 'Invalid persona selected.' });
+        }
+
+        const updateData = { updatedAt: new Date() };
+        if (dateOfBirth !== undefined) updateData.dateOfBirth = dateOfBirth || null;
+        if (persona !== undefined) updateData.persona = persona;
+
+        const [updated] = await db
+            .update(users)
+            .set(updateData)
+            .where(eq(users.email, userEmail))
+            .returning();
+
+        if (!updated) {
+            return res.status(404).json({ success: false, message: 'User not found in local database.' });
+        }
+
+        console.log(`[User] ✅ Profile updated for ${userEmail}`);
+        return res.status(200).json({ 
+            success: true, 
+            message: 'Profile updated successfully.',
+            user: updated
+        });
+
+    } catch (error) {
+        console.error('[User] ❌ Profile update error:', error.message);
+        return res.status(500).json({ success: false, message: 'Failed to update profile.' });
+    }
+};
+
+module.exports = { saveToCollection, getCollection, updateProfile };

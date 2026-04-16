@@ -593,6 +593,15 @@ export default function CatalogPage() {
                         >
                             Privacy Policy
                         </Link>
+                        <span className="text-stone-300 text-[10px] select-none">|</span>
+                        <Link
+                            to="/faq"
+                            className="text-[10px] text-stone-400 hover:text-stone-900 transition-colors
+                                       uppercase tracking-widest font-medium
+                                       border-b border-transparent hover:border-stone-400"
+                        >
+                            FAQ
+                        </Link>
                     </div>
                 </div>
             </main>

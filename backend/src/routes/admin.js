@@ -20,10 +20,13 @@ const {
     getFeedbackStats,
     getAllFeedback,
     resolveFeedback,
+    getReviewsStats,
     getReviewsSummary,
     getProductReviews,
-    getReviewsStats,
     addProduct,
+    getRetentionStats,
+    getLaunchStats,
+    getAudienceStats,
 } = require('../controllers/adminController');
 
 // ---------------------------------------------------------------------------
@@ -62,6 +65,9 @@ router.get('/stats', getDashboardStats);
 router.get('/sales-by-brand', getSalesByBrand);
 router.get('/inventory-alerts', getLowStockAlerts);
 router.get('/feedback-stats', getFeedbackStats);
+router.get('/retention-stats', getRetentionStats);
+router.get('/launch-stats', getLaunchStats);
+router.get('/audience-stats', getAudienceStats);
 
 // Feedback management
 router.get('/feedback', getAllFeedback);

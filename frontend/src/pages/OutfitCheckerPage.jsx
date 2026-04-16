@@ -1,12 +1,10 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { Upload, X, Sparkles, RefreshCw } from 'lucide-react';
+import { ScanSearch, X, Sparkles, RefreshCcw, Loader2, Camera, User } from 'lucide-react';
 import api from '../services/api';
-import { formatPrice } from '../utils/currency';
 import imageCompression from 'browser-image-compression';
 import ReactMarkdown from 'react-markdown';
 
-
-// ── Main Component ────────────────────────────────────────────────────────────
+// ── Main Page Component ──────────────────────────────────────────────────────
 export default function OutfitCheckerPage() {
     const [dragOver, setDragOver] = useState(false);
     const [imageFile, setImageFile] = useState(null);
@@ -46,8 +44,8 @@ export default function OutfitCheckerPage() {
         setResult(null);
 
         const options = {
-            maxSizeMB: 1,          // NVIDIA prefers images under 2MB
-            maxWidthOrHeight: 1920, // Downscale massive photos
+            maxSizeMB: 1,          // Optimizing for AI throughput
+            maxWidthOrHeight: 1920, 
             useWebWorker: true,
         };
 
@@ -56,7 +54,7 @@ export default function OutfitCheckerPage() {
             compressedFile = await imageCompression(imageFile, options);
         } catch (error) {
             console.error("Compression error:", error);
-            setError("Failed to compress image before analyzing.");
+            setError("Failed to process image for analytics.");
             setLoading(false);
             return; 
         }
@@ -77,17 +75,13 @@ export default function OutfitCheckerPage() {
                         setError(res.data.message || 'Analysis failed. Please try again.');
                     }
                 } catch (err) {
-                    setError(err.response?.data?.message || 'Analysis failed. Please try again.');
+                    setError(err.response?.data?.message || 'Server-side analysis error.');
                 } finally {
                     setLoading(false);
                 }
             };
-            reader.onerror = () => {
-                setError('Failed to read image file.');
-                setLoading(false);
-            };
         } catch (err) {
-            setError('Analysis failed. Please try again.');
+            setError('Failed to initiate analysis sequence.');
             setLoading(false);
         }
     };
@@ -100,165 +94,205 @@ export default function OutfitCheckerPage() {
         if (fileInputRef.current) fileInputRef.current.value = '';
     };
 
-    const { analysis, matchedProducts } = result || {};
-
     return (
-        <div className="min-h-screen bg-[#F5F5DC]">
-            {/* ── Page Header ── */}
-            <div className="bg-gray-900 text-white py-16 px-4">
-                <div className="max-w-4xl mx-auto text-center">
-                    <div className="inline-flex items-center gap-2 bg-[#800000]/20 border border-[#800000]/40 rounded-full px-4 py-1.5 mb-6">
-                        <Sparkles className="w-4 h-4 text-[#ff6b6b]" />
-                        <span className="text-xs font-black uppercase tracking-widest text-[#ff6b6b]">
-                            Powered by NVIDIA AI
-                        </span>
-                    </div>
-                    <h1 className="text-5xl md:text-7xl font-black uppercase tracking-tight mb-4 leading-none">
-                        Outfit <span className="text-[#800000]">Checker</span>
+        <div className="min-h-screen bg-[#F7F5F0] pt-24 pb-32 px-6">
+            <div className="max-w-4xl mx-auto bg-white border border-stone-200 shadow-none p-12 rounded-sm relative overflow-hidden">
+                
+                {/* ── Background Branding Accent ── */}
+                <div className="absolute top-0 right-0 w-32 h-32 bg-stone-50/50 pointer-events-none -mr-16 -mt-16 rounded-full blur-3xl" />
+
+                <header className="mb-12 border-b border-stone-50 pb-8">
+                    <p className="text-[10px] font-bold tracking-[0.25em] text-stone-400 mb-2 uppercase">The Data Intake Portal</p>
+                    <h1 className="text-4xl font-black tracking-tighter text-stone-900 leading-[0.9] uppercase">
+                        Submit Your Fit<br />
+                        <span className="text-stone-300">For AI Analysis</span>
                     </h1>
-                    <p className="text-gray-400 text-lg max-w-xl mx-auto">
-                        Upload your photo. Get instant AI-powered style feedback, a fit rating, and hand-picked shoe recommendations.
-                    </p>
-                </div>
-            </div>
+                </header>
 
-            <div className="max-w-5xl mx-auto px-4 py-12 space-y-10">
-
-                {/* ── Upload Zone ── */}
-                {!result && (
-                    <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
-                        <div className="p-8">
-                            <h2 className="text-xl font-black uppercase tracking-widest text-gray-900 mb-6">
-                                Step 1 — Upload your photo
-                            </h2>
-
-                            {/* Drop area */}
-                            <div
-                                onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-                                onDragLeave={() => setDragOver(false)}
-                                onDrop={handleDrop}
-                                onClick={() => !imagePreview && fileInputRef.current?.click()}
-                                className={`relative border-2 border-dashed rounded-2xl transition-all cursor-pointer
-                                    ${dragOver ? 'border-[#800000] bg-red-50' : 'border-gray-200 hover:border-[#800000]/60 hover:bg-gray-50'}
-                                    ${imagePreview ? 'cursor-default' : ''}`}
-                                style={{ minHeight: 320 }}
-                            >
-                                {imagePreview ? (
-                                    <div className="relative flex items-center justify-center p-4">
-                                        <img
-                                            src={imagePreview}
-                                            alt="Outfit preview"
-                                            className="max-h-80 max-w-full object-contain rounded-xl shadow-md"
-                                        />
-                                        <button
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-12">
+                    {/* ── Upload Area / Preview ── */}
+                    <div className="md:col-span-12 lg:col-span-6 space-y-6">
+                        <div 
+                            onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                            onDragLeave={() => setDragOver(false)}
+                            onDrop={handleDrop}
+                            onClick={() => !imagePreview && fileInputRef.current?.click()}
+                            className={`
+                                relative aspect-[3/4] bg-stone-50 border-2 border-dashed transition-all duration-500
+                                flex flex-col items-center justify-center p-4 overflow-hidden
+                                ${dragOver ? 'border-[#800000] bg-stone-100/50' : 'border-stone-200'}
+                                ${!imagePreview ? 'cursor-pointer hover:border-stone-400' : ''}
+                            `}
+                        >
+                            {imagePreview ? (
+                                <>
+                                    <img 
+                                        src={imagePreview} 
+                                        alt="Preview" 
+                                        className="w-full h-full object-contain mix-blend-multiply opacity-0 animate-fade-in"
+                                        style={{ animationFillMode: 'forwards' }}
+                                        onLoad={(e) => e.target.classList.remove('opacity-0')}
+                                    />
+                                    {!loading && !result && (
+                                        <button 
                                             onClick={(e) => { e.stopPropagation(); handleReset(); }}
-                                            className="absolute top-4 right-4 w-9 h-9 bg-gray-900/70 backdrop-blur-sm hover:bg-gray-900 text-white rounded-full flex items-center justify-center transition-colors"
+                                            className="absolute top-4 right-4 bg-white/80 backdrop-blur-md p-2 hover:bg-stone-900 hover:text-white transition-all border border-stone-100"
                                         >
-                                            <X className="w-4 h-4" />
+                                            <X size={14} />
                                         </button>
+                                    )}
+                                </>
+                            ) : (
+                                <div className="text-center space-y-4">
+                                    <div className="w-16 h-16 border border-stone-200 rounded-full flex items-center justify-center mx-auto bg-white mb-2">
+                                        <ScanSearch className="w-6 h-6 text-stone-300" />
                                     </div>
-                                ) : (
-                                    <div className="flex flex-col items-center justify-center gap-4 py-16 px-8 text-center">
-                                        <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center">
-                                            <Upload className="w-8 h-8 text-gray-400" />
-                                        </div>
-                                        <div>
-                                            <p className="text-lg font-bold text-gray-800 mb-1">
-                                                {dragOver ? 'Drop it here!' : 'Drag & drop your outfit photo'}
-                                            </p>
-                                            <p className="text-sm text-gray-400">
-                                                or <span className="text-[#800000] font-bold underline">browse to upload</span>
-                                            </p>
-                                            <p className="text-xs text-gray-300 mt-2">JPEG, PNG, WEBP — max 50 MB</p>
-                                        </div>
+                                    <div>
+                                        <p className="text-[10px] font-bold tracking-widest text-stone-400 uppercase">Awaiting Digital Input</p>
+                                        <p className="text-xs text-stone-300 mt-1 italic">Drag & drop portrait or select below</p>
                                     </div>
+                                </div>
+                            )}
+
+                            {/* Scanning Animation for Loading */}
+                            {loading && (
+                                <div className="absolute inset-0 pointer-events-none overflow-hidden z-20">
+                                    <div className="w-full h-1 bg-[#800000] absolute animate-scan-y shadow-[0_0_20px_#800000]" />
+                                    <div className="absolute inset-0 bg-stone-900/5 backdrop-blur-[1px]" />
+                                </div>
+                            )}
+                        </div>
+
+                        {!result && !loading && (
+                            <div className="flex flex-col gap-3">
+                                <button 
+                                    onClick={() => fileInputRef.current?.click()}
+                                    className="w-full py-4 bg-stone-900 text-white text-[10px] uppercase font-black tracking-[0.25em] hover:bg-stone-800 transition-all border border-transparent shadow-md active:scale-[0.98]"
+                                >
+                                    {imagePreview ? 'Change Portrait' : 'Select Portrait'}
+                                </button>
+                                {imagePreview && (
+                                    <button 
+                                        onClick={handleAnalyze}
+                                        className="w-full py-4 bg-white text-stone-900 text-[10px] uppercase font-black tracking-[0.25em] hover:bg-stone-50 transition-all border border-stone-900 flex items-center justify-center gap-2"
+                                    >
+                                        <Sparkles size={14} className="text-[#800000]" />
+                                        Initialize Scan
+                                    </button>
                                 )}
                             </div>
+                        )}
 
-                            <input
-                                type="file"
-                                ref={fileInputRef}
-                                accept="image/jpeg,image/png,image/webp,image/gif"
-                                className="hidden"
-                                onChange={(e) => handleFile(e.target.files?.[0])}
-                            />
-
-                            {error && (
-                                <div className="mt-4 bg-red-50 border border-red-100 rounded-xl px-4 py-3 text-sm text-red-700 font-medium flex items-center gap-2">
-                                    <X className="w-4 h-4 flex-shrink-0" />
-                                    {error}
-                                </div>
-                            )}
-
-                            {imagePreview && !loading && (
-                                <button
-                                    onClick={handleAnalyze}
-                                    className="mt-6 w-full py-4 bg-[#800000] hover:bg-[#600000] text-white font-black text-lg uppercase tracking-widest rounded-2xl transition-all shadow-lg hover:shadow-xl active:scale-[0.98] flex items-center justify-center gap-3"
-                                >
-                                    <Sparkles className="w-5 h-5" />
-                                    Analyze My Outfit
-                                </button>
-                            )}
-                        </div>
-                    </div>
-                )}
-
-                {/* ── Loading state ── */}
-                {loading && (
-                    <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-16 flex flex-col items-center gap-6">
-                        <div className="relative">
-                            <div className="w-20 h-20 rounded-full border-4 border-gray-100 border-t-[#800000] animate-spin" />
-                            <Sparkles className="w-8 h-8 text-[#800000] absolute inset-0 m-auto" />
-                        </div>
-                        <div className="text-center">
-                            <p className="text-xl font-black text-gray-900 uppercase tracking-widest">Analyzing your outfit…</p>
-                            <p className="text-gray-400 text-sm mt-2">NVIDIA AI is checking your style, colors, and fit</p>
-                        </div>
-                    </div>
-                )}
-
-                {/* ── Results ── */}
-                {result && analysis && (
-                    <div className="space-y-6">
-                        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8 flex flex-col md:flex-row gap-8 items-start">
-                            <div className="w-full md:w-1/3 flex justify-center">
-                                <img
-                                    src={imagePreview}
-                                    alt="Analyzed outfit"
-                                    className="max-h-72 object-contain rounded-xl shadow"
-                                />
-                            </div>
-                            <div className="w-full md:w-2/3">
-                                <div className="inline-flex items-center gap-2 bg-[#800000]/20 border border-[#800000]/40 rounded-full px-3 py-1 mb-4">
-                                    <Sparkles className="w-3 h-3 text-[#ff6b6b]" />
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-[#ff6b6b]">AI Analysis</span>
-                                </div>
-                                <h3 className="text-xl font-black uppercase tracking-widest text-gray-900 mb-4">Style Verdict</h3>
-                                <ReactMarkdown
-                                    components={{
-                                        p: ({node, ...props}) => <p className="text-gray-700 leading-relaxed mb-4" {...props} />,
-                                        ul: ({node, ...props}) => <ul className="space-y-4" {...props} />,
-                                        li: ({node, ...props}) => <li className="flex items-start" {...props} />,
-                                        strong: ({node, ...props}) => <strong className="font-bold text-[#800000] tracking-wide" {...props} />
-                                    }}
-                                >
-                                    {analysis}
-                                </ReactMarkdown>
-                            </div>
-                        </div>
-
-                        {/* ── Try Again ── */}
-                        <div className="text-center">
-                            <button
+                        {result && (
+                            <button 
                                 onClick={handleReset}
-                                className="inline-flex items-center gap-2 px-8 py-3 bg-gray-900 hover:bg-gray-800 text-white font-black rounded-2xl transition-all uppercase tracking-widest shadow"
+                                className="text-[10px] font-bold tracking-widest text-stone-400 hover:text-stone-900 uppercase border-b border-stone-200 transition-all flex items-center gap-2 group"
                             >
-                                <RefreshCw className="w-4 h-4" />
-                                Check Another Outfit
+                                <RefreshCcw size={12} className="group-hover:rotate-180 transition-transform duration-500" />
+                                Initiate Re-Scan
                             </button>
-                        </div>
+                        )}
                     </div>
-                )}
+
+                    {/* ── Side Interface: Logic & Result ── */}
+                    <div className="md:col-span-12 lg:col-span-6">
+                        {error && (
+                            <div className="p-6 border border-red-50 bg-red-50/30 text-red-800 text-xs font-medium space-y-2 mb-6">
+                                <div className="flex items-center gap-2">
+                                    <X className="w-4 h-4" />
+                                    <p className="uppercase tracking-widest font-black">Input Error</p>
+                                </div>
+                                <p className="opacity-70 leading-relaxed">{error}</p>
+                            </div>
+                        )}
+
+                        {!result && !loading && (
+                            <div className="p-8 border border-stone-50 bg-stone-50/20 space-y-6">
+                                <div>
+                                    <h3 className="text-[10px] font-black tracking-[0.2em] text-stone-900 uppercase mb-3">Analysis Parameters</h3>
+                                    <ul className="space-y-4">
+                                        {[
+                                            { icon: <User size={14}/>, t: "Fit Correlation", d: "Evaluating silhouette harmony" },
+                                            { icon: <Camera size={14}/>, t: "Color Balance", d: "Checking palette temperature" },
+                                            { icon: <Sparkles size={14}/>, t: "Contextual Rating", d: "Rating based on current archival trends" }
+                                        ].map((item, idx) => (
+                                            <li key={idx} className="flex gap-4">
+                                                <div className="w-8 h-8 rounded-full border border-stone-100 flex items-center justify-center bg-white text-stone-400 shadow-sm">
+                                                    {item.icon}
+                                                </div>
+                                                <div>
+                                                    <p className="text-xs font-bold text-stone-900 uppercase">{item.t}</p>
+                                                    <p className="text-[10px] text-stone-400 font-medium italic">{item.d}</p>
+                                                </div>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                                <div className="pt-6 border-t border-stone-100">
+                                    <p className="text-[10px] text-stone-400 leading-relaxed">
+                                        * Uploaded images are processed via NVIDIA style-engines. By submitting, you acknowledge that your outfit will be reduced to data points for aesthetic optimization.
+                                    </p>
+                                </div>
+                            </div>
+                        )}
+
+                        {loading && (
+                            <div className="h-full flex flex-col items-center justify-center text-center p-8">
+                                <Loader2 className="w-10 h-10 text-stone-200 animate-spin mb-4" />
+                                <p className="text-[10px] font-black tracking-[0.3em] text-stone-400 uppercase animate-pulse">Processing Digital Double</p>
+                                <p className="text-xs text-stone-300 mt-2 font-medium italic">Deconstructing silhouette and palette...</p>
+                            </div>
+                        )}
+
+                        {result && result.analysis && (
+                            <div className="h-full animate-fade-in space-y-8">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-full bg-[#800000] flex items-center justify-center shadow-lg shadow-[#800000]/20">
+                                        <Sparkles className="w-4 h-4 text-white" />
+                                    </div>
+                                    <h3 className="text-xs font-black tracking-[0.2em] text-stone-900 uppercase">Analysis Results</h3>
+                                </div>
+
+                                <div className="prose prose-stone max-w-none">
+                                    <ReactMarkdown
+                                        components={{
+                                            p: ({node, ...props}) => <p className="text-[13px] text-stone-600 leading-relaxed mb-4 font-medium" {...props} />,
+                                            ul: ({node, ...props}) => <ul className="space-y-4 border-l-2 border-stone-50 pl-4 mb-6" {...props} />,
+                                            li: ({node, ...props}) => (
+                                                <li className="text-[11px] text-stone-500 font-bold uppercase tracking-wide leading-snug flex items-start" {...props}>
+                                                    <span className="w-1.5 h-1.5 bg-stone-900 rounded-full mr-2 mt-1.5 flex-shrink-0" />
+                                                    {props.children}
+                                                </li>
+                                            ),
+                                            strong: ({node, ...props}) => <strong className="text-stone-900 font-black border-b border-[#800000]/30" {...props} />,
+                                            h2: ({node, ...props}) => <h2 className="text-xs font-black tracking-[0.2em] text-[#800000] uppercase mb-4 mt-8" {...props} />,
+                                            h3: ({node, ...props}) => <h3 className="text-[11px] font-black tracking-widest text-stone-400 uppercase mb-2 mt-6" {...props} />
+                                        }}
+                                    >
+                                        {result.analysis}
+                                    </ReactMarkdown>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                <input
+                    type="file"
+                    ref={fileInputRef}
+                    accept="image/jpeg,image/png,image/webp,image/gif"
+                    className="hidden"
+                    onChange={(e) => handleFile(e.target.files?.[0])}
+                />
+            </div>
+
+            {/* Pagination / Context indicator */}
+            <div className="max-w-4xl mx-auto flex justify-between items-center mt-8 px-2">
+                <span className="text-[9px] font-bold text-stone-400 tracking-[0.25em] uppercase">Archive Portal // AI_CHECK_v2.0</span>
+                <div className="flex gap-2">
+                    <div className="w-10 h-[1px] bg-stone-900" />
+                    <div className="w-10 h-[1px] bg-stone-200" />
+                </div>
             </div>
         </div>
     );

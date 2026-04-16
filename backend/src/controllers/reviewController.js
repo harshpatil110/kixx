@@ -1,5 +1,5 @@
 const { db } = require('../db/index');
-const { productReviews } = require('../db/schema');
+const { productReviews, pastOrders } = require('../db/schema');
 const { eq, and } = require('drizzle-orm');
 
 // ── Valid rating range ────────────────────────────────────────────────────────
@@ -32,6 +32,31 @@ const submitReview = async (req, res) => {
         }
         if (comment && comment.length > 1000) {
             return res.status(400).json({ success: false, message: 'Review comment must be under 1000 characters.' });
+        }
+
+        // ── Order Integrity & Delivery Check ────────────────────────────────
+        const [order] = await db
+            .select({ status: pastOrders.status, email: pastOrders.email })
+            .from(pastOrders)
+            .where(eq(pastOrders.id, orderId.trim()))
+            .limit(1);
+
+        if (!order) {
+            return res.status(404).json({ success: false, message: 'Order reference not found.' });
+        }
+
+        // Verify ownership (using email from JWT sinceuserId in collection is Firebase UID)
+        // Actually, verifyToken sets req.user which has email.
+        if (order.email !== req.user.email) {
+            return res.status(403).json({ success: false, message: 'Forbidden: You do not own this order.' });
+        }
+
+        // enforce DELIVERED-only reviews
+        if (order.status.toUpperCase() !== 'DELIVERED') {
+            return res.status(403).json({ 
+                success: false, 
+                message: 'Reviews can only be submitted for delivered artifacts.' 
+            });
         }
 
         // ── Duplicate check — one review per (userId + productId + orderId) ─
