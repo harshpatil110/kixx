@@ -377,6 +377,7 @@ export default function LandingPage() {
                                 { label: 'Catalog', to: '/login' },
                                 { label: 'Register', to: '/register' },
                                 { label: 'Login', to: '/login' },
+                                { label: 'FAQ', to: '/faq' },
                             ].map(({ label, to }) => (
                                 <Link
                                     key={label}

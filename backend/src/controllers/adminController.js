@@ -34,15 +34,91 @@ const getDashboardStats = async (req, res) => {
             .from(users)
             .where(eq(users.role, 'customer'));
 
+        // Query 4: Featured Products
+        const [featuredResult] = await db
+            .select({ count: count() })
+            .from(products)
+            .where(eq(products.isFeatured, true));
+
+        // Query 5: Total Products
+        const [totalProductsResult] = await db
+            .select({ count: count() })
+            .from(products);
+
         return res.status(200).json({
             success: true,
             revenue: parseInt(revenueResult.total, 10),
             totalOrders: parseInt(ordersResult.count, 10),
             totalCustomers: parseInt(customersResult.count, 10),
+            featuredCount: parseInt(featuredResult.count, 10),
+            totalProducts: parseInt(totalProductsResult.count, 10),
         });
     } catch (error) {
         console.error('[Admin] ❌ Stats Endpoint Error:', error.message);
         return res.status(500).json({ success: false, message: 'Failed to fetch dashboard stats.' });
+    }
+};
+
+/**
+ * Aggregates launch-specific metrics for the command center.
+ */
+const getLaunchStats = async (req, res) => {
+    try {
+        // 1. Early Adopter Count
+        const [eaResult] = await db.select({ count: count() }).from(users).where(eq(users.isEarlyAdopter, true));
+        
+        // 2. Newsletter Conversion
+        const [totalUsersResult] = await db.select({ count: count() }).from(users);
+        const [newsletterResult] = await db.select({ count: count() }).from(users).where(eq(users.wantsNewsletter, true));
+        
+        const totalUsers = parseInt(totalUsersResult.count, 10);
+        const newsletterSubs = parseInt(newsletterResult.count, 10);
+        const conversionRate = totalUsers > 0 ? Math.round((newsletterSubs / totalUsers) * 100) : 0;
+
+        // 3. Goodie Distribution
+        const goodieDist = await db.select({ 
+            goodie: users.assignedGoodie, 
+            count: count() 
+        }).from(users).groupBy(users.assignedGoodie);
+
+        // 4. Promo Performance (FIRSTDROP)
+        const [promoResult] = await db.select({ count: count() }).from(pastOrders).where(eq(pastOrders.promoCodeUsed, 'FIRSTDROP'));
+
+        return res.status(200).json({
+            success: true,
+            earlyAdopterCount: parseInt(eaResult.count, 10),
+            conversionRate,
+            goodieDistribution: goodieDist,
+            promoUsage: parseInt(promoResult.count, 10)
+        });
+    } catch (error) {
+        console.error('[Admin] ❌ Launch Stats Error:', error.message);
+        return res.status(500).json({ success: false, message: 'Internal Server Error' });
+    }
+};
+
+/**
+ * GET /api/admin/audience-stats
+ * Aggregates user counts by Persona for segmentation analysis.
+ */
+const getAudienceStats = async (req, res) => {
+    try {
+        const distribution = await db
+            .select({ 
+                persona: users.persona, 
+                count: count() 
+            })
+            .from(users)
+            .where(eq(users.role, 'customer'))
+            .groupBy(users.persona);
+
+        return res.status(200).json({
+            success: true,
+            data: distribution
+        });
+    } catch (error) {
+        console.error('[Admin] ❌ Audience Stats Error:', error.message);
+        return res.status(500).json({ success: false, message: 'Failed to fetch audience segmentation.' });
     }
 };
 
@@ -613,7 +689,7 @@ const getReviewsStats = async (req, res) => {
  */
 const addProduct = async (req, res) => {
     try {
-        const { name, brand, category, description, basePrice, stock } = req.body;
+        const { name, brand, category, description, basePrice, stock, isFeatured } = req.body;
 
         if (!name || !brand || !basePrice) {
             return res.status(400).json({ success: false, message: 'Name, brand, and base price are required.' });
@@ -645,6 +721,7 @@ const addProduct = async (req, res) => {
             description: description || null,
             basePrice: parseFloat(basePrice),
             stock: parseInt(stock || 0, 10),
+            isFeatured: isFeatured === 'true' || isFeatured === true,
             imageUrl,
             isNew: true, // Defaulting manual intake to "New"
         }).returning();
@@ -654,6 +731,67 @@ const addProduct = async (req, res) => {
     } catch (error) {
         console.error('[Admin] ❌ Add Product Error:', error.message);
         return res.status(500).json({ success: false, message: 'Failed to add product. Check server logs.' });
+    }
+};
+
+/**
+ * GET /api/admin/retention-stats
+ * Aggregates user activity health and birthday distribution for the dashboard.
+ */
+const getRetentionStats = async (req, res) => {
+    try {
+        // ── 1. Birthday Distribution (Birthdays per month) ───────────────────
+        // Extract month index (1-12) from date_of_birth and group counts.
+        const birthdayResult = await db.execute(sql`
+            SELECT 
+                EXTRACT(MONTH FROM date_of_birth) AS month,
+                COUNT(*)::integer AS count
+            FROM users
+            WHERE date_of_birth IS NOT NULL
+            GROUP BY month
+            ORDER BY month ASC
+        `);
+
+        // Format into a 12-month array for the chart
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const birthdayDistribution = months.map((m, i) => {
+            const row = (birthdayResult.rows ?? birthdayResult).find(r => parseInt(r.month) === i + 1);
+            return { month: m, count: row ? parseInt(row.count) : 0 };
+        });
+
+        // ── 2. Activity Health (Win-back categorisation) ────────────────────
+        // Active: <= 30 days
+        // Slipping: 31-60 days
+        // Inactive: > 60 days
+        const activityResult = await db.execute(sql`
+            SELECT
+                CASE 
+                    WHEN last_active_at >= NOW() - INTERVAL '30 days' THEN 'Active'
+                    WHEN last_active_at >= NOW() - INTERVAL '60 days' THEN 'Slipping Away'
+                    ELSE 'Inactive / Win-back Target'
+                END AS status,
+                COUNT(*)::integer AS count
+            FROM users
+            WHERE role = 'customer'
+            GROUP BY status
+        `);
+
+        const activityHealth = (activityResult.rows ?? activityResult).map(r => ({
+            name: r.status,
+            value: parseInt(r.count, 10)
+        }));
+
+        console.log('[Admin] ✅ Retention stats fetched');
+
+        return res.status(200).json({
+            success: true,
+            birthdayDistribution,
+            activityHealth
+        });
+
+    } catch (error) {
+        console.error('[Admin] ❌ Retention Stats Error:', error.message);
+        return res.status(500).json({ success: false, message: 'Failed to fetch retention stats.' });
     }
 };
 
@@ -675,4 +813,7 @@ module.exports = {
     getProductReviews,
     getReviewsStats,
     addProduct,
+    getRetentionStats,
+    getLaunchStats,
+    getAudienceStats,
 };

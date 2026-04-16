@@ -15,15 +15,31 @@ export default function RegisterPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
+    const [wantsNewsletter, setWantsNewsletter] = useState(false);
+    const [userCount, setUserCount] = useState(null);
     const [errorMsg, setErrorMsg] = useState(null);
     const [isFirebaseLoading, setIsFirebaseLoading] = useState(false);
 
     const navigate = useNavigate();
     const setAuth = useAuthStore((state) => state.setAuth);
 
+    // Fetch user count for early adopter badge
+    React.useEffect(() => {
+        const fetchCount = async () => {
+            try {
+                const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/user/count`);
+                const data = await res.json();
+                setUserCount(data.count);
+            } catch (err) {
+                console.error('Failed to fetch user count');
+            }
+        };
+        fetchCount();
+    }, []);
+
     // Mutation to sync user with backend
     const syncMutation = useMutation({
-        mutationFn: syncUserWithBackend,
+        mutationFn: (data) => syncUserWithBackend(data),
         onSuccess: (data) => {
             // Assuming backend returns { user: { ...dbUser } }
             setAuth(auth.currentUser, data.user);
@@ -49,14 +65,14 @@ export default function RegisterPage() {
             await updateProfile(userCredential.user, { displayName: name });
 
             // 3. Trigger backend sync mutation
-            syncMutation.mutate();
+            syncMutation.mutate({ wantsNewsletter });
         } catch (error) {
             console.error('Registration error:', error);
             setIsFirebaseLoading(false);
 
             switch (error.code) {
                 case 'auth/email-already-in-use':
-                    setErrorMsg('An account with this email address already exists.');
+                    setErrorMsg('This email is already registered with the KIXX Archive.');
                     break;
                 case 'auth/invalid-email':
                     setErrorMsg('Please enter a valid email address.');
@@ -78,6 +94,16 @@ export default function RegisterPage() {
                 <div className="text-center mb-8">
                     <h2 className="text-3xl font-bold text-gray-900 mb-2">Create Account</h2>
                     <p className="text-gray-600">Join KIXX and step up your shoe game</p>
+                    
+                    {userCount !== null && userCount < 500 && (
+                        <div className="mt-4 inline-flex items-center gap-2 px-3 py-1 bg-stone-900 text-white rounded-full">
+                            <span className="relative flex h-2 w-2">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#800000] opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#800000]"></span>
+                            </span>
+                            <p className="text-[10px] font-black uppercase tracking-widest">Founding Member Goodie Pack Eligible</p>
+                        </div>
+                    )}
                 </div>
 
                 {errorMsg && (
@@ -155,6 +181,16 @@ export default function RegisterPage() {
                                     <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600" />
                                 )}
                             </button>
+                        </div>
+                    </div>
+
+                    <div className="flex items-start gap-3 select-none cursor-pointer group" onClick={() => setWantsNewsletter(!wantsNewsletter)}>
+                        <div className={`mt-0.5 h-4 w-4 shrink-0 border border-stone-300 transition-colors flex items-center justify-center ${wantsNewsletter ? 'bg-stone-900 border-stone-900' : 'bg-gray-50'}`}>
+                            {wantsNewsletter && <div className="h-1.5 w-1.5 bg-white rounded-full" />}
+                        </div>
+                        <div>
+                            <p className="text-[11px] font-black uppercase tracking-widest text-stone-900 leading-tight">Send me weekly drop alerts & sneaker news</p>
+                            <p className="text-[10px] text-stone-400 font-medium mt-0.5">Stay ahead of the hype with curated KIXX editorials.</p>
                         </div>
                     </div>
 

@@ -6,6 +6,7 @@ import { auth } from './config/firebase';
 import useAuthStore from './store/authStore';
 
 import Navbar from './components/Navbar';
+import Footer from './components/Footer';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminRoute from './components/AdminRoute';
 import {
@@ -58,23 +59,10 @@ const ReviewsManagementPage = lazy(() => import('./pages/admin/ReviewsManagement
 // ── Features ──
 const OutfitCheckerPage = lazy(() => import('./pages/OutfitCheckerPage'));
 const Archive3DPage = lazy(() => import('./pages/Archive3DPage'));
-// ---------------------------------------------------------------------------
-// Layout component — wraps all routes that need the Navbar
-// ---------------------------------------------------------------------------
-function NavbarLayout() {
-  const location = useLocation();
-  const noNavRoutes = ['/login', '/signup', '/register', '/forgot-password'];
-  const hideNav = noNavRoutes.includes(location.pathname);
+const FaqPage = lazy(() => import('./pages/FaqPage'));
 
-  return (
-    <div className="flex flex-col min-h-screen bg-[#F5F5DC]">
-      {!hideNav && <Navbar />}
-      <main className="flex-grow">
-        <Outlet />
-      </main>
-    </div>
-  );
-}
+// ── Components ──
+import ChatbotWidget from './components/ChatbotWidget';
 
 // ---------------------------------------------------------------------------
 // 404 fallback
@@ -136,7 +124,11 @@ export default function App() {
   return (
     <BrowserRouter>
       <Toaster position="bottom-right" />
-      <Routes>
+      <ChatbotWidget />
+      <div className="flex flex-col min-h-screen">
+        <Navbar />
+        <main className="flex-grow">
+          <Routes>
 
         {/* ── Landing page — full-screen, NO Navbar ─────────────── */}
         <Route
@@ -231,8 +223,7 @@ export default function App() {
           />
         </Route>
 
-        {/* ── All pages that share the Navbar layout ─────────────── */}
-        <Route element={<NavbarLayout />}>
+        {/* ── Public & Protected Site Pages ─────────────── */}
 
           {/* Public */}
           <Route
@@ -299,6 +290,14 @@ export default function App() {
               </Suspense>
             }
           />
+          <Route
+            path="/faq"
+            element={
+              <Suspense fallback={<GenericPageSkeleton />}>
+                <FaqPage />
+              </Suspense>
+            }
+          />
 
           {/* Protected — must be authenticated */}
           <Route element={<ProtectedRoute />}>
@@ -331,9 +330,11 @@ export default function App() {
 
           {/* 404 */}
           <Route path="*" element={<NotFound />} />
-        </Route>
 
-      </Routes>
+          </Routes>
+        </main>
+        <Footer />
+      </div>
     </BrowserRouter>
   );
 }

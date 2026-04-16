@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  body {
+    @apply bg-[#F7F5F0] text-stone-900 font-sans antialiased selection:bg-stone-900 selection:text-white;
+  }
+}
+
 @layer utilities {
     .liquid-glass {
         background: rgba(255, 255, 255, 0.4);
@@ -91,4 +97,25 @@
       filter: drop-shadow(0 20px 30px rgba(49, 51, 44, 0.08));
       transform: translateZ(40px);
     }
+}
+
+/* ── AI Scan Animation ─────────────────────────────────────────────────── */
+@keyframes scan-y {
+    0% { transform: translateY(0); opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { transform: translateY(400px); opacity: 0; }
+}
+
+@keyframes fade-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-scan-y {
+    animation: scan-y 3s linear infinite;
+}
+
+.animate-fade-in {
+    animation: fade-in 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { prefetchProduct } from '../config/queryClient';
 import { formatPrice } from '../utils/currency';
 import useCartStore from '../store/cartStore';
+import useAuthStore from '../store/authStore';
 import toast from 'react-hot-toast';
 
 export function buildThumbUrl(fullUrl) {
@@ -50,6 +51,26 @@ export function ProgressiveImage({
 
 export default function ProductCard({ product }) {
     const addItem = useCartStore((state) => state.addItem);
+    const { user } = useAuthStore();
+    const persona = user?.persona || 'Casual';
+
+    const getPersonaBadge = () => {
+        if (!product.tags && !product.category) return null;
+        const tags = (Array.isArray(product.tags) ? product.tags : [product.tags, product.category]).filter(Boolean).map(t => String(t).toLowerCase());
+
+        if (persona === 'Athlete' && (tags.includes('running') || tags.includes('performance') || tags.includes('basketball') || tags.includes('active'))) {
+            return { label: 'Performance Pick', color: '#1c1917' };
+        }
+        if (persona === 'Sneakerhead' && (tags.includes('limited') || tags.includes('hype') || tags.includes('archive') || tags.includes('collab'))) {
+            return { label: 'Hype Focus', color: '#800000' };
+        }
+        if (persona === 'Gifter' && (tags.includes('trend') || tags.includes('unisex') || tags.includes('classic') || tags.includes('essential'))) {
+            return { label: 'Top Gift Idea', color: '#44403c' };
+        }
+        return null;
+    };
+
+    const personaBadge = getPersonaBadge();
 
     const handleMouseEnter = useCallback(() => {
         prefetchProduct(String(product.id));
@@ -86,16 +107,26 @@ export default function ProductCard({ product }) {
     if (!product) return null;
 
     const shortId = product.id ? String(product.id).substring(0, 4).toUpperCase() : '0000';
-    const transparentImgUrl = product.imageUrl ? product.imageUrl.replace(/\.(jpg|jpeg|png)$/i, '-transparent.png') : null;
 
     return (
         <div className="group cursor-pointer">
             <Link
                 to={`/product/${product.id}`}
-                className="card-3d relative bg-transparent border border-outline-variant/20 aspect-[4/5] p-8 flex flex-col justify-between mb-6 shadow-sm w-full h-full block"
+                className={`card-3d relative bg-transparent border border-outline-variant/20 aspect-[4/5] p-8 flex flex-col justify-between mb-6 shadow-sm w-full h-full block transition-all duration-300
+                    ${product.isFeatured ? 'border-b-stone-900 group-hover:scale-[1.01]' : ''}`}
                 onMouseEnter={handleMouseEnter}
                 onFocus={handleMouseEnter}
             >
+                {product.isFeatured && (
+                    <div className="absolute top-4 left-4 bg-stone-900 text-white text-[8px] px-2 py-1 uppercase tracking-[0.2em] z-10 leading-none">
+                        Promoted
+                    </div>
+                )}
+                {personaBadge && !product.isFeatured && (
+                    <div className="absolute top-4 left-4 text-white text-[8px] px-2 py-1 uppercase tracking-[0.2em] z-10 leading-none" style={{ backgroundColor: personaBadge.color }}>
+                        {personaBadge.label}
+                    </div>
+                )}
                 <div className="flex justify-between items-start z-10 relative">
                     <span className="font-label text-[10px] tracking-tighter text-on-surface-variant">SKU: KX-{shortId}</span>
                     <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); }} className="material-symbols-outlined text-on-surface-variant hover:text-tertiary transition-colors z-20">
@@ -104,10 +135,10 @@ export default function ProductCard({ product }) {
                 </div>
                 
                 <div className="flex-grow flex items-center justify-center p-4 z-0 relative">
-                    {transparentImgUrl || product.imageUrl ? (
+                    {product.imageUrl ? (
                         <ProgressiveImage
-                            src={transparentImgUrl || product.imageUrl}
-                            fallbackSrc={product.imageUrl}
+                            src={product.imageUrl}
+                            placeholderSrc={buildThumbUrl(product.imageUrl)}
                             alt={product.name}
                             loading="lazy"
                             className="w-full object-contain image-bleed transition-transform duration-700 group-hover:scale-110"

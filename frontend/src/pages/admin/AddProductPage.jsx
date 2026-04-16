@@ -16,14 +16,14 @@ export default function AddProductPage() {
         basePrice: '',
         category: '',
         stock: '',
-        description: ''
+        description: '',
+        isFeatured: false
     });
     const [imageFile, setImageFile] = useState(null);
     const [previewUrl, setPreviewUrl] = useState(null);
 
-    const handleInputChange = (e) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
+        const { name, value, type, checked } = e.target;
+        setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
     };
 
     const handleImageChange = (e) => {
@@ -52,6 +52,7 @@ export default function AddProductPage() {
             submitData.append('category', formData.category);
             submitData.append('stock', formData.stock);
             submitData.append('description', formData.description);
+            submitData.append('isFeatured', formData.isFeatured);
             if (formData.sku) submitData.append('sku', formData.sku);
 
             if (imageFile) {
@@ -202,6 +203,27 @@ export default function AddProductPage() {
                                 </p>
                             </div>
                         </div>
+                    </div>
+
+                    <div className="space-y-4 pt-4">
+                        <label className="flex items-center gap-3 group cursor-pointer w-fit">
+                            <div className="relative flex items-center">
+                                <input 
+                                    type="checkbox"
+                                    name="isFeatured"
+                                    checked={formData.isFeatured}
+                                    onChange={handleInputChange}
+                                    className="peer h-5 w-5 cursor-pointer appearance-none border border-stone-200 bg-stone-50 rounded-none checked:bg-stone-900 checked:border-stone-900 transition-all"
+                                />
+                                <div className="absolute text-white transition-opacity opacity-0 pointer-events-none peer-checked:opacity-100 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor" stroke="currentColor" strokeWidth="1"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path></svg>
+                                </div>
+                            </div>
+                            <div className="select-none">
+                                <p className="text-[11px] font-black uppercase tracking-[0.1em] text-stone-900">Promoted Listing</p>
+                                <p className="text-[10px] text-stone-400 font-bold uppercase tracking-widest mt-0.5">Feature this product at the top of the catalog?</p>
+                            </div>
+                        </label>
                     </div>
 
                     <hr className="border-stone-100" />

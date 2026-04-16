@@ -20,6 +20,9 @@ import api from '../../services/api';
 import CollectionAnalytics from '../../components/admin/CollectionAnalytics';
 import FeedbackAnalytics from '../../components/admin/FeedbackAnalytics';
 import ReviewAnalytics from '../../components/admin/ReviewAnalytics';
+import RetentionAnalytics from '../../components/admin/RetentionAnalytics';
+import LaunchAnalytics from '../../components/admin/LaunchAnalytics';
+import PersonaAnalytics from '../../components/admin/PersonaAnalytics';
 
 // ── Brand Donut Colors ──────────────────────────────────────────────────────
 const BRAND_COLORS = [
@@ -195,6 +198,12 @@ export default function DashboardPage() {
         </p>
       </div>
 
+      {/* ── Launch Strategy Command Center ────────────────────────────── */}
+      <LaunchAnalytics />
+
+      {/* ── Audience Segmentation Analysis ─────────────────────────────── */}
+      <PersonaAnalytics />
+
       {/* ── KPI Cards ──────────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <KPICard
@@ -228,6 +237,12 @@ export default function DashboardPage() {
 
       {/* ── Customer Sentiment & Review Analysis ─────────────────── */}
       <ReviewAnalytics />
+
+      {/* ── User Retention & Campaign Data ────────────────────────── */}
+      <div className="bg-white rounded-2xl p-8 shadow-[0_1px_3px_rgba(0,0,0,0.04)] border border-gray-100">
+        <h2 className="text-xl font-black text-stone-900 uppercase tracking-tight mb-6">User Retention & Campaign Data</h2>
+        <RetentionAnalytics />
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         {/* Donut Chart */}

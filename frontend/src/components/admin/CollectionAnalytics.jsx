@@ -6,6 +6,9 @@ import {
   XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer,
 } from 'recharts';
+import api from '../../services/api';
+import { useQuery } from '@tanstack/react-query';
+import { Loader2, Zap } from 'lucide-react';
 
 // ─── Palette ──────────────────────────────────────────────────────────────────
 const P = {
@@ -98,8 +101,40 @@ function DonutCenterLabel({ cx, cy }) {
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 export default function CollectionAnalytics() {
+  const { data: stats, isLoading } = useQuery({
+    queryKey: ['dashboardStats'],
+    queryFn: async () => {
+      const res = await api.get('/api/admin/stats');
+      return res.data;
+    }
+  });
+
+  const featuredPct = stats?.totalProducts > 0 
+    ? Math.round((stats.featuredCount / stats.totalProducts) * 100) 
+    : 0;
+
   return (
     <section className="space-y-3">
+
+      {/* Promotion saturation check */}
+      <div className="bg-stone-50 border border-stone-200 p-4 mb-4 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 bg-stone-900 flex items-center justify-center">
+            <Zap className="w-4 h-4 text-white" />
+          </div>
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-widest text-stone-900">Promotion Visibility Monitor</p>
+            <p className="text-[9px] font-bold uppercase tracking-widest text-stone-400">Inventory saturation check</p>
+          </div>
+        </div>
+        <div className="flex items-end flex-col">
+          <p className="text-xl font-black text-stone-900 tracking-tighter leading-none">{featuredPct}%</p>
+          <p className="text-[9px] font-bold uppercase tracking-widest text-stone-400 mt-1">Featured Ratio</p>
+        </div>
+        <div className="w-48 h-1.5 bg-stone-200 rounded-full overflow-hidden ml-8 hidden sm:block">
+           <div className={`h-full transition-all duration-1000 ${featuredPct > 50 ? 'bg-red-900' : 'bg-stone-900'}`} style={{ width: `${featuredPct}%` }} />
+        </div>
+      </div>
 
       {/* Section heading */}
       <div className="flex items-center gap-3 mb-1">

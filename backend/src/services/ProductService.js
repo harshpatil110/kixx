@@ -1,4 +1,4 @@
-const { eq, and } = require('drizzle-orm');
+const { eq, and, desc } = require('drizzle-orm');
 const { db } = require('../db/index');
 const { products, productVariants } = require('../db/schema');
 
@@ -28,10 +28,11 @@ class ProductService {
                 with: {
                     brand: true,
                 },
+                orderBy: [desc(products.isFeatured)],
             });
         } catch (error) {
-            console.error("PRODUCT FETCH ERROR:", error);
-            throw error;
+            console.error("PRODUCT FETCH ERROR (falling back to empty list):", error);
+            return []; // Stabilise UI even if DB is momentarily out of sync
         }
     }
 
@@ -41,13 +42,18 @@ class ProductService {
      * @returns {Object|null} The product with brand and variants, or null if not found
      */
     static async getProductById(productId) {
-        return await db.query.products.findFirst({
-            where: eq(products.id, productId),
-            with: {
-                brand: true,
-                variants: true,
-            },
-        });
+        try {
+            return await db.query.products.findFirst({
+                where: eq(products.id, productId),
+                with: {
+                    brand: true,
+                    variants: true,
+                },
+            });
+        } catch (error) {
+            console.error(`PRODUCT ID FETCH ERROR (${productId}):`, error);
+            return null;
+        }
     }
 
     /**
