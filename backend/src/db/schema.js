@@ -193,6 +193,21 @@ const pricingRules = pgTable('pricing_rules', {
     updatedAt: timestamp('updated_at').defaultNow()
 });
 
+// 4.4 Launch Metrics
+const launchMetrics = pgTable('launch_metrics', {
+    id: serial('id').primaryKey(),
+    foundingMembersCount: integer('founding_members_count'),
+    listConversionRate: decimal('list_conversion_rate', { precision: 5, scale: 2 }),
+    promoCodeUses: integer('promo_code_uses'),
+});
+
+// 4.5 Goodie Allocations
+const goodieAllocations = pgTable('goodie_allocations', {
+    id: serial('id').primaryKey(),
+    itemName: varchar('item_name', { length: 255 }),
+    quantityAllocated: integer('quantity_allocated'),
+});
+
 
 // RELATIONSHIPS
 
@@ -268,6 +283,8 @@ module.exports = {
     userCollection,
     userFeedback,
     productReviews,
+    launchMetrics,
+    goodieAllocations,
     usersRelations,
     brandsRelations,
     productsRelations,
