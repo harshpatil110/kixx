@@ -4,6 +4,7 @@ import { auth } from '../config/firebase';
 import useCartStore from '../store/cartStore';
 import { formatPrice } from '../utils/currency';
 import toast from 'react-hot-toast';
+import api from '../services/api';
 
 export default function CheckoutPage() {
     const { items, getTotalPrice, clearCart } = useCartStore();
@@ -19,17 +20,30 @@ export default function CheckoutPage() {
     const [promoCodeInput, setPromoCodeInput] = useState('');
     const [appliedPromo, setAppliedPromo] = useState(null);
     const [promoError, setPromoError] = useState(null);
+    const [discount, setDiscount] = useState(0);
+    const [discountPercentage, setDiscountPercentage] = useState(null);
 
-    const handleApplyPromo = (e) => {
+    const subtotal = getTotalPrice();
+
+    const handleApplyPromo = async (e) => {
         e.preventDefault();
         if (!promoCodeInput.trim()) return;
-        if (promoCodeInput.trim().toUpperCase() === 'FIRSTDROP') {
-            setAppliedPromo('FIRSTDROP');
+        
+        try {
+            const res = await api.post('/api/checkout/apply-promo', { 
+                promoCode: promoCodeInput.trim().toUpperCase(), 
+                cartTotal: subtotal 
+            });
+            setAppliedPromo(promoCodeInput.trim().toUpperCase());
+            setDiscount(res.data.discountAmount);
+            setDiscountPercentage(res.data.discountPercentage);
             setPromoError(null);
-            toast.success("Promo code FIRSTDROP applied!");
-        } else {
-            setPromoError('Invalid promo code');
+            toast.success("Promo code applied!");
+        } catch (error) {
+            setPromoError(error.response?.data?.message || 'Invalid or expired code');
             setAppliedPromo(null);
+            setDiscount(0);
+            setDiscountPercentage(null);
         }
     };
 
@@ -38,10 +52,10 @@ export default function CheckoutPage() {
         setAppliedPromo(null);
         setPromoCodeInput('');
         setPromoError(null);
+        setDiscount(0);
+        setDiscountPercentage(null);
     };
 
-    const subtotal = getTotalPrice();
-    const discount = appliedPromo === 'FIRSTDROP' ? subtotal * 0.10 : 0;
     const discountedSubtotal = subtotal - discount;
     const taxes = Math.round(discountedSubtotal * 0.18);
     const total = discountedSubtotal + taxes;
@@ -118,21 +132,21 @@ export default function CheckoutPage() {
                                 {/* Promo Logic Integration */}
                                 <div className="mt-4 pt-4 border-b border-[#b1b3a9]/20 pb-6">
                                     <label className="font-['Inter',sans-serif] text-[10px] uppercase tracking-widest text-[#5e6058] block mb-3">Redeem Credit</label>
-                                    <div className="flex gap-2 h-12">
+                                    <div className="flex items-center gap-4">
                                         <input 
                                             value={promoCodeInput} onChange={e => setPromoCodeInput(e.target.value)}
-                                            className="flex-1 bg-white border border-[#b1b3a9]/30 rounded-sm px-4 focus:ring-0 focus:border-[#3856c4] font-['Inter',sans-serif] font-bold text-sm outline-none uppercase placeholder:text-[#b1b3a9]" 
+                                            className="border-b border-stone-300 bg-transparent focus:border-stone-900 focus:outline-none uppercase text-xs tracking-widest placeholder-stone-400 w-full py-2 font-['Inter',sans-serif]" 
                                             placeholder="PROMO CODE" 
                                             disabled={!!appliedPromo}
                                         />
                                         {!appliedPromo ? (
-                                            <button onClick={handleApplyPromo} type="button" className="bg-[#31332c] text-white px-6 font-['Inter',sans-serif] font-bold text-[10px] uppercase tracking-widest rounded-sm hover:bg-black transition-colors min-w-[100px]">Apply</button>
+                                            <button onClick={handleApplyPromo} type="button" className="text-[10px] uppercase tracking-widest border border-stone-900 text-stone-900 hover:bg-stone-900 hover:text-white px-4 py-2 transition-all font-['Inter',sans-serif]">Apply</button>
                                         ) : (
-                                            <button onClick={handleRemovePromo} type="button" className="bg-red-50 text-red-600 px-6 font-['Inter',sans-serif] font-bold text-[10px] uppercase tracking-widest rounded-sm transition-colors border border-red-200 hover:bg-red-100 min-w-[100px]">Remove</button>
+                                            <button onClick={handleRemovePromo} type="button" className="text-[10px] uppercase tracking-widest border border-red-800 text-red-800 hover:bg-red-800 hover:text-white px-4 py-2 transition-all font-['Inter',sans-serif]">Remove</button>
                                         )}
                                     </div>
-                                    {promoError && <p className="text-[#9e422c] font-['Inter',sans-serif] text-[10px] uppercase tracking-widest mt-3 font-bold">{promoError}</p>}
-                                    {appliedPromo && <p className="text-[#3856c4] font-['Inter',sans-serif] font-bold text-[10px] uppercase tracking-widest mt-3">Discount Applied (10% OFF): -{formatPrice(discount)}</p>}
+                                    {promoError && <p className="text-red-700 font-['Inter',sans-serif] text-[10px] uppercase tracking-widest mt-3 font-bold">{promoError}</p>}
+                                    {appliedPromo && <p className="text-[#31332c] font-['Inter',sans-serif] font-bold text-[10px] uppercase tracking-widest mt-3">Discount Applied ({discountPercentage}% OFF): -{formatPrice(discount)}</p>}
                                 </div>
 
                                 <div className="flex justify-between items-end pt-4">

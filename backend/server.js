@@ -13,6 +13,7 @@ const feedbackRoutes = require('./src/routes/feedback');
 const recommendationRoutes = require('./src/routes/recommendations');
 const outfitRoutes = require('./src/routes/outfit');
 const aiRoutes = require('./src/routes/aiRoutes');
+const checkoutRoutes = require('./src/routes/checkout');
 
 const app = express();
 
@@ -35,6 +36,7 @@ app.use('/api/feedback', feedbackRoutes);
 app.use('/api/recommendations', recommendationRoutes);
 app.use('/api/outfit', outfitRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/checkout', checkoutRoutes);
 
 // 404 Route Not Found Middleware
 app.use((req, res, next) => {

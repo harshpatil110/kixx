@@ -208,6 +208,15 @@ const goodieAllocations = pgTable('goodie_allocations', {
     quantityAllocated: integer('quantity_allocated'),
 });
 
+// 4.6 Promo Codes
+const promoCodes = pgTable('promo_codes', {
+    id: serial('id').primaryKey(),
+    code: varchar('code', { length: 50 }).unique().notNull(),
+    discountPercentage: integer('discount_percentage').notNull(),
+    usageCount: integer('usage_count').default(0),
+    isActive: boolean('is_active').default(true),
+});
+
 
 // RELATIONSHIPS
 
@@ -285,6 +294,7 @@ module.exports = {
     productReviews,
     launchMetrics,
     goodieAllocations,
+    promoCodes,
     usersRelations,
     brandsRelations,
     productsRelations,
