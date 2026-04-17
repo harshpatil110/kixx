@@ -96,8 +96,15 @@ function NotFound() {
 // ---------------------------------------------------------------------------
 // App
 // ---------------------------------------------------------------------------
-export default function App() {
+function AppContent() {
   const { setAuth, setAuthLoading, clearAuth } = useAuthStore();
+  const location = useLocation();
+  const hideNavAndFooter = 
+    location.pathname === '/' || 
+    location.pathname === '/login' || 
+    location.pathname === '/signup' || 
+    location.pathname === '/register' ||
+    location.pathname.startsWith('/admin');
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -122,11 +129,11 @@ export default function App() {
   }, [setAuth, clearAuth, setAuthLoading]);
 
   return (
-    <BrowserRouter>
+    <>
       <Toaster position="bottom-right" />
       <ChatbotWidget />
       <div className="flex flex-col min-h-screen">
-        <Navbar />
+        {!hideNavAndFooter && <Navbar />}
         <main className="flex-grow">
           <Routes>
 
@@ -333,8 +340,16 @@ export default function App() {
 
           </Routes>
         </main>
-        <Footer />
+        {!hideNavAndFooter && <Footer />}
       </div>
+    </>
+  );
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <AppContent />
     </BrowserRouter>
   );
 }
