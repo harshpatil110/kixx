@@ -28,6 +28,7 @@ const {
     getLaunchStats,
     getLaunchMetrics,
     getAudienceStats,
+    getMarketingStats,
 } = require('../controllers/adminController');
 
 // ---------------------------------------------------------------------------
@@ -70,6 +71,7 @@ router.get('/retention-stats', getRetentionStats);
 router.get('/launch-stats', getLaunchStats);
 router.get('/launch-metrics', getLaunchMetrics);
 router.get('/audience-stats', getAudienceStats);
+router.get('/marketing-stats', getMarketingStats);
 
 // Feedback management
 router.get('/feedback', getAllFeedback);

@@ -55,6 +55,7 @@ const SettingsPage = lazy(() => import('./pages/admin/SettingsPage'));
 const VisualizationPage = lazy(() => import('./pages/admin/VisualizationPage'));
 const FeedbackManagement = lazy(() => import('./pages/admin/FeedbackManagement'));
 const ReviewsManagementPage = lazy(() => import('./pages/admin/ReviewsManagementPage'));
+const MarketingPage = lazy(() => import('./pages/admin/MarketingPage'));
 
 // ── Features ──
 const OutfitCheckerPage = lazy(() => import('./pages/OutfitCheckerPage'));
@@ -197,6 +198,11 @@ function AppContent() {
             <Route path="reviews" element={
               <Suspense fallback={<GenericPageSkeleton />}>
                 <ReviewsManagementPage />
+              </Suspense>
+            } />
+            <Route path="marketing" element={
+              <Suspense fallback={<GenericPageSkeleton />}>
+                <MarketingPage />
               </Suspense>
             } />
           </Route>

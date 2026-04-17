@@ -23,6 +23,7 @@ import ReviewAnalytics from '../../components/admin/ReviewAnalytics';
 import RetentionAnalytics from '../../components/admin/RetentionAnalytics';
 import LaunchAnalytics from '../../components/admin/LaunchAnalytics';
 import PersonaAnalytics from '../../components/admin/PersonaAnalytics';
+import MarketingAnalytics from '../../components/admin/MarketingAnalytics';
 
 // ── Brand Donut Colors ──────────────────────────────────────────────────────
 const BRAND_COLORS = [
@@ -243,6 +244,9 @@ export default function DashboardPage() {
         <h2 className="text-xl font-black text-stone-900 uppercase tracking-tight mb-6">User Retention & Campaign Data</h2>
         <RetentionAnalytics />
       </div>
+
+      {/* ── Influencer & Affiliate Performance ──────────────────────────────── */}
+      <MarketingAnalytics />
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         {/* Donut Chart */}

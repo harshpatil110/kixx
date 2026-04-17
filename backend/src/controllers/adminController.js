@@ -1,6 +1,6 @@
 const { db } = require('../db/index');
-const { users, products, brands, pastOrders, inventoryLogs, userFeedback, productReviews, launchMetrics, goodieAllocations } = require('../db/schema');
-const { sql, eq, asc, desc, count, gte } = require('drizzle-orm');
+const { users, products, brands, pastOrders, inventoryLogs, userFeedback, productReviews, launchMetrics, goodieAllocations, promoCodes } = require('../db/schema');
+const { sql, eq, asc, desc, count, gte, gt } = require('drizzle-orm');
 const bcrypt = require('bcrypt');
 const cloudinary = require('cloudinary').v2;
 
@@ -814,6 +814,29 @@ const getRetentionStats = async (req, res) => {
     }
 };
 
+/**
+ * GET /api/admin/marketing-stats
+ * Aggregates promo code usage to determine top influencer conversions.
+ */
+const getMarketingStats = async (req, res) => {
+    try {
+        const stats = await db
+            .select({
+                code: promoCodes.code,
+                usageCount: promoCodes.usageCount,
+                discountPercentage: promoCodes.discountPercentage,
+                isActive: promoCodes.isActive
+            })
+            .from(promoCodes)
+            .orderBy(desc(promoCodes.usageCount));
+
+        return res.status(200).json({ success: true, data: stats });
+    } catch (error) {
+        console.error('[Admin] ❌ Marketing Stats Error:', error.message);
+        return res.status(500).json({ success: false, message: 'Failed to fetch marketing stats.' });
+    }
+};
+
 module.exports = {
     getDashboardStats,
     getLaunchMetrics,
@@ -836,4 +859,5 @@ module.exports = {
     getRetentionStats,
     getLaunchStats,
     getAudienceStats,
+    getMarketingStats,
 };

@@ -12,6 +12,7 @@ import {
   MessageCircle,
   Star,
   PlusSquare,
+  Megaphone,
 } from 'lucide-react';
 import { signOut } from 'firebase/auth';
 import { auth } from '../config/firebase';
@@ -24,6 +25,7 @@ const NAV_ITEMS = [
   { to: '/admin/inventory/add', label: 'Add Product',   icon: PlusSquare },
   { to: '/admin/sales',         label: 'Sales',         icon: TrendingUp },
   { to: '/admin/customers',     label: 'Customers',     icon: Users },
+  { to: '/admin/marketing',     label: 'Marketing',     icon: Megaphone },
   { to: '/admin/visualization', label: 'Visualization', icon: Share2 },
   { to: '/admin/feedback',      label: 'Feedback',      icon: MessageCircle },
   { to: '/admin/reviews',       label: 'Reviews',       icon: Star },
