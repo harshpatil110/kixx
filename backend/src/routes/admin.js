@@ -26,6 +26,7 @@ const {
     addProduct,
     getRetentionStats,
     getLaunchStats,
+    getLaunchMetrics,
     getAudienceStats,
 } = require('../controllers/adminController');
 
@@ -67,6 +68,7 @@ router.get('/inventory-alerts', getLowStockAlerts);
 router.get('/feedback-stats', getFeedbackStats);
 router.get('/retention-stats', getRetentionStats);
 router.get('/launch-stats', getLaunchStats);
+router.get('/launch-metrics', getLaunchMetrics);
 router.get('/audience-stats', getAudienceStats);
 
 // Feedback management

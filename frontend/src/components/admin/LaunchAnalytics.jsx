@@ -1,5 +1,4 @@
-import React from 'react';
-import { useQuery } from '@tanstack/react-query';
+import React, { useEffect, useState } from 'react';
 import api from '../../services/api';
 import { 
   BarChart, Bar, 
@@ -34,14 +33,22 @@ const TOOLTIP_STYLE = {
 };
 
 export default function LaunchAnalytics() {
-  const { data: stats, isLoading, isError } = useQuery({
-    queryKey: ['launchStats'],
-    queryFn: async () => {
-      const res = await api.get('/api/admin/launch-stats');
-      return res.data;
-    },
-    refetchInterval: 30000, // Refresh every 30s during launch
-  });
+  const [launchData, setLaunchData] = useState({ metrics: null, goodies: [] });
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchMetrics() {
+      try {
+        const res = await api.get('/api/admin/launch-metrics');
+        setLaunchData({ metrics: res.data.metrics, goodies: res.data.goodies });
+      } catch (err) {
+        console.error('Failed to fetch launch metrics', err);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchMetrics();
+  }, []);
 
   if (isLoading) {
     return (
@@ -51,19 +58,15 @@ export default function LaunchAnalytics() {
     );
   }
 
-  if (isError) return null;
+  // Filter and map goodie data for chart
+  const goodieData = (launchData.goodies || []).map(d => ({
+    name: d.itemName,
+    count: d.quantityAllocated
+  }));
 
-  const eaCount = stats.earlyAdopterCount || 0;
+  const eaCount = launchData.metrics?.foundingMembersCount || 0;
   const eaLimit = 500;
   const eaPercentage = Math.min((eaCount / eaLimit) * 100, 100);
-
-  // Filter out 'None' for goodie distribution chart
-  const goodieData = (stats.goodieDistribution || [])
-    .filter(d => d.goodie && d.goodie !== 'None')
-    .map(d => ({
-      name: d.goodie,
-      count: parseInt(d.count, 10)
-    }));
 
   return (
     <div className="space-y-6 mb-10">
@@ -113,7 +116,7 @@ export default function LaunchAnalytics() {
                 </div>
                 <div>
                     <p className="text-[9px] font-black uppercase tracking-widest text-stone-400 leading-none mb-1">List Growth</p>
-                    <p className="text-xl font-black text-stone-900 tracking-tight">{stats.conversionRate}% <span className="text-[10px] font-bold text-stone-300 lowercase tracking-normal">conv.</span></p>
+                    <p className="text-xl font-black text-stone-900 tracking-tight">{launchData.metrics?.listConversionRate || 0}% <span className="text-[10px] font-bold text-stone-300 lowercase tracking-normal">conv.</span></p>
                 </div>
             </div>
             {/* Promo usage */}
@@ -123,7 +126,7 @@ export default function LaunchAnalytics() {
                 </div>
                 <div>
                     <p className="text-[9px] font-black uppercase tracking-widest text-stone-400 leading-none mb-1">Code: FIRSTDROP</p>
-                    <p className="text-xl font-black text-stone-900 tracking-tight">{stats.promoUsage} <span className="text-[10px] font-bold text-stone-300 lowercase tracking-normal">uses</span></p>
+                    <p className="text-xl font-black text-stone-900 tracking-tight">{launchData.metrics?.promoCodeUses || 0} <span className="text-[10px] font-bold text-stone-300 lowercase tracking-normal">uses</span></p>
                 </div>
             </div>
         </div>
@@ -137,7 +140,7 @@ export default function LaunchAnalytics() {
                 </div>
                 <div className="flex items-center gap-2">
                     <Gift className="w-4 h-4 text-stone-300" />
-                    <span className="text-[10px] font-black uppercase tracking-widest text-stone-900">{eaCount} Total Gifts</span>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-stone-900">Total Allocations</span>
                 </div>
             </div>
 

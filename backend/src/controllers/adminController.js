@@ -1,5 +1,5 @@
 const { db } = require('../db/index');
-const { users, products, brands, pastOrders, inventoryLogs, userFeedback, productReviews } = require('../db/schema');
+const { users, products, brands, pastOrders, inventoryLogs, userFeedback, productReviews, launchMetrics, goodieAllocations } = require('../db/schema');
 const { sql, eq, asc, desc, count, gte } = require('drizzle-orm');
 const bcrypt = require('bcrypt');
 const cloudinary = require('cloudinary').v2;
@@ -93,6 +93,25 @@ const getLaunchStats = async (req, res) => {
         });
     } catch (error) {
         console.error('[Admin] ❌ Launch Stats Error:', error.message);
+        return res.status(500).json({ success: false, message: 'Internal Server Error' });
+    }
+};
+
+/**
+ * GET /api/admin/launch-metrics
+ * Fetches statically seeded launch metrics and goodie allocations.
+ */
+const getLaunchMetrics = async (req, res) => {
+    try {
+        const launchMetricsData = await db.select().from(launchMetrics);
+        const goodieAllocationsData = await db.select().from(goodieAllocations);
+        
+        return res.status(200).json({
+            metrics: launchMetricsData[0],
+            goodies: goodieAllocationsData
+        });
+    } catch (error) {
+        console.error('[Admin] ❌ Get Launch Metrics Error:', error.message);
         return res.status(500).json({ success: false, message: 'Internal Server Error' });
     }
 };
@@ -797,6 +816,7 @@ const getRetentionStats = async (req, res) => {
 
 module.exports = {
     getDashboardStats,
+    getLaunchMetrics,
     getSalesByBrand,
     getLowStockAlerts,
     getInventory,
