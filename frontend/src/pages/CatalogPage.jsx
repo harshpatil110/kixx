@@ -5,6 +5,7 @@ import useAuthStore from '../store/authStore';
 import PromoToast from '../components/PromoToast';
 import ProductCard from '../components/ProductCard';
 import api from '../services/api';
+import { API_BASE_URL } from '../config/apiConfig';
 import toast from 'react-hot-toast';
 import { X, MessageSquare } from 'lucide-react';
 
@@ -411,8 +412,7 @@ export default function CatalogPage() {
         queryKey: ['products'],
         queryFn: async () => {
             try {
-                const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-                const res = await fetch(`${baseUrl}/api/products`);
+                const res = await fetch(`${API_BASE_URL}/api/products`);
                 if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
                 const data = await res.json();
                 return data.products;

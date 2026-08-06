@@ -1,9 +1,10 @@
 import axios from 'axios';
 import { auth } from '../config/firebase';
+import { API_BASE_URL } from '../config/apiConfig';
 
 const api = axios.create({
-    // Use Vite environment variable for API URL or fallback to localhost
-    baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000',
+    // Single source of truth for the API base URL (see config/apiConfig.js)
+    baseURL: API_BASE_URL,
 });
 
 // Request interceptor: Attach Firebase ID token to all requests if the user is authenticated

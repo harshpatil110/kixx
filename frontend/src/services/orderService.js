@@ -1,4 +1,5 @@
 import { auth } from '../config/firebase';
+import { API_BASE_URL } from '../config/apiConfig';
 
 /**
  * Saves a completed transaction snapshot to the database (post-payment).
@@ -11,7 +12,7 @@ import { auth } from '../config/firebase';
  */
 export const saveCompletedOrder = async (payload) => {
     const token = auth.currentUser ? await auth.currentUser.getIdToken() : '';
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+    const apiUrl = API_BASE_URL;
     
     const response = await fetch(`${apiUrl}/api/orders/save`, {
         method: 'POST',
@@ -38,7 +39,7 @@ export const saveCompletedOrder = async (payload) => {
  */
 export const getUserOrders = async () => {
     const token = auth.currentUser ? await auth.currentUser.getIdToken() : '';
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+    const apiUrl = API_BASE_URL;
     
     const response = await fetch(`${apiUrl}/api/orders/history`, {
         method: 'GET',
@@ -64,7 +65,7 @@ export const getUserOrders = async () => {
  */
 export const getOrderById = async (orderId) => {
     const token = auth.currentUser ? await auth.currentUser.getIdToken() : '';
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+    const apiUrl = API_BASE_URL;
     
     const response = await fetch(`${apiUrl}/api/orders/${orderId}`, {
         method: 'GET',

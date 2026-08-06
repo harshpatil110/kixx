@@ -3,6 +3,7 @@ import { useNavigate, Link, Navigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { auth } from '../config/firebase';
+import { API_BASE_URL } from '../config/apiConfig';
 import { syncUserWithBackend } from '../services/authService';
 import { Loader2, User, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import useAuthStore from '../store/authStore';
@@ -27,7 +28,7 @@ export default function RegisterPage() {
     React.useEffect(() => {
         const fetchCount = async () => {
             try {
-                const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/user/count`);
+                const res = await fetch(`${API_BASE_URL}/api/user/count`);
                 const data = await res.json();
                 setUserCount(data.count);
             } catch (err) {
