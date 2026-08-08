@@ -85,3 +85,10 @@ console.log('API keys reloaded');
 dbReadyPromise
     .then(() => console.log('✅ Neon DB is fully ready. All routes are live.'))
     .catch((err) => console.error('❌ DB never became ready:', err?.message));
+
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(5000, () => console.log('Server running on port 5000'));
+}
+
+// Vercel needs this export to run your backend!
+module.exports = app;
