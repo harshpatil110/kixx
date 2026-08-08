@@ -4,15 +4,18 @@
 // IMPORTANT: Vite inlines `import.meta.env` at BUILD time, not at runtime.
 // The value resolved here is frozen into the bundle when `npm run build` runs.
 //
-//   • Local dev  → VITE_API_BASE_URL in frontend/.env (http://localhost:5000)
-//   • Production → VITE_API_BASE_URL MUST be set in the host's build-time
-//                  environment (e.g. Vercel Project Settings → Environment
-//                  Variables). If it is missing, the fallback below is what
-//                  ships in the production bundle — that is exactly the
-//                  ERR_CONNECTION_REFUSED bug this module prevents.
+//   • Local dev   → BASE_URL is 'http://localhost:5000', so requests resolve
+//                   to http://localhost:5000/api/... (your Express server).
+//   • Production  → BASE_URL is '' (empty string), so requests resolve to
+//                   same-origin '/api/...' and hit Vercel's rewrite to the
+//                   backend service (see vercel.json). No build-time env var
+//                   is required.
 //
-// Keep the variable name identical in .env and the production host so the
-// build never silently falls back to localhost.
+// This dynamic switch is what fixes the ERR_CONNECTION_REFUSED bug caused by a
+// hardcoded 'http://localhost:5000' base URL shipping in the production bundle.
 // ---------------------------------------------------------------------------
-export const API_BASE_URL =
-    import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+const BASE_URL = import.meta.env.PROD ? '' : 'http://localhost:5000';
+
+// Exported under the name API_BASE_URL so every caller (services/pages) that
+// builds `${API_BASE_URL}/api/...` keeps working without changes.
+export const API_BASE_URL = BASE_URL;

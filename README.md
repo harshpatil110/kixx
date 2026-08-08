@@ -290,7 +290,7 @@ cp .env.example .env
 npm run dev
 ```
 
-The dev server starts on `http://localhost:5173` and proxies `/api/*` requests to `http://localhost:5000`.
+The dev server starts on `http://localhost:5173`. The frontend calls the backend API directly at `http://localhost:5000` (resolved in `frontend/src/config/apiConfig.js`); no dev proxy is used.
 
 ---
 
@@ -326,8 +326,8 @@ GEMINI_API_KEY="your_gemini_api_key"
 ### Frontend — `frontend/.env`
 
 ```env
-VITE_API_URL="http://localhost:5000"
-
+# API base URL is auto-detected in src/config/apiConfig.js via import.meta.env.PROD:
+# production → '' (same-origin '/api/...' → Vercel rewrite to backend); local dev → http://localhost:5000.
 VITE_FIREBASE_API_KEY="AIzaSy..."
 VITE_FIREBASE_AUTH_DOMAIN="your-project-id.firebaseapp.com"
 VITE_FIREBASE_PROJECT_ID="your-project-id"

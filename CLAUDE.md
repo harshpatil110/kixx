@@ -65,7 +65,7 @@ Two separate `.env` files (both git-ignored; templates in `.env.example`):
 
 - **`backend/.env`**: `PORT`, `DATABASE_URL`, `FIREBASE_PROJECT_ID` / `FIREBASE_CLIENT_EMAIL` / `FIREBASE_PRIVATE_KEY`, `RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET`, `CORS_ORIGIN`, `CLOUDINARY_CLOUD_NAME` / `CLOUDINARY_API_KEY` / `CLOUDINARY_API_SECRET`, `EMAIL_USER` / `EMAIL_PASS` (nodemailer, used by the AI outfit feature), optional `GEMINI_API_KEY`.
   - **Gotcha**: `FIREBASE_PRIVATE_KEY` must contain literal `\n` escape sequences (single string), not real newlines, when pasted from the Firebase console.
-- **`frontend/.env`**: `VITE_API_BASE_URL`, `VITE_FIREBASE_*` client config. The API base URL is consumed via the single shared module `frontend/src/config/apiConfig.js` (exports `API_BASE_URL`), which falls back to `http://localhost:5000` — so `VITE_API_BASE_URL` MUST be set at build time in production (e.g. Vercel), or the localhost fallback ships in the bundle.
+- **`frontend/.env`**: `VITE_FIREBASE_*` client config (plus optional `VITE_RAZORPAY_KEY_ID`). The API base URL is consumed via the single shared module `frontend/src/config/apiConfig.js` (exports `API_BASE_URL`), which auto-switches via `import.meta.env.PROD`: `''` in production (requests go to same-origin `/api/...` → `vercel.json` rewrite to the backend) and `http://localhost:5000` in local dev. **No build-time API env var is required** — do not add `VITE_API_BASE_URL` back to the Vercel environment.
 
 ## Practical notes
 

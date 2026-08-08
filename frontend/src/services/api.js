@@ -3,7 +3,10 @@ import { auth } from '../config/firebase';
 import { API_BASE_URL } from '../config/apiConfig';
 
 const api = axios.create({
-    // Single source of truth for the API base URL (see config/apiConfig.js)
+    // Origin-only base URL: '' in production, http://localhost:5000 in dev
+    // (see config/apiConfig.js). Every request path below carries its own
+    // '/api' prefix, so prod requests resolve to '/api/...' → Vercel rewrite.
+    // Do NOT append '/api' here or every call becomes '/api/api/...'.
     baseURL: API_BASE_URL,
 });
 
